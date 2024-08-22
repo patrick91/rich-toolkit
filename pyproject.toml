@@ -9,3 +9,8 @@ dependencies = ["rich>=13.7.1", "click>=8.1.7", "typing-extensions>=4.12.2"]
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.3.2",
+]

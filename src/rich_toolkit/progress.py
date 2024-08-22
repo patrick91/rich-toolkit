@@ -1,3 +1,5 @@
+from typing import Optional
+
 from rich.color import Color
 from rich.color_triplet import ColorTriplet
 from rich.console import Console, Group, RenderableType
@@ -24,7 +26,7 @@ class Progress(Live):
     def __init__(
         self,
         title: str,
-        console: Console | None = None,
+        console: Optional[Console] = None,
         base_color: Color = Color.parse("#079587"),
     ) -> None:
         self.counter = 0
