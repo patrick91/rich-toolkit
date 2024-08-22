@@ -1,6 +1,7 @@
 import string
 
 import click
+from rich.color import Color
 from rich.console import Console, Group, RenderableType
 from rich.control import Control
 from rich.live_render import LiveRender
@@ -10,7 +11,14 @@ from .row import RowWithTitle
 
 
 class Input:
-    def __init__(self, console: Console, tag: str, title: str, default: str = ""):
+    def __init__(
+        self,
+        console: Console,
+        tag: str,
+        title: str,
+        default: str = "",
+        base_color: Color = Color.parse("#f7393d"),
+    ):
         self.tag = tag
         self.title = title
         self.default = default
@@ -21,6 +29,7 @@ class Input:
         self._live_render = LiveRender("")
         self._moved_up = False
         self._padding_bottom = 1
+        self.base_color = base_color
 
     def _update_text(self, char: str) -> None:
         if char == "\x7f":
@@ -30,7 +39,9 @@ class Input:
 
     def _render_result(self) -> RenderableType:
         return RowWithTitle(
-            self.tag, self.title + " [#aaaaaa]" + (self.text or self.default)
+            self.tag,
+            self.title + " [#aaaaaa]" + (self.text or self.default),
+            base_color=self.base_color,
         )
 
     def _render_input(self) -> RenderableType:
@@ -41,6 +52,7 @@ class Input:
         return RowWithTitle(
             self.tag,
             Group(self.title, text),
+            base_color=self.base_color,
         )
 
     def _refresh(self, show_result: bool = False) -> None:

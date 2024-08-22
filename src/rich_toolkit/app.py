@@ -37,7 +37,13 @@ class App:
     def ask(
         self, title: str, tag: str, options: List[Option[ReturnValue]]
     ) -> ReturnValue:
-        menu = Menu(title=title, tag=tag, options=options, console=self.console)
+        menu = Menu(
+            title=title,
+            tag=tag,
+            options=options,
+            console=self.console,
+            base_color=self.base_color,
+        )
 
         value = menu.ask()
 
@@ -46,7 +52,13 @@ class App:
         return value
 
     def input(self, title: str, tag: str, default: str = "") -> str:
-        return Input(console=self.console, tag=tag, title=title, default=default).ask()
+        return Input(
+            console=self.console,
+            tag=tag,
+            title=title,
+            default=default,
+            base_color=self.base_color,
+        ).ask()
 
     def progress(self, title: str) -> Progress:
         return Progress(title=title, console=self.console, base_color=self.base_color)

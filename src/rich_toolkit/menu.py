@@ -2,6 +2,7 @@ from typing import Generic, List, Optional, TypeVar
 
 import click
 from rich import get_console
+from rich.color import Color
 from rich.console import Console, Group, RenderableType
 from rich.live import Live
 from rich.padding import Padding
@@ -32,6 +33,7 @@ class Menu(Generic[ReturnValue]):
         options: List[Option[ReturnValue]],
         *,
         console: Optional[Console] = None,
+        base_color: Color = Color.parse("#f7393d"),
     ):
         self.console = console or get_console()
 
@@ -42,9 +44,9 @@ class Menu(Generic[ReturnValue]):
         self.selected = 0
 
         self.row_style = Style()
-        self.selected_style = Style(color="#079587")
+        self.selected_style = Style.from_color(base_color)
 
-        self.value_style = Style(color="#9e9e9e")
+        self.base_color = base_color
 
     def get_key(self) -> Optional[Literal["down", "up", "enter"]]:
         char = click.getchar()
@@ -92,16 +94,20 @@ class Menu(Generic[ReturnValue]):
 
         group = Group(self.title, menu)
 
-        return Padding(RowWithTitle(self.tag, group), (0, 0, 2, 0))
+        return Padding(
+            RowWithTitle(self.tag, group, base_color=self.base_color), (0, 0, 2, 0)
+        )
 
     def _render_result(self) -> RenderableType:
         result_text = Text()
 
         result_text.append(self.title)
         result_text.append(" ")
-        result_text.append(self.options[self.selected]["name"], style=self.value_style)
+        result_text.append(
+            self.options[self.selected]["name"], style=Style.from_color(self.base_color)
+        )
 
-        return RowWithTitle(self.tag, result_text)
+        return RowWithTitle(self.tag, result_text, base_color=self.base_color)
 
     def ask(self) -> ReturnValue:
         with Live(
