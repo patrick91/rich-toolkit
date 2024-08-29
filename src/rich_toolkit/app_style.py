@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Any
+from typing import Any, Union
 
 from rich._loop import loop_last
 from rich.color import Color
@@ -18,7 +18,10 @@ class AppStyle(ABC):
     result_color: Color
 
     def __init__(
-        self, base_color: Color | str, title_color: Color | str, tag_width: int = 14
+        self,
+        base_color: Union[Color, str],
+        title_color: Union[Color, str],
+        tag_width: int = 14,
     ) -> None:
         self.tag_width = tag_width
         self.padding = 2

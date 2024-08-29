@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Generator
+from typing import Any, Callable, Generator, Union
 
 from rich.color import Color
 from rich.segment import Segment
@@ -21,7 +21,10 @@ class Decoration(ABC):
 
 class TagDecoration(Decoration):
     def __init__(
-        self, base_color: Color | str, title_color: Color | str, tag_width: int = 14
+        self,
+        base_color: Union[Color, str],
+        title_color: Union[Color, str],
+        tag_width: int = 14,
     ) -> None:
         self.tag_width = tag_width
         self.padding = 2
