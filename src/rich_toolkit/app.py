@@ -1,6 +1,5 @@
 from typing import Any, List
 
-from rich.color import Color
 from rich.console import Console
 
 from .app_style import AppStyle
@@ -11,9 +10,8 @@ from .row import RowWithDecoration
 
 
 class App:
-    def __init__(self, style: AppStyle, base_color: str = "#f7393d") -> None:
+    def __init__(self, style: AppStyle) -> None:
         self.console = Console()
-        self.base_color = Color.parse(base_color)
         self.style = style
 
     def __enter__(self):

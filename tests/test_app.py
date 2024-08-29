@@ -1,10 +1,15 @@
-from rich.color import Color
+from _pytest.capture import CaptureFixture
+from inline_snapshot import snapshot
 
 from rich_toolkit import App
 from rich_toolkit.app_style import FancyAppStyle
 
 
-def test_basic_usage():
+def test_print_line(capsys: CaptureFixture[str]) -> None:
     app = App(style=FancyAppStyle(base_color="#079587", title_color="#94E59A"))
 
-    assert app.base_color == Color.parse("#079587")
+    app.print_line()
+
+    captured = capsys.readouterr()
+
+    assert captured.out == snapshot("│\n")

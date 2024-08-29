@@ -14,4 +14,5 @@ build-backend = "hatchling.build"
 dev-dependencies = [
     "pytest>=8.3.2",
     "pdbpp>=0.10.3",
+    "inline-snapshot>=0.12.1",
 ]
