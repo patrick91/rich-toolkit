@@ -2,6 +2,7 @@ import string
 from typing import Any
 
 import click
+from rich._loop import loop_last
 from rich.console import Console, ConsoleOptions, Group, RenderableType, RenderResult
 from rich.control import Control
 from rich.live_render import LiveRender, VerticalOverflowMethod
@@ -52,13 +53,14 @@ class LiveRenderWithDecoration(LiveRender):
 
         new_line = Segment.line()
 
-        decoration = Segment.split_lines(
-            self.app_style.render_decoration(**self.metadata)
+        decorated_lines = Segment.split_lines(
+            self.app_style.decorate(lines, **self.metadata)
         )
 
-        for line in self.app_style.decorate(lines):
+        for last, line in loop_last(decorated_lines):
             yield from line
-            yield new_line
+            if not last:
+                yield new_line
 
         # for last, (decoration, line) in loop_last(zip(decoration, lines)):
         #     yield from decoration

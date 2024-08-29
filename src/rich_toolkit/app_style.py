@@ -64,24 +64,25 @@ class TaggedAppStyle(AppStyle):
         yield Segment(text, style=style)
         yield Segment(" " * self.padding)
 
-    def render_decoration(
-        self, animated: bool = False, **kwargs: Any
+    def decorate(
+        self, lines, animated: bool = False, **kwargs: Any
     ) -> RenderDecorationResult:
         if animated:
-            yield from self.render_animated_decoration(**kwargs)
+            yield from self.decorate_with_animation(lines)
+
             return
 
         tag = kwargs.get("tag", "")
 
         color = self.highlight_color if kwargs.get("title", False) else self.base_color
 
-        yield from self._render_tag(tag, background_color=color)
-
-        while True:
+        for index, line in enumerate(lines):
+            text = tag if index == 0 else ""
+            yield from self._render_tag(text, background_color=color)
+            yield from line
             yield Segment.line()
-            yield from self._render_tag("", background_color=color)
 
-    def render_animated_decoration(self, **kwargs) -> RenderDecorationResult:
+    def decorate_with_animation(self, lines) -> RenderDecorationResult:
         block = "█"
 
         block_length = 5
@@ -93,23 +94,46 @@ class TaggedAppStyle(AppStyle):
 
         self._animation_counter += 1
 
-        yield Segment(" " * left_padding)
+        for index, line in enumerate(lines):
+            if index == 0:
+                yield Segment(" " * left_padding)
 
-        for j in range(block_length):
-            color_index = (j + self._animation_counter) % len(colors)
-            yield Segment(block, style=Style(color=colors[color_index]))
+                for j in range(block_length):
+                    color_index = (j + self._animation_counter) % len(colors)
+                    yield Segment(block, style=Style(color=colors[color_index]))
 
-        yield Segment(" " * self.padding)
-        yield Segment.line()
+                yield Segment(" " * self.padding)
+            else:
+                yield Segment(" " * self.tag_width)
+
+            yield from line
+            yield Segment.line()
 
 
 class FancyAppStyle(AppStyle):
     def decorate(
         self, lines, animated: bool = False, **kwargs: Any
     ) -> RenderDecorationResult:
+        if animated:
+            colors = [lighten(self.base_color, 0.1 * i) for i in range(0, 5)]
+
+            self._animation_counter += 1
+
+            color_index = self._animation_counter % len(colors)
+
+            for index, (last, line) in enumerate(loop_last(lines)):
+                if index == 0:
+                    yield Segment("◆ ", style=Style(color=colors[color_index]))
+                else:
+                    yield Segment("  ")
+                yield from line
+                yield Segment.line()
+
+            return
+
         for index, (last, line) in enumerate(loop_last(lines)):
             if index == 0:
-                decoration = "┌ " if kwargs.get("title", False) else "◆"
+                decoration = "┌ " if kwargs.get("title", False) else "◆ "
             elif last:
                 decoration = "└ "
             else:
@@ -118,18 +142,6 @@ class FancyAppStyle(AppStyle):
             yield Segment(decoration)
             yield from line
             yield Segment.line()
-
-    def render_animated_decoration(self, **kwargs) -> RenderDecorationResult:
-        colors = [lighten(self.base_color, 0.1 * i) for i in range(0, 5)]
-
-        self._animation_counter += 1
-
-        color_index = self._animation_counter % len(colors)
-
-        yield Segment("◆", style=Style(color=colors[color_index]))
-
-        yield Segment(" ")
-        yield Segment.line()
 
     def render_empty_line(self) -> Text:
         return Text("│")

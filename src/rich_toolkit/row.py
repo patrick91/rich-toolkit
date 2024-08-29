@@ -1,6 +1,7 @@
 from typing import Any
 
 from rich.console import Console, ConsoleOptions, RenderableType, RenderResult
+from rich.segment import Segment
 
 from .app_style import AppStyle
 
@@ -23,6 +24,16 @@ class RowWithDecoration:
     ) -> RenderResult:
         lines = console.render_lines(self.content, options, pad=False)
 
+        # decoration_lines = Segment.split_lines(
+        #     self.style.render_decoration(animated=self.animated, **self.metadata)
         # )
 
-        yield from self.style.decorate(lines, animated=self.animated, **self.metadata)
+        for line in Segment.split_lines(
+            self.style.decorate(lines, animated=self.animated, **self.metadata)
+        ):
+            yield from line
+            yield Segment.line()
+        # yield from decoration
+        # yield from line
+
+        # yield Segment.line()
