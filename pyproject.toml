@@ -11,4 +11,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.uv]
-dev-dependencies = ["pytest>=8.3.2"]
+dev-dependencies = [
+    "pytest>=8.3.2",
+    "pdbpp>=0.10.3",
+]

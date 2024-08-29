@@ -2,15 +2,14 @@ from typing import Generic, List, Optional, TypeVar
 
 import click
 from rich import get_console
-from rich.color import Color
 from rich.console import Console, Group, RenderableType
 from rich.live import Live
-from rich.padding import Padding
 from rich.style import Style
 from rich.text import Text
-from typing_extensions import Literal, TypedDict
+from typing_extensions import Any, Literal, TypedDict
 
-from .row import RowWithTitle
+from .app_style import AppStyle
+from .row import RowWithDecoration
 
 ReturnValue = TypeVar("ReturnValue")
 
@@ -21,51 +20,59 @@ class Option(TypedDict, Generic[ReturnValue]):
 
 
 class Menu(Generic[ReturnValue]):
-    selection_char = "❯"
+    current_selection_char = "●"
+    selection_char = "○"
 
     DOWN_KEYS = ["\x1b[B", "j"]
     UP_KEYS = ["\x1b[A", "k"]
+    LEFT_KEYS = ["\x1b[D", "h"]
+    RIGHT_KEYS = ["\x1b[C", "l"]
 
     def __init__(
         self,
-        tag: str,
         title: str,
         options: List[Option[ReturnValue]],
+        inline: bool = False,
         *,
+        style: AppStyle,
         console: Optional[Console] = None,
-        base_color: Color = Color.parse("#f7393d"),
+        **metadata: Any,
     ):
         self.console = console or get_console()
 
-        self.tag = tag
         self.title = Text.from_markup(title)
         self.options = options
+        self.inline = inline
 
         self.selected = 0
 
         self.row_style = Style()
-        self.selected_style = Style.from_color(base_color)
+        self.metadata = metadata
+        self.style = style
 
-        self.base_color = base_color
-
-    def get_key(self) -> Optional[Literal["down", "up", "enter"]]:
+    def get_key(self) -> Optional[Literal["next", "prev", "enter"]]:
         char = click.getchar()
 
         if char == "\r":
             return "enter"
 
-        if char in self.DOWN_KEYS:
-            return "down"
+        next_keys, prev_keys = (
+            (self.LEFT_KEYS, self.RIGHT_KEYS)
+            if self.inline
+            else (self.DOWN_KEYS, self.UP_KEYS)
+        )
 
-        if char in self.UP_KEYS:
-            return "up"
+        if char in next_keys:
+            return "next"
+        if char in prev_keys:
+            return "prev"
 
         return None
 
     def _update_selection(self, key: str):
-        if key == "down":
+        if key == "next":
             self.selected += 1
-        elif key == "up":
+        elif key == "prev":
             self.selected -= 1
 
         if self.selected < 0:
@@ -77,26 +84,26 @@ class Menu(Generic[ReturnValue]):
     def _render_menu(self) -> RenderableType:
         menu = Text(justify="left")
 
-        selected_prefix = Text(self.selection_char + " ")
-        not_selected_prefix = Text(" " * (len(self.selection_char) + 1))
+        selected_prefix = Text(self.current_selection_char + " ")
+        not_selected_prefix = Text(self.selection_char + " ")
+
+        separator = Text("\t" if self.inline else "\n")
 
         for id_, option in enumerate(self.options):
             if id_ == self.selected:
                 prefix = selected_prefix
-                style = self.selected_style
+                style = Style.from_color(self.style.highlight_color)
             else:
                 prefix = not_selected_prefix
                 style = self.row_style
 
-            menu.append(Text.assemble(prefix, option["name"], "\n", style=style))
+            menu.append(Text.assemble(prefix, option["name"], separator, style=style))
 
         menu.rstrip()
 
         group = Group(self.title, menu)
 
-        return Padding(
-            RowWithTitle(self.tag, group, base_color=self.base_color), (0, 0, 2, 0)
-        )
+        return RowWithDecoration(group, style=self.style, **self.metadata)
 
     def _render_result(self) -> RenderableType:
         result_text = Text()
@@ -104,10 +111,11 @@ class Menu(Generic[ReturnValue]):
         result_text.append(self.title)
         result_text.append(" ")
         result_text.append(
-            self.options[self.selected]["name"], style=Style.from_color(self.base_color)
+            self.options[self.selected]["name"],
+            style=Style.from_color(self.style.result_color),
         )
 
-        return RowWithTitle(self.tag, result_text, base_color=self.base_color)
+        return RowWithDecoration(result_text, style=self.style, **self.metadata)
 
     def ask(self) -> ReturnValue:
         with Live(
