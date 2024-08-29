@@ -21,9 +21,7 @@ class AppStyle(ABC):
         self,
         base_color: Union[Color, str],
         title_color: Union[Color, str],
-        tag_width: int = 14,
     ) -> None:
-        self.tag_width = tag_width
         self.padding = 2
 
         self.text_color = Color.parse("#ffffff")
@@ -54,6 +52,11 @@ def lighten(color: Color, amount: float) -> Color:
 
 
 class TaggedAppStyle(AppStyle):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+        self.tag_width = kwargs.get("tag_width", 14)
+
     def _render_tag(self, text: str, background_color: Color) -> RenderDecorationResult:
         style = Style.from_color(Color.parse("#ffffff"), bgcolor=background_color)
 
