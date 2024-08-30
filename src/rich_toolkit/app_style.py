@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Generator, List, Union
+from typing import Any, Generator, Iterable, List, Union
 
 from rich._loop import loop_first_last
 from rich.color import Color
@@ -64,7 +64,7 @@ class AppStyle(ABC):
 
     @abstractmethod
     def decorate(
-        self, lines: List[List[Segment]], animated: bool = False, **kwargs: Any
+        self, lines: Iterable[List[Segment]], animated: bool = False, **kwargs: Any
     ) -> Generator[Segment, None, None]:
         raise NotImplementedError()
 
@@ -91,7 +91,7 @@ class TaggedAppStyle(AppStyle):
         yield Segment(" " * self.padding)
 
     def decorate(
-        self, lines: List[List[Segment]], animated: bool = False, **kwargs: Any
+        self, lines: Iterable[List[Segment]], animated: bool = False, **kwargs: Any
     ) -> Generator[Segment, None, None]:
         if animated:
             yield from self.decorate_with_animation(lines)
@@ -111,7 +111,7 @@ class TaggedAppStyle(AppStyle):
                 yield Segment.line()
 
     def decorate_with_animation(
-        self, lines: List[List[Segment]]
+        self, lines: Iterable[List[Segment]]
     ) -> Generator[Segment, None, None]:
         block = "█"
 
@@ -142,7 +142,7 @@ class TaggedAppStyle(AppStyle):
 
 class FancyAppStyle(AppStyle):
     def decorate(
-        self, lines: List[List[Segment]], animated: bool = False, **kwargs: Any
+        self, lines: Iterable[List[Segment]], animated: bool = False, **kwargs: Any
     ) -> Generator[Segment, None, None]:
         if animated:
             colors = [lighten(self.base_color, 0.1 * i) for i in range(0, 5)]
