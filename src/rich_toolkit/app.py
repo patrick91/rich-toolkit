@@ -1,19 +1,17 @@
-from typing import List
+from typing import Any, List
 
-from rich.color import Color
 from rich.console import Console
-from rich.padding import Padding
 
+from .app_style import AppStyle
 from .input import Input
 from .menu import Menu, Option, ReturnValue
 from .progress import Progress
-from .row import RowWithTitle
 
 
 class App:
-    def __init__(self, base_color: str = "#f7393d") -> None:
+    def __init__(self, style: AppStyle) -> None:
         self.console = Console()
-        self.base_color = Color.parse(base_color)
+        self.style = style
 
     def __enter__(self):
         self.console.print()
@@ -22,43 +20,48 @@ class App:
     def __exit__(self, *args, **kwargs):
         self.console.print()
 
-    def print_title(self, title: str, tag: str) -> None:
-        row = RowWithTitle(tag, title, base_color=self.base_color)
+    def print_title(self, title: str, **metadata: Any) -> None:
+        self.console.print(self.style.with_decoration(title, title=True, **metadata))
 
-        self.console.print(Padding(row, (0, 0, 1, 0)))
+    def print_line(self) -> None:
+        self.console.print(self.style.empty_line())
 
     def confirm(self, title: str, tag: str) -> bool:
         return self.ask(
             title=title,
             tag=tag,
             options=[{"value": True, "name": "Yes"}, {"value": False, "name": "No"}],
+            inline=True,
         )
 
     def ask(
-        self, title: str, tag: str, options: List[Option[ReturnValue]]
+        self,
+        title: str,
+        tag: str,
+        options: List[Option[ReturnValue]],
+        inline: bool = False,
     ) -> ReturnValue:
-        menu = Menu(
+        return Menu(
             title=title,
             tag=tag,
             options=options,
             console=self.console,
-            base_color=self.base_color,
-        )
+            style=self.style,
+            inline=inline,
+        ).ask()
 
-        value = menu.ask()
-
-        self.console.print()
-
-        return value
-
-    def input(self, title: str, tag: str, default: str = "") -> str:
+    def input(self, title: str, default: str = "", **metadata: Any) -> str:
         return Input(
             console=self.console,
-            tag=tag,
+            style=self.style,
             title=title,
             default=default,
-            base_color=self.base_color,
+            **metadata,
         ).ask()
 
     def progress(self, title: str) -> Progress:
-        return Progress(title=title, console=self.console, base_color=self.base_color)
+        return Progress(
+            title=title,
+            console=self.console,
+            style=self.style,
+        )
