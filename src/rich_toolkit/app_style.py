@@ -1,5 +1,5 @@
-from abc import ABC
-from typing import Any, Union
+from abc import ABC, abstractmethod
+from typing import Any, Generator, List, Union
 
 from rich._loop import loop_last
 from rich.color import Color
@@ -8,7 +8,7 @@ from rich.segment import Segment
 from rich.style import Style
 from rich.text import Text
 
-from rich_toolkit.decorations import RenderDecorationResult
+RenderDecorationResult = Generator[Segment, None, None]
 
 
 class AppStyle(ABC):
@@ -37,6 +37,12 @@ class AppStyle(ABC):
 
     def render_empty_line(self) -> Text:
         return Text(" ")
+
+    @abstractmethod
+    def decorate(
+        self, lines: List[List[Segment]], animated: bool = False, **kwargs: Any
+    ) -> RenderDecorationResult:
+        raise NotImplementedError()
 
 
 def lighten(color: Color, amount: float) -> Color:
@@ -71,7 +77,7 @@ class TaggedAppStyle(AppStyle):
         yield Segment(" " * self.padding)
 
     def decorate(
-        self, lines, animated: bool = False, **kwargs: Any
+        self, lines: List[List[Segment]], animated: bool = False, **kwargs: Any
     ) -> RenderDecorationResult:
         if animated:
             yield from self.decorate_with_animation(lines)
@@ -88,7 +94,9 @@ class TaggedAppStyle(AppStyle):
             yield from line
             yield Segment.line()
 
-    def decorate_with_animation(self, lines) -> RenderDecorationResult:
+    def decorate_with_animation(
+        self, lines: List[List[Segment]]
+    ) -> RenderDecorationResult:
         block = "█"
 
         block_length = 5
@@ -118,7 +126,7 @@ class TaggedAppStyle(AppStyle):
 
 class FancyAppStyle(AppStyle):
     def decorate(
-        self, lines, animated: bool = False, **kwargs: Any
+        self, lines: List[List[Segment]], animated: bool = False, **kwargs: Any
     ) -> RenderDecorationResult:
         if animated:
             colors = [lighten(self.base_color, 0.1 * i) for i in range(0, 5)]
