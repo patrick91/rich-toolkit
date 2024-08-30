@@ -9,7 +9,6 @@ from rich.text import Text
 from typing_extensions import Any, Literal, TypedDict
 
 from .app_style import AppStyle
-from .row import RowWithDecoration
 
 ReturnValue = TypeVar("ReturnValue")
 
@@ -103,7 +102,7 @@ class Menu(Generic[ReturnValue]):
 
         group = Group(self.title, menu)
 
-        return RowWithDecoration(group, style=self.style, **self.metadata)
+        return self.style.with_decoration(group, **self.metadata)
 
     def _render_result(self) -> RenderableType:
         result_text = Text()
@@ -115,7 +114,7 @@ class Menu(Generic[ReturnValue]):
             style=Style.from_color(self.style.result_color),
         )
 
-        return RowWithDecoration(result_text, style=self.style, **self.metadata)
+        return self.style.with_decoration(result_text, **self.metadata)
 
     def ask(self) -> ReturnValue:
         with Live(

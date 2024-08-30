@@ -6,7 +6,6 @@ from rich.live import Live
 from typing_extensions import Any
 
 from .app_style import AppStyle
-from .row import RowWithDecoration
 
 
 class Progress(Live):
@@ -27,7 +26,7 @@ class Progress(Live):
         return self
 
     def get_renderable(self) -> Any:
-        return RowWithDecoration(self.current_message, style=self.style, animated=True)
+        return self.style.with_decoration(self.current_message, animated=True)
 
     def log(self, text: str) -> None:
         self.current_message = text

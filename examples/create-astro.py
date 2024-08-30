@@ -10,9 +10,7 @@ def random_name_generator() -> str:
 
 
 app_style = TaggedAppStyle(base_color="#9334EB", title_color="#94E59A", tag_width=7)
-app_style_fancy = FancyAppStyle(
-    base_color="#9334EB", title_color="#94E59A", tag_width=7
-)
+app_style_fancy = FancyAppStyle(base_color="#9334EB", title_color="#94E59A")
 
 for style in [app_style, app_style_fancy]:
     with App(style=style) as app:

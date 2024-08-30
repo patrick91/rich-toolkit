@@ -6,7 +6,6 @@ from .app_style import AppStyle
 from .input import Input
 from .menu import Menu, Option, ReturnValue
 from .progress import Progress
-from .row import RowWithDecoration
 
 
 class App:
@@ -22,9 +21,7 @@ class App:
         self.console.print()
 
     def print_title(self, title: str, **metadata: Any) -> None:
-        row = RowWithDecoration(title, style=self.style, title=True, **metadata)
-
-        self.console.print(row)
+        self.console.print(self.style.with_decoration(title, title=True, **metadata))
 
     def print_line(self) -> None:
         self.console.print(self.style.render_empty_line())

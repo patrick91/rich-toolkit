@@ -4,6 +4,13 @@ from typing import Any, Generator, List, Union
 from rich._loop import loop_last
 from rich.color import Color
 from rich.color_triplet import ColorTriplet
+from rich.console import (
+    Console,
+    ConsoleOptions,
+    ConsoleRenderable,
+    RenderableType,
+    RenderResult,
+)
 from rich.segment import Segment
 from rich.style import Style
 from rich.text import Text
@@ -38,6 +45,24 @@ class AppStyle(ABC):
     def render_empty_line(self) -> Text:
         return Text(" ")
 
+    def with_decoration(
+        self, content: RenderableType, animated: bool = False, **metadata: Any
+    ) -> ConsoleRenderable:
+        class WithDecoration:
+            @staticmethod
+            def __rich_console__(
+                console: Console, options: ConsoleOptions
+            ) -> RenderResult:
+                lines = console.render_lines(content, options, pad=False)
+
+                for line in Segment.split_lines(
+                    self.decorate(lines, animated=animated, **metadata)
+                ):
+                    yield from line
+                    yield Segment.line()
+
+        return WithDecoration()
+
     @abstractmethod
     def decorate(
         self, lines: List[List[Segment]], animated: bool = False, **kwargs: Any
@@ -59,9 +84,9 @@ def lighten(color: Color, amount: float) -> Color:
 
 class TaggedAppStyle(AppStyle):
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
+        self.tag_width = kwargs.pop("tag_width", 14)
 
-        self.tag_width = kwargs.get("tag_width", 14)
+        super().__init__(*args, **kwargs)
 
     def _render_tag(self, text: str, background_color: Color) -> RenderDecorationResult:
         style = Style.from_color(Color.parse("#ffffff"), bgcolor=background_color)
