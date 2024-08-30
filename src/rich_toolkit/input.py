@@ -2,7 +2,6 @@ import string
 from typing import Any
 
 import click
-from rich._loop import loop_last
 from rich.console import Console, ConsoleOptions, Group, RenderableType, RenderResult
 from rich.control import Control
 from rich.live_render import LiveRender, VerticalOverflowMethod
@@ -51,22 +50,7 @@ class LiveRenderWithDecoration(LiveRender):
                 shape = Segment.get_shape(lines)
         self._shape = shape
 
-        new_line = Segment.line()
-
-        decorated_lines = Segment.split_lines(
-            self.app_style.decorate(lines, **self.metadata)
-        )
-
-        for last, line in loop_last(decorated_lines):
-            yield from line
-            if not last:
-                yield new_line
-
-        # for last, (decoration, line) in loop_last(zip(decoration, lines)):
-        #     yield from decoration
-        #     yield from line
-        #     if not last:
-        #         yield new_line
+        yield from self.app_style.decorate(lines, **self.metadata)
 
     def fix_cursor(self, offset: int) -> Control:
         decoration_lines = list(self.app_style.decorate([[]]))

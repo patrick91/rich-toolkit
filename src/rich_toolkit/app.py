@@ -24,7 +24,7 @@ class App:
         self.console.print(self.style.with_decoration(title, title=True, **metadata))
 
     def print_line(self) -> None:
-        self.console.print(self.style.render_empty_line())
+        self.console.print(self.style.empty_line())
 
     def confirm(self, title: str, tag: str) -> bool:
         return self.ask(
@@ -41,16 +41,14 @@ class App:
         options: List[Option[ReturnValue]],
         inline: bool = False,
     ) -> ReturnValue:
-        menu = Menu(
+        return Menu(
             title=title,
             tag=tag,
             options=options,
             console=self.console,
             style=self.style,
             inline=inline,
-        )
-
-        return menu.ask()
+        ).ask()
 
     def input(self, title: str, default: str = "", **metadata: Any) -> str:
         return Input(
