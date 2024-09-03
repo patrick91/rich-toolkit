@@ -18,26 +18,10 @@ from .utils.colors import lighten
 
 
 class AppStyle(ABC):
-    base_color: Color
-    highlight_color: Color
-    text_color: Color
     result_color: Color
 
-    def __init__(
-        self,
-        base_color: Union[Color, str],
-        title_color: Union[Color, str],
-    ) -> None:
+    def __init__(self) -> None:
         self.padding = 2
-
-        self.text_color = Color.parse("#ffffff")
-        self.result_color = Color.parse("#aaaaaa")
-        self.base_color = (
-            Color.parse(base_color) if isinstance(base_color, str) else base_color
-        )
-        self.highlight_color = (
-            Color.parse(title_color) if isinstance(title_color, str) else title_color
-        )
 
         self._animation_counter = 0
 
@@ -55,7 +39,9 @@ class AppStyle(ABC):
                 lines = console.render_lines(content, options, pad=False)
 
                 for line in Segment.split_lines(
-                    self.decorate(lines, animated=animated, **metadata)
+                    self.decorate(
+                        lines=lines, console=console, animated=animated, **metadata
+                    )
                 ):
                     yield from line
                     yield Segment.line()
@@ -64,9 +50,27 @@ class AppStyle(ABC):
 
     @abstractmethod
     def decorate(
-        self, lines: Iterable[List[Segment]], animated: bool = False, **kwargs: Any
+        self,
+        console: Console,
+        lines: Iterable[List[Segment]],
+        animated: bool = False,
+        **kwargs: Any,
     ) -> Generator[Segment, None, None]:
         raise NotImplementedError()
+
+    def _get_animation_colors(self, console: Console, steps: int = 5) -> List[Color]:
+        base_color = console.get_style("progress").bgcolor
+
+        # to lighten the colors we need to convert them to RGB
+        # if we are using a named colors we can't do that unfortunately
+        if base_color and base_color.triplet is None:
+            base_color = None
+
+        return (
+            [lighten(base_color, 0.1 * i) for i in range(0, steps)]
+            if base_color
+            else [Color.parse("black")]
+        )
 
 
 class TaggedAppStyle(AppStyle):
@@ -76,9 +80,14 @@ class TaggedAppStyle(AppStyle):
         super().__init__(*args, **kwargs)
 
     def _render_tag(
-        self, text: str, background_color: Color
+        self,
+        text: str,
+        console: Console,
+        **metadata: Any,
     ) -> Generator[Segment, None, None]:
-        style = Style.from_color(Color.parse("#ffffff"), bgcolor=background_color)
+        style_name = "tag.title" if metadata.get("title", False) else "tag"
+
+        style = console.get_style(style_name)
 
         if text:
             text = f" {text} "
@@ -91,40 +100,40 @@ class TaggedAppStyle(AppStyle):
         yield Segment(" " * self.padding)
 
     def decorate(
-        self, lines: Iterable[List[Segment]], animated: bool = False, **kwargs: Any
+        self,
+        console: Console,
+        lines: Iterable[List[Segment]],
+        animated: bool = False,
+        **metadata: Any,
     ) -> Generator[Segment, None, None]:
         if animated:
-            yield from self.decorate_with_animation(lines)
+            yield from self.decorate_with_animation(lines=lines, console=console)
 
             return
 
-        tag = kwargs.get("tag", "")
-
-        color = self.highlight_color if kwargs.get("title", False) else self.base_color
+        tag = metadata.get("tag", "")
 
         for first, last, line in loop_first_last(lines):
             text = tag if first else ""
-            yield from self._render_tag(text, background_color=color)
+            yield from self._render_tag(text, console=console, **metadata)
             yield from line
 
             if not last:
                 yield Segment.line()
 
     def decorate_with_animation(
-        self, lines: Iterable[List[Segment]]
+        self, console: Console, lines: Iterable[List[Segment]]
     ) -> Generator[Segment, None, None]:
         block = "█"
-
         block_length = 5
-
-        colors = [lighten(self.base_color, 0.1 * i) for i in range(0, block_length)]
+        colors = self._get_animation_colors(console, steps=block_length)
 
         left_padding = self.tag_width - block_length
         left_padding = max(0, left_padding)
 
         self._animation_counter += 1
 
-        for first, last, line in loop_first_last(lines):
+        for first, _, line in loop_first_last(lines):
             if first:
                 yield Segment(" " * left_padding)
 
@@ -142,10 +151,14 @@ class TaggedAppStyle(AppStyle):
 
 class FancyAppStyle(AppStyle):
     def decorate(
-        self, lines: Iterable[List[Segment]], animated: bool = False, **kwargs: Any
+        self,
+        console: Console,
+        lines: Iterable[List[Segment]],
+        animated: bool = False,
+        **kwargs: Any,
     ) -> Generator[Segment, None, None]:
         if animated:
-            colors = [lighten(self.base_color, 0.1 * i) for i in range(0, 5)]
+            colors = self._get_animation_colors(console)
 
             self._animation_counter += 1
 

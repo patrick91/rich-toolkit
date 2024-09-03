@@ -15,6 +15,7 @@ class LiveRenderWithDecoration(LiveRender):
         self,
         renderable: RenderableType,
         style: AppStyle,
+        console: Console,
         vertical_overflow: VerticalOverflowMethod = "ellipsis",
         **metadata: Any,
     ) -> None:
@@ -22,16 +23,22 @@ class LiveRenderWithDecoration(LiveRender):
 
         self.metadata = metadata
         self.app_style = style
+        self.console = console
 
     def __rich_console__(
         self, console: Console, options: ConsoleOptions
     ) -> RenderResult:
         lines = Segment.split_lines(super().__rich_console__(console, options))  # type: ignore
 
-        yield from self.app_style.decorate(lines, **self.metadata)
+        yield from self.app_style.decorate(
+            lines=lines, console=console, **self.metadata
+        )
 
     def fix_cursor(self, offset: int) -> Control:
-        decoration_lines = list(self.app_style.decorate([[]]))
+        # TODO: do we need the actual console here?
+        decoration_lines = list(
+            self.app_style.decorate(lines=[[]], console=self.console)
+        )
 
         decoration = next(Segment.split_lines(decoration_lines))
         decoration_width = Segment.get_line_length(decoration)
@@ -55,7 +62,9 @@ class Input:
         self.console = console
         self.style = style
 
-        self._live_render = LiveRenderWithDecoration("", style=self.style, **metadata)
+        self._live_render = LiveRenderWithDecoration(
+            "", console=console, style=self.style, **metadata
+        )
         self._padding_bottom = 1
 
     def _update_text(self, char: str) -> None:
@@ -65,11 +74,11 @@ class Input:
             self.text += char
 
     def _render_result(self) -> RenderableType:
-        return self.title + " [#aaaaaa]" + (self.text or self.default)
+        return self.title + " [result]" + (self.text or self.default)
 
     def _render_input(self) -> Group:
         text = (
-            f"[#ffffff]{self.text}[/]" if self.text else f"[#aaaaaa]{self.default}[/]"
+            f"[text]{self.text}[/]" if self.text else f"[placeholder]{self.default}[/]"
         )
 
         return Group(self.title, text)

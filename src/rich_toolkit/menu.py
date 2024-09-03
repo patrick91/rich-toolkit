@@ -45,7 +45,6 @@ class Menu(Generic[ReturnValue]):
 
         self.selected = 0
 
-        self.row_style = Style()
         self.metadata = metadata
         self.style = style
 
@@ -91,10 +90,10 @@ class Menu(Generic[ReturnValue]):
         for id_, option in enumerate(self.options):
             if id_ == self.selected:
                 prefix = selected_prefix
-                style = Style.from_color(self.style.highlight_color)
+                style = self.console.get_style("selected")
             else:
                 prefix = not_selected_prefix
-                style = self.row_style
+                style = self.console.get_style("text")
 
             menu.append(Text.assemble(prefix, option["name"], separator, style=style))
 
@@ -111,7 +110,7 @@ class Menu(Generic[ReturnValue]):
         result_text.append(" ")
         result_text.append(
             self.options[self.selected]["name"],
-            style=Style.from_color(self.style.result_color),
+            style=self.console.get_style("result"),
         )
 
         return self.style.with_decoration(result_text, **self.metadata)
