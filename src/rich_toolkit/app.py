@@ -26,28 +26,28 @@ class App:
     def print_line(self) -> None:
         self.console.print(self.style.empty_line())
 
-    def confirm(self, title: str, tag: str) -> bool:
+    def confirm(self, title: str, **metadata: Any) -> bool:
         return self.ask(
             title=title,
-            tag=tag,
             options=[{"value": True, "name": "Yes"}, {"value": False, "name": "No"}],
             inline=True,
+            **metadata,
         )
 
     def ask(
         self,
         title: str,
-        tag: str,
         options: List[Option[ReturnValue]],
         inline: bool = False,
+        **metadata: Any,
     ) -> ReturnValue:
         return Menu(
             title=title,
-            tag=tag,
             options=options,
             console=self.console,
             style=self.style,
             inline=inline,
+            **metadata,
         ).ask()
 
     def input(self, title: str, default: str = "", **metadata: Any) -> str:
