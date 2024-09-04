@@ -24,6 +24,15 @@ class App:
     def print_title(self, title: str, **metadata: Any) -> None:
         self.console.print(self.style.with_decoration(title, title=True, **metadata))
 
+    def print(self, text: str, **metadata: Any) -> None:
+        self.console.print(self.style.with_decoration(text, **metadata))
+
+    def print_as_string(self, text: str, **metadata: Any) -> str:
+        with self.console.capture() as capture:
+            self.print(text, **metadata)
+
+        return capture.get().rstrip()
+
     def print_line(self) -> None:
         self.console.print(self.style.empty_line())
 
