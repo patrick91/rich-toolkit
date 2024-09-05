@@ -1,3 +1,3 @@
-from .app import App
+from .app import App, AppTheme
 
-__all__ = ["App"]
+__all__ = ["App", "AppTheme"]

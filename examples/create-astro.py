@@ -1,22 +1,8 @@
 import random
 import time
 
-from rich_toolkit import App
+from rich_toolkit import App, AppTheme
 from rich_toolkit.app_style import FancyAppStyle, TaggedAppStyle
-
-from rich.theme import Theme
-
-astro_theme = Theme(
-    {
-        "tag.title": "black on #A7E3A2",
-        "tag": "white on #893AE3",
-        "placeholder": "grey85",
-        "text": "white",
-        "selected": "green",
-        "result": "grey85",
-        "progress": "on #893AE3",
-    }
-)
 
 
 def random_name_generator() -> str:
@@ -27,7 +13,20 @@ app_style = TaggedAppStyle(tag_width=7)
 app_style_fancy = FancyAppStyle()
 
 for style in [app_style, app_style_fancy]:
-    with App(style=style, theme=astro_theme) as app:
+    app_theme = AppTheme(
+        style=style,
+        theme={
+            "tag.title": "black on #A7E3A2",
+            "tag": "white on #893AE3",
+            "placeholder": "grey85",
+            "text": "white",
+            "selected": "green",
+            "result": "grey85",
+            "progress": "on #893AE3",
+        },
+    )
+
+    with App(theme=app_theme) as app:
         app.print_title("Launch sequence initiated.", tag="astro")
 
         app.print_line()

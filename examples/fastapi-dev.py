@@ -1,14 +1,13 @@
 import uvicorn
 
-from rich_toolkit import App
-import logging
+from rich_toolkit import App, AppTheme
 from rich_toolkit.app_style import TaggedAppStyle
 from uvicorn.logging import DefaultFormatter
 
-from rich.theme import Theme
 
-astro_theme = Theme(
-    {
+them = AppTheme(
+    style=TaggedAppStyle(tag_width=9),
+    theme={
         "tag.title": "black on #A7E3A2",
         "tag": "white on #893AE3",
         "placeholder": "grey85",
@@ -16,14 +15,11 @@ astro_theme = Theme(
         "selected": "green",
         "result": "grey85",
         "progress": "on #893AE3",
-    }
+    },
 )
 
 
-app_style = TaggedAppStyle(tag_width=9)
-
-
-with App(style=app_style, theme=astro_theme) as app:
+with App(theme=them) as app:
     app.print_title("Starting development server 🌐", tag="FastAPI")
 
     app.print_line()
