@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Generator, Iterable, List, Type, Union, TypeVar
+from typing import Any, Generator, Iterable, List, Type, TypeVar
 
 from rich._loop import loop_first_last
 from rich.color import Color
@@ -18,7 +18,9 @@ from rich.text import Text
 from .utils.colors import lighten
 
 
-DecorableClass = TypeVar("DecorableClass", bound=ConsoleRenderable)
+ConsoleRenderableClass = TypeVar(
+    "ConsoleRenderableClass", bound=Type[ConsoleRenderable]
+)
 
 
 class AppStyle(ABC):
@@ -55,8 +57,8 @@ class AppStyle(ABC):
         return WithDecoration()
 
     def decorate_class(
-        self, klass: Type[DecorableClass], **metadata: Any
-    ) -> Type[DecorableClass]:
+        self, klass: ConsoleRenderableClass, **metadata: Any
+    ) -> ConsoleRenderableClass:
         style = self
 
         class Decorated(klass):

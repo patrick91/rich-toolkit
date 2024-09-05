@@ -33,7 +33,7 @@ class Menu(Generic[ReturnValue]):
         options: List[Option[ReturnValue]],
         inline: bool = False,
         *,
-        style: AppStyle,
+        style: Optional[AppStyle] = None,
         console: Optional[Console] = None,
         **metadata: Any,
     ):
@@ -101,6 +101,9 @@ class Menu(Generic[ReturnValue]):
 
         group = Group(self.title, menu)
 
+        if self.style is None:
+            return group
+
         return self.style.with_decoration(group, **self.metadata)
 
     def _render_result(self) -> RenderableType:
@@ -112,6 +115,9 @@ class Menu(Generic[ReturnValue]):
             self.options[self.selected]["name"],
             style=self.console.get_style("result"),
         )
+
+        if self.style is None:
+            return result_text
 
         return self.style.with_decoration(result_text, **self.metadata)
 

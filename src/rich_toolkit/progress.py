@@ -12,7 +12,7 @@ class Progress(Live):
     def __init__(
         self,
         title: str,
-        style: AppStyle,
+        style: Optional[AppStyle] = None,
         console: Optional[Console] = None,
     ) -> None:
         self.current_message = title
@@ -26,6 +26,9 @@ class Progress(Live):
         return self
 
     def get_renderable(self) -> Any:
+        if not self.style:
+            return self.current_message
+
         return self.style.with_decoration(self.current_message, animated=True)
 
     def log(self, text: str) -> None:
