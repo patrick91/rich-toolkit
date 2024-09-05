@@ -1,6 +1,6 @@
 from typing import Any, List
 
-from rich.console import Console
+from rich.console import Console, RenderableType
 from rich.theme import Theme
 
 from .app_style import AppStyle
@@ -24,12 +24,12 @@ class App:
     def print_title(self, title: str, **metadata: Any) -> None:
         self.console.print(self.style.with_decoration(title, title=True, **metadata))
 
-    def print(self, text: str, **metadata: Any) -> None:
-        self.console.print(self.style.with_decoration(text, **metadata))
+    def print(self, *renderables: RenderableType, **metadata: Any) -> None:
+        self.console.print(self.style.with_decoration(*renderables, **metadata))
 
-    def print_as_string(self, text: str, **metadata: Any) -> str:
+    def print_as_string(self, *renderables: RenderableType, **metadata: Any) -> str:
         with self.console.capture() as capture:
-            self.print(text, **metadata)
+            self.print(*renderables, **metadata)
 
         return capture.get().rstrip()
 

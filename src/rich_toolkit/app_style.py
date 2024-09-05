@@ -29,22 +29,23 @@ class AppStyle(ABC):
         return Text(" ")
 
     def with_decoration(
-        self, content: RenderableType, animated: bool = False, **metadata: Any
+        self, *renderables: RenderableType, animated: bool = False, **metadata: Any
     ) -> ConsoleRenderable:
         class WithDecoration:
             @staticmethod
             def __rich_console__(
                 console: Console, options: ConsoleOptions
             ) -> RenderResult:
-                lines = console.render_lines(content, options, pad=False)
+                for content in renderables:
+                    lines = console.render_lines(content, options, pad=False)
 
-                for line in Segment.split_lines(
-                    self.decorate(
-                        lines=lines, console=console, animated=animated, **metadata
-                    )
-                ):
-                    yield from line
-                    yield Segment.line()
+                    for line in Segment.split_lines(
+                        self.decorate(
+                            lines=lines, console=console, animated=animated, **metadata
+                        )
+                    ):
+                        yield from line
+                        yield Segment.line()
 
         return WithDecoration()
 
