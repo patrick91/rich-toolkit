@@ -1,17 +1,15 @@
 from _pytest.capture import CaptureFixture
 from inline_snapshot import snapshot
-from rich.theme import Theme
 from rich.tree import Tree
 
-from rich_toolkit import App
-from rich_toolkit.app import AppTheme
-from rich_toolkit.app_style import FancyAppStyle
+from rich_toolkit import RichToolkit, RichToolkitTheme
+from rich_toolkit.styles import FancyStyle
 
 
-theme = AppTheme(style=FancyAppStyle(), theme={})
+theme = RichToolkitTheme(style=FancyStyle(), theme={})
 
 def test_print_line(capsys: CaptureFixture[str]) -> None:
-    app = App(theme=theme)
+    app = RichToolkit(theme=theme)
 
     app.print_line()
 
@@ -25,7 +23,7 @@ def test_print_line(capsys: CaptureFixture[str]) -> None:
 
 
 def test_can_print_strings(capsys: CaptureFixture[str]) -> None:
-    app = App(theme=theme)
+    app = RichToolkit(theme=theme)
 
     app.print("Hello, World!")
 
@@ -39,7 +37,7 @@ def test_can_print_strings(capsys: CaptureFixture[str]) -> None:
 
 
 def test_can_print_renderables(capsys: CaptureFixture[str]) -> None:
-    app = App(theme=theme)
+    app = RichToolkit(theme=theme)
 
     tree = Tree("root")
     tree.add("child")
@@ -57,7 +55,7 @@ def test_can_print_renderables(capsys: CaptureFixture[str]) -> None:
 
 
 def test_can_print_multiple_renderables(capsys: CaptureFixture[str]) -> None:
-    app = App(theme=theme)
+    app = RichToolkit(theme=theme)
 
     tree = Tree("root")
     tree.add("child")

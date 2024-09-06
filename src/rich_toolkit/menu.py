@@ -8,7 +8,7 @@ from rich.style import Style
 from rich.text import Text
 from typing_extensions import Any, Literal, TypedDict
 
-from .app_style import AppStyle
+from .styles.base import BaseStyle
 
 ReturnValue = TypeVar("ReturnValue")
 
@@ -33,7 +33,7 @@ class Menu(Generic[ReturnValue]):
         options: List[Option[ReturnValue]],
         inline: bool = False,
         *,
-        style: Optional[AppStyle] = None,
+        style: Optional[BaseStyle] = None,
         console: Optional[Console] = None,
         **metadata: Any,
     ):

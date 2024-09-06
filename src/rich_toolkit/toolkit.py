@@ -3,20 +3,20 @@ from typing import Any, Dict, List
 from rich.console import Console, RenderableType
 from rich.theme import Theme
 
-from .app_style import AppStyle
+from .styles.base import BaseStyle
 from .input import Input
 from .menu import Menu, Option, ReturnValue
 from .progress import Progress
 
 
-class AppTheme:
-    def __init__(self, style: AppStyle, theme: Dict[str, str]) -> None:
+class RichToolkitTheme:
+    def __init__(self, style: BaseStyle, theme: Dict[str, str]) -> None:
         self.style = style
         self.rich_theme = Theme(theme)
 
 
-class App:
-    def __init__(self, theme: AppTheme) -> None:
+class RichToolkit:
+    def __init__(self, theme: RichToolkitTheme) -> None:
         self.console = Console(theme=theme.rich_theme)
         self.theme = theme
 

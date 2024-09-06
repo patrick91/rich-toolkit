@@ -5,14 +5,14 @@ from rich.console import Console
 from rich.live import Live
 from typing_extensions import Any
 
-from .app_style import AppStyle
+from .styles.base import BaseStyle
 
 
 class Progress(Live):
     def __init__(
         self,
         title: str,
-        style: Optional[AppStyle] = None,
+        style: Optional[BaseStyle] = None,
         console: Optional[Console] = None,
     ) -> None:
         self.current_message = title

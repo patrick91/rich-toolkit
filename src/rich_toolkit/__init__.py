@@ -1,3 +1,3 @@
-from .app import App, AppTheme
+from .toolkit import RichToolkit, RichToolkitTheme
 
-__all__ = ["App", "AppTheme"]
+__all__ = ["RichToolkit", "RichToolkitTheme"]

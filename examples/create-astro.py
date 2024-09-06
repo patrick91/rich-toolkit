@@ -1,19 +1,17 @@
 import random
 import time
 
-from rich_toolkit import App, AppTheme
-from rich_toolkit.app_style import FancyAppStyle, TaggedAppStyle
+from rich_toolkit import RichToolkit, RichToolkitTheme
+from rich_toolkit.styles import FancyStyle, TaggedStyle
 
 
 def random_name_generator() -> str:
     return f"{random.choice(['fancy', 'cool', 'awesome'])}-{random.choice(['banana', 'apple', 'strawberry'])}"
 
 
-app_style = TaggedAppStyle(tag_width=7)
-app_style_fancy = FancyAppStyle()
 
-for style in [app_style, app_style_fancy]:
-    app_theme = AppTheme(
+for style in [TaggedStyle(tag_width=7), FancyStyle()]:
+    theme = RichToolkitTheme(
         style=style,
         theme={
             "tag.title": "black on #A7E3A2",
@@ -26,7 +24,7 @@ for style in [app_style, app_style_fancy]:
         },
     )
 
-    with App(theme=app_theme) as app:
+    with RichToolkit(theme=theme) as app:
         app.print_title("Launch sequence initiated.", tag="astro")
 
         app.print_line()

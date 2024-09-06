@@ -7,7 +7,7 @@ from rich.control import Control
 from rich.live_render import LiveRender
 from rich.segment import Segment
 
-from rich_toolkit.app_style import AppStyle
+from rich_toolkit.styles.base import BaseStyle
 
 
 class Input:
@@ -15,7 +15,7 @@ class Input:
         self,
         console: Console,
         title: str,
-        style: Optional[AppStyle] = None,
+        style: Optional[BaseStyle] = None,
         default: str = "",
         cursor_offset: int = 0,
         **metadata: Any,
