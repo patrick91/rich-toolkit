@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Any, Generator, Iterable, List, Type, TypeVar
+from typing_extensions import Literal
 
 from rich.color import Color
 from rich.console import (
@@ -21,6 +22,9 @@ ConsoleRenderableClass = TypeVar(
 )
 
 
+ANIMATION_STATUS = Literal["started", "stopped", "error", "no_animation"]
+
+
 class BaseStyle(ABC):
     result_color: Color
 
@@ -34,7 +38,10 @@ class BaseStyle(ABC):
         return Text(" ")
 
     def with_decoration(
-        self, *renderables: RenderableType, animated: bool = False, **metadata: Any
+        self,
+        *renderables: RenderableType,
+        animation_status: ANIMATION_STATUS = "no_animation",
+        **metadata: Any,
     ) -> ConsoleRenderable:
         class WithDecoration:
             @staticmethod
@@ -46,7 +53,10 @@ class BaseStyle(ABC):
 
                     for line in Segment.split_lines(
                         self.decorate(
-                            lines=lines, console=console, animated=animated, **metadata
+                            lines=lines,
+                            console=console,
+                            animation_status=animation_status,
+                            **metadata,
                         )
                     ):
                         yield from line
@@ -74,30 +84,33 @@ class BaseStyle(ABC):
         self,
         console: Console,
         lines: Iterable[List[Segment]],
-        animated: bool = False,
+        animation_status: ANIMATION_STATUS = "no_animation",
         **kwargs: Any,
     ) -> Generator[Segment, None, None]:
         raise NotImplementedError()
 
     def _get_animation_colors(
-        self, console: Console, steps: int = 5, **metadata: Any
+        self,
+        console: Console,
+        steps: int = 5,
+        animation_status: ANIMATION_STATUS = "started",
+        **metadata: Any,
     ) -> List[Color]:
-        if metadata.get("is_error", False):
+        animated = animation_status == "started"
+
+        if animation_status == "error":
             base_color = console.get_style("error").color
 
-            assert base_color is not None
+            if base_color is None:
+                base_color = Color.parse("red")
 
-            return [base_color] * steps
+        else:
+            base_color = console.get_style("progress").bgcolor
 
-        base_color = console.get_style("progress").bgcolor
+        if not base_color:
+            base_color = Color.parse("white")
 
-        # to lighten the colors we need to convert them to RGB
-        # if we are using a named colors we can't do that unfortunately
-        if base_color and base_color.triplet is None:
-            base_color = None
+        if animated and base_color.triplet is not None:
+            return [lighten(base_color, 0.1 * i) for i in range(0, steps)]
 
-        return (
-            [lighten(base_color, 0.1 * i) for i in range(0, steps)]
-            if base_color
-            else [Color.parse("black")]
-        )
+        return [base_color] * steps

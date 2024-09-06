@@ -1,6 +1,5 @@
 from typing import Optional
 
-from rich.color import Color
 from rich.console import Console
 from rich.live import Live
 from typing_extensions import Any
@@ -34,8 +33,14 @@ class Progress(Live):
         if not self.style:
             return current_message
 
+        animation_status = "started" if self._started else "stopped"
+
+        if self.is_error:
+            animation_status = "error"
+
         return self.style.with_decoration(
-            current_message, animated=True, is_error=self.is_error
+            current_message,
+            animation_status=animation_status,
         )
 
     def log(self, text: str) -> None:

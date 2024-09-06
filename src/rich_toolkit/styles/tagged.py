@@ -5,7 +5,7 @@ from rich.console import Console
 from rich.segment import Segment
 from rich.style import Style
 
-from .base import BaseStyle
+from .base import ANIMATION_STATUS, BaseStyle
 
 
 class TaggedStyle(BaseStyle):
@@ -41,12 +41,15 @@ class TaggedStyle(BaseStyle):
         self,
         console: Console,
         lines: Iterable[List[Segment]],
-        animated: bool = False,
+        animation_status: ANIMATION_STATUS = "no_animation",
         **metadata: Any,
     ) -> Generator[Segment, None, None]:
-        if animated:
+        if animation_status != "no_animation":
             yield from self.decorate_with_animation(
-                lines=lines, console=console, **metadata
+                lines=lines,
+                console=console,
+                animation_status=animation_status,
+                **metadata,
             )
 
             return
@@ -62,11 +65,17 @@ class TaggedStyle(BaseStyle):
                 yield Segment.line()
 
     def decorate_with_animation(
-        self, console: Console, lines: Iterable[List[Segment]], **metadata: Any
+        self,
+        console: Console,
+        lines: Iterable[List[Segment]],
+        animation_status: ANIMATION_STATUS = "no_animation",
+        **metadata: Any,
     ) -> Generator[Segment, None, None]:
         block = "█"
         block_length = 5
-        colors = self._get_animation_colors(console, steps=block_length, **metadata)
+        colors = self._get_animation_colors(
+            console, steps=block_length, animation_status=animation_status, **metadata
+        )
 
         left_padding = self.tag_width - block_length
         left_padding = max(0, left_padding)

@@ -4,7 +4,7 @@ from rich_toolkit import RichToolkit, RichToolkitTheme
 from rich_toolkit.styles import FancyStyle, TaggedStyle
 
 
-for style in [TaggedStyle(tag_width=7), FancyStyle()]:
+for style in [TaggedStyle(tag_width=8), FancyStyle()]:
     theme = RichToolkitTheme(
         style=style,
         theme={

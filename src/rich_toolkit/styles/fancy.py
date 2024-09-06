@@ -9,7 +9,7 @@ from rich.style import Style
 from rich.text import Text
 
 
-from .base import BaseStyle
+from .base import ANIMATION_STATUS, BaseStyle
 
 
 class FancyStyle(BaseStyle):
@@ -22,11 +22,13 @@ class FancyStyle(BaseStyle):
         self,
         console: Console,
         lines: Iterable[List[Segment]],
-        animated: bool = False,
+        animation_status: ANIMATION_STATUS = "no_animation",
         **metadata: Any,
     ) -> Generator[Segment, None, None]:
-        if animated:
-            colors = self._get_animation_colors(console, **metadata)
+        if animation_status != "no_animation":
+            colors = self._get_animation_colors(
+                console, animation_status=animation_status, **metadata
+            )
 
             self._animation_counter += 1
 
