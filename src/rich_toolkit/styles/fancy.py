@@ -1,14 +1,8 @@
-from abc import ABC, abstractmethod
-from typing import Any, Generator, Iterable, List, Type, TypeVar
+from typing import Any, Generator, Iterable, List
 
 from rich._loop import loop_first_last
-from rich.color import Color
 from rich.console import (
     Console,
-    ConsoleOptions,
-    ConsoleRenderable,
-    RenderableType,
-    RenderResult,
 )
 from rich.segment import Segment
 from rich.style import Style

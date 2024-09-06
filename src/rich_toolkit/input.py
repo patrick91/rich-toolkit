@@ -2,10 +2,9 @@ import string
 from typing import Any, Optional
 
 import click
-from rich.console import Console, ConsoleOptions, Group, RenderableType, RenderResult
+from rich.console import Console, Group, RenderableType
 from rich.control import Control
 from rich.live_render import LiveRender
-from rich.segment import Segment
 
 from rich_toolkit.styles.base import BaseStyle
 

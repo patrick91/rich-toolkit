@@ -4,7 +4,6 @@ import click
 from rich import get_console
 from rich.console import Console, Group, RenderableType
 from rich.live import Live
-from rich.style import Style
 from rich.text import Text
 from typing_extensions import Any, Literal, TypedDict
 

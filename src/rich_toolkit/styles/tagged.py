@@ -1,18 +1,11 @@
 from typing import Any, Generator, Iterable, List
 
 from rich._loop import loop_first_last
-from rich.console import  Console
+from rich.console import Console
 from rich.segment import Segment
 from rich.style import Style
 
 from .base import BaseStyle
-
-
-
-
-
-
-
 
 
 class TaggedStyle(BaseStyle):
@@ -86,10 +79,10 @@ class TaggedStyle(BaseStyle):
                     color_index = (j + self._animation_counter) % len(colors)
                     yield Segment(block, style=Style(color=colors[color_index]))
 
-                yield Segment(" " * self.padding)
             else:
                 yield Segment(" " * self.tag_width)
 
+            yield Segment(" " * self.padding)
+
             yield from line
             yield Segment.line()
-
