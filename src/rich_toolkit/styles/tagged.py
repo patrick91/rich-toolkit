@@ -45,7 +45,9 @@ class TaggedStyle(BaseStyle):
         **metadata: Any,
     ) -> Generator[Segment, None, None]:
         if animated:
-            yield from self.decorate_with_animation(lines=lines, console=console)
+            yield from self.decorate_with_animation(
+                lines=lines, console=console, **metadata
+            )
 
             return
 
@@ -60,11 +62,11 @@ class TaggedStyle(BaseStyle):
                 yield Segment.line()
 
     def decorate_with_animation(
-        self, console: Console, lines: Iterable[List[Segment]]
+        self, console: Console, lines: Iterable[List[Segment]], **metadata: Any
     ) -> Generator[Segment, None, None]:
         block = "█"
         block_length = 5
-        colors = self._get_animation_colors(console, steps=block_length)
+        colors = self._get_animation_colors(console, steps=block_length, **metadata)
 
         left_padding = self.tag_width - block_length
         left_padding = max(0, left_padding)

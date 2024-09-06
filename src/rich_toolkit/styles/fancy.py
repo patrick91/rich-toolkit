@@ -9,9 +9,8 @@ from rich.style import Style
 from rich.text import Text
 
 
-
-
 from .base import BaseStyle
+
 
 class FancyStyle(BaseStyle):
     def __init__(self, *args, **kwargs) -> None:
@@ -24,10 +23,10 @@ class FancyStyle(BaseStyle):
         console: Console,
         lines: Iterable[List[Segment]],
         animated: bool = False,
-        **kwargs: Any,
+        **metadata: Any,
     ) -> Generator[Segment, None, None]:
         if animated:
-            colors = self._get_animation_colors(console)
+            colors = self._get_animation_colors(console, **metadata)
 
             self._animation_counter += 1
 
@@ -37,7 +36,7 @@ class FancyStyle(BaseStyle):
                 if first:
                     yield Segment("◆ ", style=Style(color=colors[color_index]))
                 else:
-                    yield Segment("  ")
+                    yield Segment("│ ")
                 yield from line
                 yield Segment.line()
 
@@ -45,7 +44,7 @@ class FancyStyle(BaseStyle):
 
         for first, last, line in loop_first_last(lines):
             if first:
-                decoration = "┌ " if kwargs.get("title", False) else "◆ "
+                decoration = "┌ " if metadata.get("title", False) else "◆ "
             elif last:
                 decoration = "└ "
             else:

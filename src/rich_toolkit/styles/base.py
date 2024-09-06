@@ -79,7 +79,16 @@ class BaseStyle(ABC):
     ) -> Generator[Segment, None, None]:
         raise NotImplementedError()
 
-    def _get_animation_colors(self, console: Console, steps: int = 5) -> List[Color]:
+    def _get_animation_colors(
+        self, console: Console, steps: int = 5, **metadata: Any
+    ) -> List[Color]:
+        if metadata.get("is_error", False):
+            base_color = console.get_style("error").color
+
+            assert base_color is not None
+
+            return [base_color] * steps
+
         base_color = console.get_style("progress").bgcolor
 
         # to lighten the colors we need to convert them to RGB
@@ -92,4 +101,3 @@ class BaseStyle(ABC):
             if base_color
             else [Color.parse("black")]
         )
-
