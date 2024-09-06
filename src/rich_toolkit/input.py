@@ -1,49 +1,13 @@
 import string
-from typing import Any
+from typing import Any, Optional
 
 import click
 from rich.console import Console, ConsoleOptions, Group, RenderableType, RenderResult
 from rich.control import Control
-from rich.live_render import LiveRender, VerticalOverflowMethod
+from rich.live_render import LiveRender
 from rich.segment import Segment
 
 from rich_toolkit.app_style import AppStyle
-
-
-class LiveRenderWithDecoration(LiveRender):
-    def __init__(
-        self,
-        renderable: RenderableType,
-        style: AppStyle,
-        console: Console,
-        vertical_overflow: VerticalOverflowMethod = "ellipsis",
-        **metadata: Any,
-    ) -> None:
-        super().__init__(renderable, vertical_overflow=vertical_overflow)
-
-        self.metadata = metadata
-        self.app_style = style
-        self.console = console
-
-    def __rich_console__(
-        self, console: Console, options: ConsoleOptions
-    ) -> RenderResult:
-        lines = Segment.split_lines(super().__rich_console__(console, options))  # type: ignore
-
-        yield from self.app_style.decorate(
-            lines=lines, console=console, **self.metadata
-        )
-
-    def fix_cursor(self, offset: int) -> Control:
-        # TODO: do we need the actual console here?
-        decoration_lines = list(
-            self.app_style.decorate(lines=[[]], console=self.console)
-        )
-
-        decoration = next(Segment.split_lines(decoration_lines))
-        decoration_width = Segment.get_line_length(decoration)
-
-        return Control.move_to_column(offset + decoration_width)
 
 
 class Input:
@@ -51,20 +15,24 @@ class Input:
         self,
         console: Console,
         title: str,
-        style: AppStyle,
+        style: Optional[AppStyle] = None,
         default: str = "",
+        cursor_offset: int = 0,
         **metadata: Any,
     ):
         self.title = title
         self.default = default
         self.text = ""
+        self._cursor_offset = cursor_offset
 
         self.console = console
         self.style = style
 
-        self._live_render = LiveRenderWithDecoration(
-            "", console=console, style=self.style, **metadata
-        )
+        if style is None:
+            self._live_render = LiveRender("")
+        else:
+            self._live_render = style.decorate_class(LiveRender, **metadata)("")
+
         self._padding_bottom = 1
 
     def _update_text(self, char: str) -> None:
@@ -90,11 +58,14 @@ class Input:
 
         self._render()
 
+    def _fix_cursor(self, offset: int) -> Control:
+        return Control.move_to_column(offset + self._cursor_offset)
+
     def _render(self):
         self.console.print(
             self._live_render.position_cursor(),
             self._live_render,
-            self._live_render.fix_cursor(len(self.text)),
+            self._fix_cursor(len(self.text)),
         )
 
     def ask(self) -> str:

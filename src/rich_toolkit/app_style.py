@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Generator, Iterable, List, Union
+from typing import Any, Generator, Iterable, List, Type, TypeVar
 
 from rich._loop import loop_first_last
 from rich.color import Color
@@ -14,7 +14,13 @@ from rich.segment import Segment
 from rich.style import Style
 from rich.text import Text
 
+
 from .utils.colors import lighten
+
+
+ConsoleRenderableClass = TypeVar(
+    "ConsoleRenderableClass", bound=Type[ConsoleRenderable]
+)
 
 
 class AppStyle(ABC):
@@ -22,6 +28,7 @@ class AppStyle(ABC):
 
     def __init__(self) -> None:
         self.padding = 2
+        self.cursor_offset = 0
 
         self._animation_counter = 0
 
@@ -48,6 +55,21 @@ class AppStyle(ABC):
                         yield Segment.line()
 
         return WithDecoration()
+
+    def decorate_class(
+        self, klass: ConsoleRenderableClass, **metadata: Any
+    ) -> ConsoleRenderableClass:
+        style = self
+
+        class Decorated(klass):
+            def __rich_console__(
+                self, console: Console, options: ConsoleOptions
+            ) -> RenderResult:
+                lines = Segment.split_lines(super().__rich_console__(console, options))  # type: ignore
+
+                yield from style.decorate(lines=lines, console=console, **metadata)
+
+        return Decorated  # type: ignore
 
     @abstractmethod
     def decorate(
@@ -79,6 +101,9 @@ class TaggedAppStyle(AppStyle):
         self.tag_width = kwargs.pop("tag_width", 14)
 
         super().__init__(*args, **kwargs)
+
+        self.padding = 2
+        self.cursor_offset = self.tag_width + self.padding
 
     def _render_tag(
         self,
@@ -151,6 +176,11 @@ class TaggedAppStyle(AppStyle):
 
 
 class FancyAppStyle(AppStyle):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+        self.cursor_offset = 2
+
     def decorate(
         self,
         console: Console,

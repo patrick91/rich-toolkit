@@ -4,11 +4,14 @@ from rich.theme import Theme
 from rich.tree import Tree
 
 from rich_toolkit import App
+from rich_toolkit.app import AppTheme
 from rich_toolkit.app_style import FancyAppStyle
 
 
+theme = AppTheme(style=FancyAppStyle(), theme={})
+
 def test_print_line(capsys: CaptureFixture[str]) -> None:
-    app = App(style=FancyAppStyle(), theme=Theme())
+    app = App(theme=theme)
 
     app.print_line()
 
@@ -22,7 +25,7 @@ def test_print_line(capsys: CaptureFixture[str]) -> None:
 
 
 def test_can_print_strings(capsys: CaptureFixture[str]) -> None:
-    app = App(style=FancyAppStyle(), theme=Theme())
+    app = App(theme=theme)
 
     app.print("Hello, World!")
 
@@ -36,7 +39,7 @@ def test_can_print_strings(capsys: CaptureFixture[str]) -> None:
 
 
 def test_can_print_renderables(capsys: CaptureFixture[str]) -> None:
-    app = App(style=FancyAppStyle(), theme=Theme())
+    app = App(theme=theme)
 
     tree = Tree("root")
     tree.add("child")
@@ -54,7 +57,7 @@ def test_can_print_renderables(capsys: CaptureFixture[str]) -> None:
 
 
 def test_can_print_multiple_renderables(capsys: CaptureFixture[str]) -> None:
-    app = App(style=FancyAppStyle(), theme=Theme())
+    app = App(theme=theme)
 
     tree = Tree("root")
     tree.add("child")

@@ -69,12 +69,12 @@ class App:
         ).ask()
 
     def input(self, title: str, default: str = "", **metadata: Any) -> str:
-        # TODO: can we find a way to not have to pass style here? (same for menu and progress)
         return Input(
             console=self.console,
             style=self.theme.style,
             title=title,
             default=default,
+            cursor_offset=self.theme.style.cursor_offset,
             **metadata,
         ).ask()
 
