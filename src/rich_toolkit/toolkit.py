@@ -47,7 +47,10 @@ class RichToolkit:
     def confirm(self, title: str, **metadata: Any) -> bool:
         return self.ask(
             title=title,
-            options=[{"value": True, "name": "Yes"}, {"value": False, "name": "No"}],
+            options=[
+                Option({"value": True, "name": "Yes"}),
+                Option({"value": False, "name": "No"}),
+            ],
             inline=True,
             **metadata,
         )

@@ -4,7 +4,7 @@ from rich_toolkit.input import Input
 
 from rich.console import Console
 
-from rich_toolkit.menu import Menu
+from rich_toolkit.menu import Menu, Option
 from rich_toolkit.progress import Progress
 
 
@@ -29,9 +29,9 @@ value_from_menu = Menu(
     console=console,
     title="Select your favorite color:",
     options=[
-        {"value": "red", "name": "Red"},
-        {"value": "green", "name": "Green"},
-        {"value": "blue", "name": "Blue"},
+        Option({"value": "black", "name": "Black"}),
+        Option({"value": "red", "name": "Red"}),
+        Option({"value": "green", "name": "Green"}),
     ],
 ).ask()
 
