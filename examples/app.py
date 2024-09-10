@@ -1,12 +1,11 @@
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Any, List, Optional
 import uvicorn
 
 app = FastAPI()
 
-# In-memory database
-db = []
+db: List[Any] = []
 
 
 # Pydantic model for a Book

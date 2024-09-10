@@ -2,7 +2,7 @@ from typing import Optional
 
 from rich.console import Console
 from rich.live import Live
-from typing_extensions import Any
+from typing_extensions import Any, Literal
 
 from .styles.base import BaseStyle
 
@@ -33,7 +33,9 @@ class Progress(Live):
         if not self.style:
             return current_message
 
-        animation_status = "started" if self._started else "stopped"
+        animation_status: Literal["started", "stopped", "error"] = (
+            "started" if self._started else "stopped"
+        )
 
         if self.is_error:
             animation_status = "error"

@@ -69,7 +69,7 @@ class BaseStyle(ABC):
     ) -> ConsoleRenderableClass:
         style = self
 
-        class Decorated(klass):
+        class Decorated(klass):  # type: ignore[valid-type,misc]
             def __rich_console__(
                 self, console: Console, options: ConsoleOptions
             ) -> RenderResult:

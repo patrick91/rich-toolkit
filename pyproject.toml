@@ -17,4 +17,5 @@ dev-dependencies = [
     "inline-snapshot>=0.12.1",
     "uvicorn>=0.30.6",
     "fastapi[standard]>=0.112.2",
+    "mypy>=1.11.2",
 ]
