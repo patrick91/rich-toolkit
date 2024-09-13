@@ -14,10 +14,12 @@ class Progress(Live):
         style: Optional[BaseStyle] = None,
         console: Optional[Console] = None,
         transient: bool = False,
+        transient_on_error: bool = False,
     ) -> None:
         self.current_message = title
         self.style = style
         self.is_error = False
+        self._transient_on_error = transient_on_error
 
         super().__init__(console=console, refresh_per_second=8, transient=transient)
 
@@ -51,3 +53,4 @@ class Progress(Live):
     def set_error(self, text: str) -> None:
         self.current_message = text
         self.is_error = True
+        self.transient = self._transient_on_error

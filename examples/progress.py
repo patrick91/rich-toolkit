@@ -46,4 +46,11 @@ for style in [TaggedStyle(tag_width=8), FancyStyle()]:
 
         app.print("Done!", tag="result")
 
+        with app.progress(
+            "Progress can be hidden", transient=True, transient_on_error=False
+        ) as progress:
+            time.sleep(2)
+
+            progress.set_error("Something went wrong")
+
     print("----------------------------------------")

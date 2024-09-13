@@ -81,10 +81,13 @@ class RichToolkit:
             **metadata,
         ).ask()
 
-    def progress(self, title: str, transient: bool = False) -> Progress:
+    def progress(
+        self, title: str, transient: bool = False, transient_on_error: bool = False
+    ) -> Progress:
         return Progress(
             title=title,
             console=self.console,
             style=self.theme.style,
             transient=transient,
+            transient_on_error=transient_on_error,
         )
