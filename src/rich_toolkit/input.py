@@ -17,12 +17,14 @@ class Input:
         style: Optional[BaseStyle] = None,
         default: str = "",
         cursor_offset: int = 0,
+        password: bool = False,
         **metadata: Any,
     ):
         self.title = title
         self.default = default
         self.text = ""
         self._cursor_offset = cursor_offset
+        self.password = password
 
         self.console = console
         self.style = style
@@ -41,14 +43,22 @@ class Input:
             self.text += char
 
     def _render_result(self) -> RenderableType:
+        if self.password:
+            return self.title
+
         return self.title + " [result]" + (self.text or self.default)
 
     def _render_input(self) -> Group:
+        text = self.text
+
+        if self.password:
+            text = "*" * len(self.text)
+
         # if there's no default value, add a space to keep the cursor visible
         # and, most importantly, in the right place
         default = self.default or " "
 
-        text = f"[text]{self.text}[/]" if self.text else f"[placeholder]{default }[/]"
+        text = f"[text]{text}[/]" if self.text else f"[placeholder]{default }[/]"
 
         return Group(self.title, text)
 
