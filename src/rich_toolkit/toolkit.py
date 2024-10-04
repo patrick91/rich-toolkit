@@ -71,13 +71,16 @@ class RichToolkit:
             **metadata,
         ).ask()
 
-    def input(self, title: str, default: str = "", **metadata: Any) -> str:
+    def input(
+        self, title: str, default: str = "", password: bool = False, **metadata: Any
+    ) -> str:
         return Input(
             console=self.console,
             style=self.theme.style,
             title=title,
             default=default,
             cursor_offset=self.theme.style.cursor_offset,
+            password=password,
             **metadata,
         ).ask()
 
