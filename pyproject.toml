@@ -1,7 +1,7 @@
 [project]
 name = "rich-toolkit"
-version = "0.7.0"
-description = "Add your description here"
+version = "0.7.1"
+description = "Rich toolkit for building command-line applications"
 readme = "README.md"
 requires-python = ">=3.8"
 dependencies = ["rich>=13.7.1", "click>=8.1.7", "typing-extensions>=4.12.2"]

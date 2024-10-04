@@ -44,9 +44,11 @@ class Input:
         return self.title + " [result]" + (self.text or self.default)
 
     def _render_input(self) -> Group:
-        text = (
-            f"[text]{self.text}[/]" if self.text else f"[placeholder]{self.default}[/]"
-        )
+        # if there's no default value, add a space to keep the cursor visible
+        # and, most importantly, in the right place
+        default = self.default or " "
+
+        text = f"[text]{self.text}[/]" if self.text else f"[placeholder]{default }[/]"
 
         return Group(self.title, text)
 
