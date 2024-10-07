@@ -2,7 +2,7 @@ import random
 import time
 
 from rich_toolkit import RichToolkit, RichToolkitTheme
-from rich_toolkit.styles import FancyStyle, TaggedStyle
+from rich_toolkit.styles import FancyStyle, TaggedStyle, MinimalStyle
 
 
 def random_name_generator() -> str:
@@ -10,7 +10,7 @@ def random_name_generator() -> str:
 
 
 
-for style in [TaggedStyle(tag_width=7), FancyStyle()]:
+for style in [TaggedStyle(tag_width=7), FancyStyle(), MinimalStyle()]:
     theme = RichToolkitTheme(
         style=style,
         theme={
