@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 
 from rich.console import Console, RenderableType
 from rich.theme import Theme
@@ -16,15 +16,27 @@ class RichToolkitTheme:
 
 
 class RichToolkit:
-    def __init__(self, theme: RichToolkitTheme) -> None:
+    def __init__(
+        self,
+        theme: RichToolkitTheme,
+        handle_keyboard_interrupts: bool = True,
+    ) -> None:
         self.console = Console(theme=theme.rich_theme)
         self.theme = theme
+        self.handle_keyboard_interrupts = handle_keyboard_interrupts
 
     def __enter__(self):
         self.console.print()
         return self
 
-    def __exit__(self, *args, **kwargs):
+    def __exit__(
+        self, exc_type: Any, exc_value: Any, traceback: Any
+    ) -> Union[bool, None]:
+        if self.handle_keyboard_interrupts and exc_type is KeyboardInterrupt:
+            # we want to handle keyboard interrupts gracefully, instead of showing a traceback
+            # or any other error message
+            return True
+
         self.console.print()
 
     def print_title(self, title: str, **metadata: Any) -> None:
