@@ -75,6 +75,6 @@ for style in [TaggedStyle(tag_width=12), FancyStyle()]:
             "Where should we create your new project? (Type to search)",
             tag="dir",
             options=get_options(),
-            allow_search=True,
+            allow_filtering=True,
         )
         app.print_line()

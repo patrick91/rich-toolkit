@@ -37,7 +37,7 @@ class Menu(Generic[ReturnValue]):
         title: str,
         options: List[Option[ReturnValue]],
         inline: bool = False,
-        allow_search: bool = False,
+        allow_filtering: bool = False,
         *,
         style: Optional[BaseStyle] = None,
         console: Optional[Console] = None,
@@ -47,14 +47,14 @@ class Menu(Generic[ReturnValue]):
 
         self.title = Text.from_markup(title)
         self.inline = inline
-        self.allow_search = allow_search
+        self.allow_filtering = allow_filtering
 
         self.selected = 0
 
         self.metadata = metadata
         self.style = style
 
-        self._current_search = ""
+        self._current_filter = ""
         self._options = options
 
     def get_key(self) -> Optional[str]:
@@ -63,7 +63,7 @@ class Menu(Generic[ReturnValue]):
         if char == "\r":
             return "enter"
 
-        if self.allow_search:
+        if self.allow_filtering:
             left_keys, right_keys = [[self.LEFT_KEY], [self.RIGHT_KEY]]
             down_keys, up_keys = [[self.DOWN_KEY], [self.UP_KEY]]
         else:
@@ -79,18 +79,18 @@ class Menu(Generic[ReturnValue]):
         if char in prev_keys:
             return "prev"
 
-        if self.allow_search:
+        if self.allow_filtering:
             return char
 
         return None
 
     @property
     def options(self) -> List[Option[ReturnValue]]:
-        if self.allow_search:
+        if self.allow_filtering:
             return [
                 option
                 for option in self._options
-                if self._current_search.lower() in option["name"].lower()
+                if self._current_filter.lower() in option["name"].lower()
             ]
 
         return self._options
@@ -127,7 +127,19 @@ class Menu(Generic[ReturnValue]):
 
         menu.rstrip()
 
-        group = Group(self.title, self._current_search, menu)
+        filter = (
+            [
+                Text.assemble(
+                    ("Filter: ", self.console.get_style("text")),
+                    (self._current_filter, self.console.get_style("text")),
+                    "\n",
+                )
+            ]
+            if self.allow_filtering
+            else []
+        )
+
+        group = Group(self.title, *filter, menu)
 
         if self.style is None:
             return group
@@ -149,11 +161,18 @@ class Menu(Generic[ReturnValue]):
 
         return self.style.with_decoration(result_text, **self.metadata)
 
-    def _update_search(self, char: str) -> None:
+    # TODO: in future reuse Input's functionality for this
+    def _update_filter(self, char: str) -> None:
         if char == "\x7f":
-            self._current_search = self._current_search[:-1]
+            self._current_filter = self._current_filter[:-1]
         elif char in string.printable:
-            self._current_search += char
+            self._current_filter += char
+
+    def _handle_enter(self) -> bool:
+        if self.allow_filtering and self._current_filter and len(self.options) == 0:
+            return False
+
+        return True
 
     def ask(self) -> ReturnValue:
         with Live(
@@ -163,7 +182,7 @@ class Menu(Generic[ReturnValue]):
                 try:
                     key = self.get_key()
 
-                    if key == "enter":
+                    if key == "enter" and self._handle_enter():
                         break
 
                     if key is not None:
@@ -171,7 +190,7 @@ class Menu(Generic[ReturnValue]):
                             key = cast(Literal["next", "prev"], key)
                             self._update_selection(key)
                         else:
-                            self._update_search(key)
+                            self._update_filter(key)
 
                         live.update(self._render_menu(), refresh=True)
                 except KeyboardInterrupt:
