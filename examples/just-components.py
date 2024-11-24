@@ -33,6 +33,7 @@ value_from_menu = Menu(
         Option({"value": "red", "name": "Red"}),
         Option({"value": "green", "name": "Green"}),
     ],
+    allow_filtering=True,
 ).ask()
 
 print(f"Your favorite color is {value_from_menu}!")
