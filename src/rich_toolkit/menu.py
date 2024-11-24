@@ -1,4 +1,5 @@
-from typing import Generic, List, Optional, TypeVar
+from typing import Generic, List, Optional, TypeVar, cast
+import string
 
 import click
 from rich import get_console
@@ -21,16 +22,22 @@ class Menu(Generic[ReturnValue]):
     current_selection_char = "●"
     selection_char = "○"
 
-    DOWN_KEYS = ["\x1b[B", "j"]
-    UP_KEYS = ["\x1b[A", "k"]
-    LEFT_KEYS = ["\x1b[D", "h"]
-    RIGHT_KEYS = ["\x1b[C", "l"]
+    DOWN_KEY = "\x1b[B"
+    UP_KEY = "\x1b[A"
+    LEFT_KEY = "\x1b[D"
+    RIGHT_KEY = "\x1b[C"
+
+    DOWN_KEYS = [DOWN_KEY, "j"]
+    UP_KEYS = [UP_KEY, "k"]
+    LEFT_KEYS = [LEFT_KEY, "h"]
+    RIGHT_KEYS = [RIGHT_KEY, "l"]
 
     def __init__(
         self,
         title: str,
         options: List[Option[ReturnValue]],
         inline: bool = False,
+        allow_filtering: bool = False,
         *,
         style: Optional[BaseStyle] = None,
         console: Optional[Console] = None,
@@ -39,24 +46,32 @@ class Menu(Generic[ReturnValue]):
         self.console = console or get_console()
 
         self.title = Text.from_markup(title)
-        self.options = options
         self.inline = inline
+        self.allow_filtering = allow_filtering
 
         self.selected = 0
 
         self.metadata = metadata
         self.style = style
 
-    def get_key(self) -> Optional[Literal["next", "prev", "enter"]]:
+        self._current_filter = ""
+        self._options = options
+
+    def get_key(self) -> Optional[str]:
         char = click.getchar()
 
         if char == "\r":
             return "enter"
 
+        if self.allow_filtering:
+            left_keys, right_keys = [[self.LEFT_KEY], [self.RIGHT_KEY]]
+            down_keys, up_keys = [[self.DOWN_KEY], [self.UP_KEY]]
+        else:
+            left_keys, right_keys = self.LEFT_KEYS, self.RIGHT_KEYS
+            down_keys, up_keys = self.DOWN_KEYS, self.UP_KEYS
+
         next_keys, prev_keys = (
-            (self.LEFT_KEYS, self.RIGHT_KEYS)
-            if self.inline
-            else (self.DOWN_KEYS, self.UP_KEYS)
+            (right_keys, left_keys) if self.inline else (down_keys, up_keys)
         )
 
         if char in next_keys:
@@ -64,9 +79,23 @@ class Menu(Generic[ReturnValue]):
         if char in prev_keys:
             return "prev"
 
+        if self.allow_filtering:
+            return char
+
         return None
 
-    def _update_selection(self, key: str):
+    @property
+    def options(self) -> List[Option[ReturnValue]]:
+        if self.allow_filtering:
+            return [
+                option
+                for option in self._options
+                if self._current_filter.lower() in option["name"].lower()
+            ]
+
+        return self._options
+
+    def _update_selection(self, key: Literal["next", "prev"]) -> None:
         if key == "next":
             self.selected += 1
         elif key == "prev":
@@ -98,7 +127,19 @@ class Menu(Generic[ReturnValue]):
 
         menu.rstrip()
 
-        group = Group(self.title, menu)
+        filter = (
+            [
+                Text.assemble(
+                    ("Filter: ", self.console.get_style("text")),
+                    (self._current_filter, self.console.get_style("text")),
+                    "\n",
+                )
+            ]
+            if self.allow_filtering
+            else []
+        )
+
+        group = Group(self.title, *filter, menu)
 
         if self.style is None:
             return group
@@ -120,6 +161,19 @@ class Menu(Generic[ReturnValue]):
 
         return self.style.with_decoration(result_text, **self.metadata)
 
+    # TODO: in future reuse Input's functionality for this
+    def _update_filter(self, char: str) -> None:
+        if char == "\x7f":
+            self._current_filter = self._current_filter[:-1]
+        elif char in string.printable:
+            self._current_filter += char
+
+    def _handle_enter(self) -> bool:
+        if self.allow_filtering and self._current_filter and len(self.options) == 0:
+            return False
+
+        return True
+
     def ask(self) -> ReturnValue:
         with Live(
             self._render_menu(), auto_refresh=False, console=self.console
@@ -128,11 +182,15 @@ class Menu(Generic[ReturnValue]):
                 try:
                     key = self.get_key()
 
-                    if key == "enter":
+                    if key == "enter" and self._handle_enter():
                         break
 
                     if key is not None:
-                        self._update_selection(key)
+                        if key in ["next", "prev"]:
+                            key = cast(Literal["next", "prev"], key)
+                            self._update_selection(key)
+                        else:
+                            self._update_filter(key)
 
                         live.update(self._render_menu(), refresh=True)
                 except KeyboardInterrupt:

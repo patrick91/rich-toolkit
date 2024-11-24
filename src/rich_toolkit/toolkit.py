@@ -72,6 +72,7 @@ class RichToolkit:
         title: str,
         options: List[Option[ReturnValue]],
         inline: bool = False,
+        allow_filtering: bool = False,
         **metadata: Any,
     ) -> ReturnValue:
         return Menu(
@@ -80,6 +81,7 @@ class RichToolkit:
             console=self.console,
             style=self.theme.style,
             inline=inline,
+            allow_filtering=allow_filtering,
             **metadata,
         ).ask()
 
