@@ -163,6 +163,7 @@ class Menu(Generic[ReturnValue]):
 
     # TODO: in future reuse Input's functionality for this
     def _update_filter(self, char: str) -> None:
+        self.selected = 0
         if char == "\x7f":
             self._current_filter = self._current_filter[:-1]
         elif char in string.printable:
