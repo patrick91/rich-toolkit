@@ -1,10 +1,22 @@
 [project]
 name = "rich-toolkit"
-version = "0.11.2"
+version = "0.11.3"
 description = "Rich toolkit for building command-line applications"
 readme = "README.md"
+license = "MIT"
 requires-python = ">=3.8"
 dependencies = ["rich>=13.7.1", "click>=8.1.7", "typing-extensions>=4.12.2"]
+homepage = "https://github.com/patrick91/rich-toolkit"
+repository = "https://github.com/patrick91/rich-toolkit"
+documentation = "https://github.com/patrick91/rich-toolkit"
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "License :: OSI Approved :: MIT License",
+]
 
 [build-system]
 requires = ["hatchling"]
