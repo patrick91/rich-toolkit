@@ -9,7 +9,20 @@ from rich.live_render import LiveRender
 from rich_toolkit.styles.base import BaseStyle
 
 
-class Input:
+class TextInputHandler:
+    def __init__(self):
+        self.text = ""
+
+    def update_text(self, text: str) -> None:
+        if text == "\x7f":  # Backspace character
+            self.text = self.text[:-1]
+        else:
+            for char in text:
+                if char in string.printable:
+                    self.text += char
+
+
+class Input(TextInputHandler):
     def __init__(
         self,
         console: Console,
@@ -22,7 +35,6 @@ class Input:
     ):
         self.title = title
         self.default = default
-        self.text = ""
         self._cursor_offset = cursor_offset
         self.password = password
 
@@ -36,13 +48,7 @@ class Input:
 
         self._padding_bottom = 1
 
-    def _update_text(self, text: str) -> None:
-        if text == "\x7f":
-            self.text = self.text[:-1]
-        else:
-            for char in text:
-                if char in string.printable:
-                    self.text += char
+        super().__init__()
 
     def _render_result(self) -> RenderableType:
         if self.password:
@@ -91,7 +97,7 @@ class Input:
                 if key == "\r":
                     break
 
-                self._update_text(key)
+                self.update_text(key)
 
             except KeyboardInterrupt:
                 exit()

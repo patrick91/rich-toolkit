@@ -9,6 +9,7 @@ from rich.text import Text
 from typing_extensions import Any, Literal, TypedDict
 
 from .styles.base import BaseStyle
+from .input import TextInputHandler
 
 ReturnValue = TypeVar("ReturnValue")
 
@@ -18,7 +19,7 @@ class Option(TypedDict, Generic[ReturnValue]):
     value: ReturnValue
 
 
-class Menu(Generic[ReturnValue]):
+class Menu(Generic[ReturnValue], TextInputHandler):
     current_selection_char = "●"
     selection_char = "○"
 
@@ -54,8 +55,9 @@ class Menu(Generic[ReturnValue]):
         self.metadata = metadata
         self.style = style
 
-        self._current_filter = ""
         self._options = options
+
+        super().__init__()
 
     def get_key(self) -> Optional[str]:
         char = click.getchar()
@@ -90,7 +92,7 @@ class Menu(Generic[ReturnValue]):
             return [
                 option
                 for option in self._options
-                if self._current_filter.lower() in option["name"].lower()
+                if self.text.lower() in option["name"].lower()
             ]
 
         return self._options
@@ -131,7 +133,7 @@ class Menu(Generic[ReturnValue]):
             [
                 Text.assemble(
                     ("Filter: ", self.console.get_style("text")),
-                    (self._current_filter, self.console.get_style("text")),
+                    (self.text, self.console.get_style("text")),
                     "\n",
                 )
             ]
@@ -161,15 +163,28 @@ class Menu(Generic[ReturnValue]):
 
         return self.style.with_decoration(result_text, **self.metadata)
 
-    # TODO: in future reuse Input's functionality for this
-    def _update_filter(self, char: str) -> None:
-        if char == "\x7f":
-            self._current_filter = self._current_filter[:-1]
-        elif char in string.printable:
-            self._current_filter += char
+    def update_text(self, text: str) -> None:
+        current_selection: Optional[str] = None
+
+        if self.options:
+            current_selection = self.options[self.selected]["name"]
+
+        super().update_text(text)
+
+        if current_selection:
+            matching_index = next(
+                (
+                    index
+                    for index, option in enumerate(self.options)
+                    if option["name"] == current_selection
+                ),
+                0,
+            )
+
+            self.selected = matching_index
 
     def _handle_enter(self) -> bool:
-        if self.allow_filtering and self._current_filter and len(self.options) == 0:
+        if self.allow_filtering and self.text and len(self.options) == 0:
             return False
 
         return True
@@ -182,15 +197,16 @@ class Menu(Generic[ReturnValue]):
                 try:
                     key = self.get_key()
 
-                    if key == "enter" and self._handle_enter():
-                        break
+                    if key == "enter":
+                        if self._handle_enter():
+                            break
 
-                    if key is not None:
+                    elif key is not None:
                         if key in ["next", "prev"]:
                             key = cast(Literal["next", "prev"], key)
                             self._update_selection(key)
                         else:
-                            self._update_filter(key)
+                            self.update_text(key)
 
                         live.update(self._render_menu(), refresh=True)
                 except KeyboardInterrupt:
