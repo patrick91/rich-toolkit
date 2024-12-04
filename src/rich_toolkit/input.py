@@ -15,6 +15,7 @@ class TextInputHandler:
     LEFT_KEY = "\x1b[D"
     RIGHT_KEY = "\x1b[C"
     BACKSPACE_KEY = "\x7f"
+    DELETE_KEY = "\x1b[3~"
 
     def __init__(self, cursor_offset: int = 0):
         self.text = ""
@@ -27,10 +28,34 @@ class TextInputHandler:
     def _move_cursor_right(self) -> None:
         self.cursor_position = min(len(self.text), self.cursor_position + 1)
 
+    def _insert_char(self, char: str) -> None:
+        self.text = (
+            self.text[: self.cursor_position] + char + self.text[self.cursor_position :]
+        )
+        self._move_cursor_right()
+
+    def _delete_char(self) -> None:
+        if self.cursor_position == 0:
+            return
+
+        self.text = (
+            self.text[: self.cursor_position - 1] + self.text[self.cursor_position :]
+        )
+        self._move_cursor_left()
+
+    def _delete_forward(self) -> None:
+        if self.cursor_position == len(self.text):
+            return
+
+        self.text = (
+            self.text[: self.cursor_position] + self.text[self.cursor_position + 1 :]
+        )
+
     def update_text(self, text: str) -> None:
         if text == self.BACKSPACE_KEY:
-            self.text = self.text[:-1]
-            self._move_cursor_left()
+            self._delete_char()
+        elif text == self.DELETE_KEY:
+            self._delete_forward()
         elif text == self.LEFT_KEY:
             self._move_cursor_left()
         elif text == self.RIGHT_KEY:
@@ -40,8 +65,7 @@ class TextInputHandler:
         else:
             for char in text:
                 if char in string.printable:
-                    self.text += char
-                    self._move_cursor_right()
+                    self._insert_char(char)
 
     def fix_cursor(self) -> Control:
         return Control.move_to_column(self._cursor_offset + self.cursor_position)
