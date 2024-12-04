@@ -27,12 +27,14 @@ ANIMATION_STATUS = Literal["started", "stopped", "error", "no_animation"]
 
 class BaseStyle(ABC):
     result_color: Color
+    decoration_size: int
 
     def __init__(self) -> None:
         self.padding = 2
         self.cursor_offset = 0
 
         self._animation_counter = 0
+        self.decoration_size = 2
 
     def empty_line(self) -> Text:
         return Text(" ")
@@ -49,6 +51,13 @@ class BaseStyle(ABC):
                 console: Console, options: ConsoleOptions
             ) -> RenderResult:
                 for content in renderables:
+                    # our styles are potentially adding some paddings on the left
+                    # and right sides, so we need to adjust the max_width to
+                    # make sure that rich takes that into account
+                    options = options.update(
+                        max_width=console.width - self.decoration_size
+                    )
+
                     lines = console.render_lines(content, options, pad=False)
 
                     for line in Segment.split_lines(
