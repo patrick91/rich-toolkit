@@ -16,18 +16,35 @@ class TextInputHandler:
     RIGHT_KEY = "\x1b[C"
     BACKSPACE_KEY = "\x7f"
 
-    def __init__(self):
+    def __init__(self, cursor_offset: int = 0):
         self.text = ""
+        self.cursor_position = 0
+        self._cursor_offset = cursor_offset
+
+    def _move_cursor_left(self) -> None:
+        self.cursor_position = max(0, self.cursor_position - 1)
+
+    def _move_cursor_right(self) -> None:
+        self.cursor_position = min(len(self.text), self.cursor_position + 1)
 
     def update_text(self, text: str) -> None:
         if text == self.BACKSPACE_KEY:
             self.text = self.text[:-1]
-        elif text in [self.DOWN_KEY, self.UP_KEY, self.LEFT_KEY, self.RIGHT_KEY]:
+            self._move_cursor_left()
+        elif text == self.LEFT_KEY:
+            self._move_cursor_left()
+        elif text == self.RIGHT_KEY:
+            self.cursor_position = min(len(self.text), self.cursor_position + 1)
+        elif text in (self.UP_KEY, self.DOWN_KEY):
             pass
         else:
             for char in text:
                 if char in string.printable:
                     self.text += char
+                    self._move_cursor_right()
+
+    def fix_cursor(self) -> Control:
+        return Control.move_to_column(self._cursor_offset + self.cursor_position)
 
 
 class Input(TextInputHandler):
@@ -43,7 +60,6 @@ class Input(TextInputHandler):
     ):
         self.title = title
         self.default = default
-        self._cursor_offset = cursor_offset
         self.password = password
 
         self.console = console
@@ -56,7 +72,7 @@ class Input(TextInputHandler):
 
         self._padding_bottom = 1
 
-        super().__init__()
+        super().__init__(cursor_offset)
 
     def _render_result(self) -> RenderableType:
         if self.password:
@@ -76,7 +92,7 @@ class Input(TextInputHandler):
 
         text = f"[text]{text}[/]" if self.text else f"[placeholder]{default }[/]"
 
-        return Group(self.title, text)
+        return Group(self.title + f" {self.cursor_position}", text)
 
     def _refresh(self, show_result: bool = False) -> None:
         renderable = self._render_result() if show_result else self._render_input()
@@ -85,14 +101,11 @@ class Input(TextInputHandler):
 
         self._render()
 
-    def _fix_cursor(self, offset: int) -> Control:
-        return Control.move_to_column(offset + self._cursor_offset)
-
     def _render(self):
         self.console.print(
             self._live_render.position_cursor(),
             self._live_render,
-            self._fix_cursor(len(self.text)),
+            self.fix_cursor(),
         )
 
     def ask(self) -> str:
