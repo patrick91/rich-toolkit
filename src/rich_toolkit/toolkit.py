@@ -82,6 +82,7 @@ class RichToolkit:
             style=self.theme.style,
             inline=inline,
             allow_filtering=allow_filtering,
+            cursor_offset=self.theme.style.cursor_offset,
             **metadata,
         ).ask()
 

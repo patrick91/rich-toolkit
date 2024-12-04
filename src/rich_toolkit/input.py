@@ -96,7 +96,7 @@ class Input(TextInputHandler):
 
         self._padding_bottom = 1
 
-        super().__init__(cursor_offset)
+        super().__init__(cursor_offset=cursor_offset)
 
     def _render_result(self) -> RenderableType:
         if self.password:
