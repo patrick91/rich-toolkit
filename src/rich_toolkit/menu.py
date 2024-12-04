@@ -15,12 +15,6 @@ from .input import TextInputHandler
 ReturnValue = TypeVar("ReturnValue")
 
 
-# a function to log to a file in cwd
-def log_to_file(message: str, file_name: str = "log.txt") -> None:
-    with open(file_name, "a") as file:
-        file.write(message + "\n")
-
-
 class Option(TypedDict, Generic[ReturnValue]):
     name: str
     value: ReturnValue
@@ -221,8 +215,6 @@ class Menu(Generic[ReturnValue], TextInputHandler):
 
             move_down = height - 2
 
-            log_to_file(f"height: {height}, move_down: {move_down}")
-
             return Control(
                 (ControlType.CURSOR_DOWN, move_down),
                 ControlType.CARRIAGE_RETURN,
@@ -238,21 +230,25 @@ class Menu(Generic[ReturnValue], TextInputHandler):
 
         return self._live_render.position_cursor()
 
-    def _render(self) -> None:
+    def _render(self, show_result: bool = False) -> None:
         self.console.print(
             Control.show_cursor(True if self.allow_filtering else False),
             self.reposition_cursor(),
             self._live_render,
-            self.fix_cursor(),
-            self.move_cursor(),
         )
+
+        if not show_result:
+            self.console.print(
+                self.fix_cursor(),
+                self.move_cursor(),
+            )
 
     def _refresh(self, show_result: bool = False) -> None:
         renderable = self._render_result() if show_result else self._render_menu()
 
         self._live_render.set_renderable(renderable)
 
-        self._render()
+        self._render(show_result)
 
     def ask(self) -> ReturnValue:
         self._refresh()
@@ -279,7 +275,7 @@ class Menu(Generic[ReturnValue], TextInputHandler):
 
         self._refresh(show_result=True)
 
-        # for _ in range(self._padding_bottom):
-        #     self.console.print()
+        for _ in range(self._padding_bottom):
+            self.console.print()
 
         return self.options[self.selected]["value"]
