@@ -36,11 +36,13 @@ class Input:
 
         self._padding_bottom = 1
 
-    def _update_text(self, char: str) -> None:
-        if char == "\x7f":
+    def _update_text(self, text: str) -> None:
+        if text == "\x7f":
             self.text = self.text[:-1]
-        elif char in string.printable:
-            self.text += char
+        else:
+            for char in text:
+                if char in string.printable:
+                    self.text += char
 
     def _render_result(self) -> RenderableType:
         if self.password:
