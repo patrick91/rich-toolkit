@@ -58,7 +58,7 @@ class BaseStyle(ABC):
                         max_width=console.width - self.decoration_size
                     )
 
-                    lines = console.render_lines(content, options)
+                    lines = console.render_lines(content, options, pad=False)
 
                     for line in Segment.split_lines(
                         self.decorate(
