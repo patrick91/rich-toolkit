@@ -16,6 +16,7 @@ class TaggedStyle(BaseStyle):
 
         self.padding = 2
         self.cursor_offset = self.tag_width + self.padding
+        self.decoration_size = self.tag_width + self.padding
 
     def _render_tag(
         self,

@@ -17,6 +17,7 @@ class MinimalStyle(BaseStyle):
         super().__init__(*args, **kwargs)
 
         self.cursor_offset = 2
+        self.decoration_size = 2
 
     def decorate(
         self,
