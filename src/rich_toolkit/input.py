@@ -10,12 +10,20 @@ from rich_toolkit.styles.base import BaseStyle
 
 
 class TextInputHandler:
+    DOWN_KEY = "\x1b[B"
+    UP_KEY = "\x1b[A"
+    LEFT_KEY = "\x1b[D"
+    RIGHT_KEY = "\x1b[C"
+    BACKSPACE_KEY = "\x7f"
+
     def __init__(self):
         self.text = ""
 
     def update_text(self, text: str) -> None:
-        if text == "\x7f":  # Backspace character
+        if text == self.BACKSPACE_KEY:
             self.text = self.text[:-1]
+        elif text in [self.DOWN_KEY, self.UP_KEY, self.LEFT_KEY, self.RIGHT_KEY]:
+            pass
         else:
             for char in text:
                 if char in string.printable:

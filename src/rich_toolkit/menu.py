@@ -20,18 +20,13 @@ class Option(TypedDict, Generic[ReturnValue]):
 
 
 class Menu(Generic[ReturnValue], TextInputHandler):
+    DOWN_KEYS = [TextInputHandler.DOWN_KEY, "j"]
+    UP_KEYS = [TextInputHandler.UP_KEY, "k"]
+    LEFT_KEYS = [TextInputHandler.LEFT_KEY, "h"]
+    RIGHT_KEYS = [TextInputHandler.RIGHT_KEY, "l"]
+
     current_selection_char = "●"
     selection_char = "○"
-
-    DOWN_KEY = "\x1b[B"
-    UP_KEY = "\x1b[A"
-    LEFT_KEY = "\x1b[D"
-    RIGHT_KEY = "\x1b[C"
-
-    DOWN_KEYS = [DOWN_KEY, "j"]
-    UP_KEYS = [UP_KEY, "k"]
-    LEFT_KEYS = [LEFT_KEY, "h"]
-    RIGHT_KEYS = [RIGHT_KEY, "l"]
 
     def __init__(
         self,
