@@ -1,6 +1,6 @@
 [project]
 name = "rich-toolkit"
-version = "0.11.1"
+version = "0.11.2"
 description = "Rich toolkit for building command-line applications"
 readme = "README.md"
 requires-python = ">=3.8"
