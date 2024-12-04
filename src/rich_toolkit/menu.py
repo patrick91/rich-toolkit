@@ -150,7 +150,6 @@ class Menu(Generic[ReturnValue], TextInputHandler):
                 Text.assemble(
                     (self.filter_prompt, self.console.get_style("text")),
                     (self.text, self.console.get_style("text")),
-                    f" {h}",
                     "\n",
                 )
             ]

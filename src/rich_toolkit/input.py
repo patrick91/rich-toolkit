@@ -116,7 +116,7 @@ class Input(TextInputHandler):
 
         text = f"[text]{text}[/]" if self.text else f"[placeholder]{default }[/]"
 
-        return Group(self.title + f" {self.cursor_position}", text)
+        return Group(self.title, text)
 
     def _refresh(self, show_result: bool = False) -> None:
         renderable = self._render_result() if show_result else self._render_input()
