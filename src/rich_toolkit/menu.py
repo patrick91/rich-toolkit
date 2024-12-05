@@ -220,20 +220,36 @@ class Menu(Generic[ReturnValue], LiveInput):
 
         return self._live_render.position_cursor()
 
-    def position_cursor(self) -> Control:
-        if self.allow_filtering:
-            if self._live_render._shape is None:
-                return Control()
+    def position_cursor(self) -> Tuple[Control, ...]:
+        """Positions the cursor at the end of the menu.
 
-            _, height = self._live_render._shape
+        It moves the cursor up based on the size of the menu when filtering
+        is enabled. It does by taking into account the size of the menu
+        and the fact that we moved the cursor up in the previous render.
 
-            move_down = height - 2
+        We use the shape of the menu to calculate the number of times we
+        need to move the cursor up, we do this because the options are
+        dynamic and we need the current size* of the menu to calculate
+        the correct position of the cursor.
 
-            return Control(
+        * Current size means the previous size of the menu, but I say
+        current because we haven't rendered the updated menu yet :)
+        """
+        original = super().position_cursor()
+
+        if self._live_render._shape is None or not self.allow_filtering:
+            return original
+
+        _, height = self._live_render._shape
+
+        move_down = height - 2
+
+        return (
+            Control(
                 (ControlType.CURSOR_DOWN, move_down),
-            )
-
-        return Control()
+            ),
+            *original,
+        )
 
     def fix_cursor(self) -> Tuple[Control, ...]:
         """Fixes the position of cursor after rendering the menu.
@@ -254,20 +270,6 @@ class Menu(Generic[ReturnValue], LiveInput):
     @property
     def should_show_cursor(self) -> bool:
         return self.allow_filtering
-
-    def _render(self, show_result: bool = False) -> None:
-        self.console.print(
-            Control.show_cursor(self.should_show_cursor),
-            self.position_cursor(),
-            self._live_render.position_cursor(),
-            self._live_render,
-        )
-
-        if not show_result:
-            self.console.print(
-                *self.fix_cursor(),
-                # self.move_cursor(),
-            )
 
     def ask(self) -> ReturnValue:
         self._refresh()
