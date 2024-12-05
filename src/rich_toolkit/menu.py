@@ -1,4 +1,4 @@
-from typing import Generic, List, Optional, TypeVar, cast
+from typing import Generic, List, Optional, Tuple, TypeVar, cast
 
 import click
 from rich import get_console
@@ -10,7 +10,7 @@ from rich.live_render import LiveRender
 from typing_extensions import Any, Literal, TypedDict
 
 from .styles.base import BaseStyle
-from .input import TextInputHandler
+from .input import TextInputHandler, LiveInput
 
 ReturnValue = TypeVar("ReturnValue")
 
@@ -20,7 +20,7 @@ class Option(TypedDict, Generic[ReturnValue]):
     value: ReturnValue
 
 
-class Menu(Generic[ReturnValue], TextInputHandler):
+class Menu(Generic[ReturnValue], LiveInput):
     DOWN_KEYS = [TextInputHandler.DOWN_KEY, "j"]
     UP_KEYS = [TextInputHandler.UP_KEY, "k"]
     LEFT_KEYS = [TextInputHandler.LEFT_KEY, "h"]
@@ -55,17 +55,16 @@ class Menu(Generic[ReturnValue], TextInputHandler):
 
         self._options = options
 
-        # TODO: this can be in a base class (see input)
-        if style is None:
-            self._live_render = LiveRender("")
-        else:
-            self._live_render = style.decorate_class(LiveRender, **metadata)("")
-
         self._padding_bottom = 1
 
         cursor_offset = cursor_offset + len(self.filter_prompt)
 
-        super().__init__(cursor_offset=cursor_offset)
+        super().__init__(
+            console=self.console,
+            style=self.style,
+            cursor_offset=cursor_offset,
+            **metadata,
+        )
 
     def get_key(self) -> Optional[str]:
         char = click.getchar()
@@ -117,7 +116,7 @@ class Menu(Generic[ReturnValue], TextInputHandler):
         if self.selected >= len(self.options):
             self.selected = 0
 
-    def _render_menu(self) -> RenderableType:
+    def render_input(self) -> RenderableType:
         menu = Text(justify="left")
 
         selected_prefix = Text(self.current_selection_char + " ")
@@ -159,7 +158,7 @@ class Menu(Generic[ReturnValue], TextInputHandler):
 
         return Group(self.title, *filter, *menu)
 
-    def _render_result(self) -> RenderableType:
+    def render_result(self) -> RenderableType:
         result_text = Text()
 
         result_text.append(self.title)
@@ -197,13 +196,13 @@ class Menu(Generic[ReturnValue], TextInputHandler):
 
         return True
 
-    def move_cursor(self) -> Control:
+    def move_cursor(self) -> Tuple[Control, ...]:
         if self.allow_filtering:
             height = len(self.options) + 1 if self.options else 2
 
-            return Control((ControlType.CURSOR_UP, height))
+            return (Control((ControlType.CURSOR_UP, height)),)
 
-        return Control()
+        return ()
 
     def reposition_cursor(self) -> Control:
         if self.allow_filtering:
@@ -229,25 +228,43 @@ class Menu(Generic[ReturnValue], TextInputHandler):
 
         return self._live_render.position_cursor()
 
+    def position_cursor(self) -> Control:
+        if self.allow_filtering:
+            if self._live_render._shape is None:
+                return Control()
+
+            _, height = self._live_render._shape
+
+            move_down = height - 2
+
+            return Control(
+                (ControlType.CURSOR_DOWN, move_down),
+            )
+
+        return Control()
+
+    def fix_cursor(self) -> Tuple[Control, ...]:
+        original_control = super().fix_cursor()
+
+        return (*original_control, *self.move_cursor())
+
+    @property
+    def should_show_cursor(self) -> bool:
+        return self.allow_filtering
+
     def _render(self, show_result: bool = False) -> None:
         self.console.print(
-            Control.show_cursor(True if self.allow_filtering else False),
-            self.reposition_cursor(),
+            Control.show_cursor(self.should_show_cursor),
+            self.position_cursor(),
+            self._live_render.position_cursor(),
             self._live_render,
         )
 
         if not show_result:
             self.console.print(
-                self.fix_cursor(),
-                self.move_cursor(),
+                *self.fix_cursor(),
+                # self.move_cursor(),
             )
-
-    def _refresh(self, show_result: bool = False) -> None:
-        renderable = self._render_result() if show_result else self._render_menu()
-
-        self._live_render.set_renderable(renderable)
-
-        self._render(show_result)
 
     def ask(self) -> ReturnValue:
         self._refresh()
