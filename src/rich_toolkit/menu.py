@@ -196,14 +196,6 @@ class Menu(Generic[ReturnValue], LiveInput):
 
         return True
 
-    def move_cursor(self) -> Tuple[Control, ...]:
-        if self.allow_filtering:
-            height = len(self.options) + 1 if self.options else 2
-
-            return (Control((ControlType.CURSOR_UP, height)),)
-
-        return ()
-
     def reposition_cursor(self) -> Control:
         if self.allow_filtering:
             if self._live_render._shape is None:
@@ -244,9 +236,20 @@ class Menu(Generic[ReturnValue], LiveInput):
         return Control()
 
     def fix_cursor(self) -> Tuple[Control, ...]:
-        original_control = super().fix_cursor()
+        """Fixes the position of cursor after rendering the menu.
 
-        return (*original_control, *self.move_cursor())
+        It moves the cursor up based on the size of the menu, but
+        only if allow_filtering is enabled. (We don't show the cursor
+        when filtering is disabled.)
+        """
+        move_cursor = ()
+
+        if self.allow_filtering:
+            height = len(self.options) + 1 if self.options else 2
+
+            move_cursor = (Control((ControlType.CURSOR_UP, height)),)
+
+        return (*super().fix_cursor(), *move_cursor)
 
     @property
     def should_show_cursor(self) -> bool:
