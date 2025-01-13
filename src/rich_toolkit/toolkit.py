@@ -100,7 +100,12 @@ class RichToolkit:
         ).ask()
 
     def progress(
-        self, title: str, transient: bool = False, transient_on_error: bool = False
+        self,
+        title: str,
+        transient: bool = False,
+        transient_on_error: bool = False,
+        inline_logs: bool = False,
+        lines_to_show: int = -1,
     ) -> Progress:
         return Progress(
             title=title,
@@ -108,4 +113,6 @@ class RichToolkit:
             style=self.theme.style,
             transient=transient,
             transient_on_error=transient_on_error,
+            inline_logs=inline_logs,
+            lines_to_show=lines_to_show,
         )

@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from typing import Any, Generator, Iterable, List, Type, TypeVar
-from typing_extensions import Literal
 
 from rich.color import Color
 from rich.console import (
@@ -12,10 +11,9 @@ from rich.console import (
 )
 from rich.segment import Segment
 from rich.text import Text
-
+from typing_extensions import Literal
 
 from rich_toolkit.utils.colors import lighten
-
 
 ConsoleRenderableClass = TypeVar(
     "ConsoleRenderableClass", bound=Type[ConsoleRenderable]
@@ -87,6 +85,29 @@ class BaseStyle(ABC):
                 yield from style.decorate(lines=lines, console=console, **metadata)
 
         return Decorated  # type: ignore
+
+    def decorate_progress_log_line(
+        self, line: str, index: int, max_lines: int = -1, total_lines: int = -1
+    ) -> str:
+        line = f"({index}/{total_lines}) " + line
+
+        if max_lines == -1:
+            return line
+
+        # Adjust minimum brightness based on number of lines
+        # Fewer lines = higher minimum brightness
+        min_brightness = max(0.4, 1.0 - (total_lines / max_lines) * 0.6)
+        brightness_range = 1.0 - min_brightness
+
+        # Calculate brightness based on position in the sequence
+        brightness_pct = (index / total_lines) * brightness_range + min_brightness
+
+        # Apply brightness to RGB values
+        r = g = b = int(255 * brightness_pct)
+
+        color = f"#{r:02x}{g:02x}{b:02x}"
+
+        return f"[{color}]" + line
 
     @abstractmethod
     def decorate(

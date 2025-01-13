@@ -3,7 +3,6 @@ import time
 from rich_toolkit import RichToolkit, RichToolkitTheme
 from rich_toolkit.styles import FancyStyle, TaggedStyle
 
-
 for style in [TaggedStyle(tag_width=8), FancyStyle()]:
     theme = RichToolkitTheme(
         style=style,
@@ -66,5 +65,5 @@ for style in [TaggedStyle(tag_width=8), FancyStyle()]:
             time.sleep(1)
 
             progress.set_error("Something went wrong")
-            
+
     print("----------------------------------------")
