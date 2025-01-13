@@ -1,6 +1,6 @@
 [project]
 name = "rich-toolkit"
-version = "0.12.0"
+version = "0.13.0"
 description = "Rich toolkit for building command-line applications"
 readme = "README.md"
 license = "MIT"
@@ -30,6 +30,4 @@ dev = [
     "uvicorn>=0.30.6",
     "fastapi[standard]>=0.112.2",
 ]
-lint = [
-    "mypy>=1.11.2",
-]
+lint = ["mypy>=1.11.2"]
