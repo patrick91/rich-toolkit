@@ -89,8 +89,6 @@ class BaseStyle(ABC):
     def decorate_progress_log_line(
         self, line: str, index: int, max_lines: int = -1, total_lines: int = -1
     ) -> str:
-        line = f"({index}/{total_lines}) " + line
-
         if max_lines == -1:
             return line
 
