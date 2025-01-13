@@ -22,12 +22,14 @@ classifiers = [
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "pytest>=8.3.2",
     "pdbpp>=0.10.3",
     "inline-snapshot>=0.12.1",
     "uvicorn>=0.30.6",
     "fastapi[standard]>=0.112.2",
+]
+lint = [
     "mypy>=1.11.2",
 ]
