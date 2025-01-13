@@ -798,10 +798,12 @@ dependencies = [
 dev = [
     { name = "fastapi", extra = ["standard"] },
     { name = "inline-snapshot" },
-    { name = "mypy" },
     { name = "pdbpp" },
     { name = "pytest" },
     { name = "uvicorn" },
+]
+lint = [
+    { name = "mypy" },
 ]
 
 [package.metadata]
@@ -815,11 +817,11 @@ requires-dist = [
 dev = [
     { name = "fastapi", extras = ["standard"], specifier = ">=0.112.2" },
     { name = "inline-snapshot", specifier = ">=0.12.1" },
-    { name = "mypy", specifier = ">=1.11.2" },
     { name = "pdbpp", specifier = ">=0.10.3" },
     { name = "pytest", specifier = ">=8.3.2" },
     { name = "uvicorn", specifier = ">=0.30.6" },
 ]
+lint = [{ name = "mypy", specifier = ">=1.11.2" }]
 
 [[package]]
 name = "shellingham"
