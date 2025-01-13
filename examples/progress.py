@@ -20,6 +20,9 @@ for style in [TaggedStyle(tag_width=8), FancyStyle()]:
     )
 
     with RichToolkit(theme=theme) as app:
+        app.print_title("Progress examples", tag="demo")
+        app.print_line()
+
         with app.progress("Some demo here") as progress:
             for x in range(3):
                 time.sleep(0.1)
@@ -35,22 +38,33 @@ for style in [TaggedStyle(tag_width=8), FancyStyle()]:
         app.print_line()
 
         with app.progress("Progress also support\nmultiple lines") as progress:
-            time.sleep(2)
+            time.sleep(1)
 
-            progress.set_error("[error]Something went wrong\nbut on two lines")
+        app.print_line()
+
+        with app.progress("Progress also support\nmultiple lines, error") as progress:
+            time.sleep(1)
+
+            progress.set_error("[error]Something went wrong\nbut on two lines\nor more")
 
         app.print_line()
 
         with app.progress("Progress can be hidden", transient=True) as progress:
-            time.sleep(2)
-
-        app.print("Done!", tag="result")
+            time.sleep(1)
 
         with app.progress(
-            "Progress can be hidden", transient=True, transient_on_error=False
+            "Progress can be hidden\neven when it is on two lines\nor more",
+            transient=True,
         ) as progress:
-            time.sleep(2)
+            time.sleep(1)
+
+        with app.progress(
+            "Progress can be hidden (but not when it errors)",
+            transient=True,
+            transient_on_error=False,
+        ) as progress:
+            time.sleep(1)
 
             progress.set_error("Something went wrong")
-
+            
     print("----------------------------------------")
