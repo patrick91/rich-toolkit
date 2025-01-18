@@ -1,6 +1,6 @@
 import string
-from typing import Any, Optional, Tuple
 from abc import ABC, abstractmethod
+from typing import Any, Optional, Tuple
 
 import click
 from rich.console import Console, Group, RenderableType
@@ -78,8 +78,11 @@ class LiveInput(ABC, TextInputHandler):
         console: Console,
         style: Optional[BaseStyle] = None,
         cursor_offset: int = 0,
+        inline: bool = False,
         **metadata: Any,
     ):
+        self.inline = inline
+
         self.console = console
         self._live_render = LiveRender("")
 
@@ -132,7 +135,9 @@ class Input(LiveInput):
         title: str,
         style: Optional[BaseStyle] = None,
         default: str = "",
+        # TODO: do we use this? (seems based on the theme)
         cursor_offset: int = 0,
+        inline: bool = False,
         password: bool = False,
         **metadata: Any,
     ):
@@ -143,8 +148,15 @@ class Input(LiveInput):
         self.console = console
         self.style = style
 
+        if inline:
+            cursor_offset += len(self.title) + 1
+
         super().__init__(
-            console=console, style=style, cursor_offset=cursor_offset, **metadata
+            console=console,
+            style=style,
+            cursor_offset=cursor_offset,
+            inline=inline,
+            **metadata,
         )
 
     def render_result(self) -> RenderableType:
@@ -153,7 +165,7 @@ class Input(LiveInput):
 
         return self.title + " [result]" + (self.text or self.default)
 
-    def render_input(self) -> Group:
+    def render_input(self) -> RenderableType:
         text = self.text
 
         if self.password:
@@ -164,6 +176,9 @@ class Input(LiveInput):
         default = self.default or " "
 
         text = f"[text]{text}[/]" if self.text else f"[placeholder]{default }[/]"
+
+        if self.inline:
+            return self.title + " " + text
 
         return Group(self.title, text)
 

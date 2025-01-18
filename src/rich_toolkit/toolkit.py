@@ -3,10 +3,10 @@ from typing import Any, Dict, List, Union
 from rich.console import Console, RenderableType
 from rich.theme import Theme
 
-from .styles.base import BaseStyle
 from .input import Input
 from .menu import Menu, Option, ReturnValue
 from .progress import Progress
+from .styles.base import BaseStyle
 
 
 class RichToolkitTheme:
@@ -87,7 +87,12 @@ class RichToolkit:
         ).ask()
 
     def input(
-        self, title: str, default: str = "", password: bool = False, **metadata: Any
+        self,
+        title: str,
+        default: str = "",
+        password: bool = False,
+        inline: bool = False,
+        **metadata: Any,
     ) -> str:
         return Input(
             console=self.console,
@@ -96,6 +101,7 @@ class RichToolkit:
             default=default,
             cursor_offset=self.theme.style.cursor_offset,
             password=password,
+            inline=inline,
             **metadata,
         ).ask()
 
