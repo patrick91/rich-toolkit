@@ -13,7 +13,8 @@ from rich.segment import Segment
 from rich.text import Text
 from typing_extensions import Literal
 
-from rich_toolkit.utils.colors import lighten, lighten_text
+from rich_toolkit.utils.colors import darken_text, lighten, lighten_text
+from rich_toolkit.utils.map_range import map_range
 
 ConsoleRenderableClass = TypeVar(
     "ConsoleRenderableClass", bound=Type[ConsoleRenderable]
@@ -94,20 +95,17 @@ class BaseStyle(ABC):
         if max_lines == -1:
             return line
 
-        # Adjust minimum brightness based on number of lines
-        # Fewer lines = higher minimum brightness
-        min_brightness = max(0.4, 1.0 - (total_lines / max_lines) * 0.6)
-        brightness_range = 1.0 - min_brightness
+        # base max darkness on the number of lines, so if we have less than max_lines
+        # we will have a lower maximum darkness
+        max_darkness = 0.7
 
-        # Calculate brightness based on position in the sequence
-        brightness_pct = (index / total_lines) * brightness_range + min_brightness
+        max_darkness = min(max_darkness, (total_lines / max_lines) * max_darkness)
 
-        # Apply brightness to RGB values
-        r = g = b = int(255 * brightness_pct)
+        brightness_pct = 1 - map_range(index, (0, max_lines), (1 - max_darkness, 1.0))
 
-        color = f"#{r:02x}{g:02x}{b:02x}"
+        color = Color.from_rgb(255, 255, 255)
 
-        return lighten_text(line, Color.parse(color), brightness_pct)
+        return darken_text(line, color, brightness_pct)
 
     @abstractmethod
     def decorate(
