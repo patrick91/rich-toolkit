@@ -1,13 +1,10 @@
 from typing import Any, Generator, Iterable, List
 
 from rich._loop import loop_first_last
-from rich.console import (
-    Console,
-)
+from rich.console import Console
 from rich.segment import Segment
 from rich.style import Style
 from rich.text import Text
-
 
 from .base import ANIMATION_STATUS, BaseStyle
 

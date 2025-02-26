@@ -1,6 +1,8 @@
 import random
 import time
 
+from rich.text import Text
+
 from rich_toolkit import RichToolkit, RichToolkitTheme
 from rich_toolkit.styles import FancyStyle, TaggedStyle
 
@@ -21,6 +23,21 @@ for style in [TaggedStyle(tag_width=8), FancyStyle()]:
 
     with RichToolkit(theme=theme) as app:
         app.print_title("Progress log examples", tag="demo")
+        app.print_line()
+
+        with app.progress(
+            "Progress with inline logs using ansi codes",
+            inline_logs=True,
+            lines_to_show=10,
+        ) as progress:
+            for x in range(20):
+                time.sleep(random.uniform(0.05, 0.35))
+                progress.log(
+                    Text.from_ansi(
+                        "Build Summary\033[0m: \033[4;39mhttp://example.com\033[0m"
+                    )
+                )
+
         app.print_line()
 
         with app.progress(

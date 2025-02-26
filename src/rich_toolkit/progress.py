@@ -1,8 +1,8 @@
 from typing import List, Optional
 
-from rich.console import Console
-from rich.live import Live
-from typing_extensions import Any, Literal
+from rich.console import Console, Group
+from rich.live import Live, RenderableType
+from typing_extensions import Literal
 
 from .styles.base import BaseStyle
 
@@ -35,7 +35,7 @@ class Progress(Live):
 
         return self
 
-    def get_renderable(self) -> Any:
+    def get_renderable(self) -> RenderableType:
         current_message = self.current_message
 
         if not self.style:
@@ -48,7 +48,7 @@ class Progress(Live):
         if self.is_error:
             animation_status = "error"
 
-        content = current_message
+        content: str | Group = current_message
 
         if self._inline_logs:
             lines_to_show = (
@@ -57,8 +57,8 @@ class Progress(Live):
                 else self.logs
             )
 
-            content = "\n".join(
-                [
+            content = Group(
+                *[
                     self.style.decorate_progress_log_line(
                         line,
                         index=index,

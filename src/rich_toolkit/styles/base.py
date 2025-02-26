@@ -13,7 +13,7 @@ from rich.segment import Segment
 from rich.text import Text
 from typing_extensions import Literal
 
-from rich_toolkit.utils.colors import lighten
+from rich_toolkit.utils.colors import lighten, lighten_text
 
 ConsoleRenderableClass = TypeVar(
     "ConsoleRenderableClass", bound=Type[ConsoleRenderable]
@@ -87,8 +87,10 @@ class BaseStyle(ABC):
         return Decorated  # type: ignore
 
     def decorate_progress_log_line(
-        self, line: str, index: int, max_lines: int = -1, total_lines: int = -1
-    ) -> str:
+        self, line: str | Text, index: int, max_lines: int = -1, total_lines: int = -1
+    ) -> Text:
+        line = Text.from_markup(line) if isinstance(line, str) else line
+
         if max_lines == -1:
             return line
 
@@ -105,7 +107,7 @@ class BaseStyle(ABC):
 
         color = f"#{r:02x}{g:02x}{b:02x}"
 
-        return f"[{color}]" + line
+        return lighten_text(line, Color.parse(color), brightness_pct)
 
     @abstractmethod
     def decorate(
