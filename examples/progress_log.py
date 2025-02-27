@@ -33,8 +33,8 @@ for style in [TaggedStyle(tag_width=8), FancyStyle()]:
             for x in range(20):
                 time.sleep(random.uniform(0.05, 0.35))
                 progress.log(
-                    Text.from_ansi(
-                        "Build Summary\033[0m: \033[4;39mhttp://example.com\033[0m"
+                    Text.from_markup(
+                        "Build Summary: [link=http://example.com]http://example.com[/link]"
                     )
                 )
 

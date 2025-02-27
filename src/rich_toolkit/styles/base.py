@@ -13,7 +13,7 @@ from rich.segment import Segment
 from rich.text import Text
 from typing_extensions import Literal
 
-from rich_toolkit.utils.colors import darken_text, lighten, lighten_text
+from rich_toolkit.utils.colors import darken_text, lighten
 from rich_toolkit.utils.map_range import map_range
 
 ConsoleRenderableClass = TypeVar(
