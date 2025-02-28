@@ -56,6 +56,9 @@ class Input(LiveInput):
     def render_result(self) -> RenderableType:
         return self.render_input()
 
+    def render(self, is_active: bool = False) -> RenderableType:
+        return self.render_input()
+
     def handle_key(self, key: str) -> None:
         if key == "\r":
             print("enter")

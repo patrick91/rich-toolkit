@@ -1,10 +1,9 @@
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 import click
 from rich.console import Console, Group, RenderableType
 from rich.control import Control, ControlType
 from rich.live_render import LiveRender
-from rich.style import Style
 from rich.text import Text
 
 from rich_toolkit.plain_input import Input
@@ -30,32 +29,83 @@ class Button:
             return self.callback()
         return True
 
+    @property
+    def size(self) -> Tuple[int, int]:
+        return [0, 1]
+
+
+class InputWithLabel:
+    def __init__(
+        self,
+        name: str,
+        label: str,
+        placeholder: str,
+        password: bool = False,
+        inline: bool = False,
+    ):
+        self.name = name
+        self.label = label
+        self.placeholder = placeholder
+        self.password = password
+        self.inline = inline
+        self.input = Input(console=Console(), password=password)
+
+    def render(self, is_active: bool = False) -> RenderableType:
+        if self.inline:
+            return self.input.render(is_active=is_active)
+        else:
+            return Group(
+                Text(f"[ {self.label} ]", style="bold green" if is_active else "bold"),
+                self.input.render(is_active=is_active),
+            )
+
+    @property
+    def should_show_cursor(self) -> bool:
+        return self.input.should_show_cursor
+
+    @property
+    def cursor_position(self) -> int:
+        return self.input.cursor_position
+
+    @property
+    def text(self) -> str:
+        return self.input.text
+
+    @property
+    def size(self) -> Tuple[int, int]:
+        if self.inline:
+            return [0, 1]
+        else:
+            return [0, 2]
+
+    def update_text(self, text: str):
+        self.input.update_text(text)
+
 
 class Form:
     def __init__(self, title: str):
         self.title = title
-        self.inputs: List[Input] = []
-        self.buttons: List[Button] = []
-        self.active_input_index = 1
-        self.previous_input_index = 1
+        self.elements: List[Input | Button] = []
+        self.active_element_index = 0
+        self.previous_element_index = 0
         self._live_render = LiveRender("")
         self.console = Console()
-        self.active_element_type = "input"  # Can be "input" or "button"
-        self.active_button_index = 0
 
     def add_input(
-        self, name: str, label: str, placeholder: str, password: bool = False
+        self,
+        name: str,
+        label: str,
+        placeholder: str,
+        password: bool = False,
+        inline: bool = False,
     ):
-        input = Input(console=Console(), password=password)
-        input.name = name
-        input.label = label
-        input.placeholder = placeholder
+        input = InputWithLabel(name, label, placeholder, password, inline)
 
-        self.inputs.append(input)
+        self.elements.append(input)
 
     def add_button(self, name: str, label: str, callback: Optional[Callable] = None):
         button = Button(name=name, label=label, callback=callback)
-        self.buttons.append(button)
+        self.elements.append(button)
 
     def _refresh(self):
         self._live_render.set_renderable(self.render())
@@ -70,65 +120,33 @@ class Form:
         )
 
     @property
-    def _active_input(self) -> Input:
-        return self.inputs[self.active_input_index]
-
-    @property
-    def _active_button(self) -> Button:
-        return self.buttons[self.active_button_index]
-
-    @property
     def _active_element(self) -> Union[Input, Button]:
-        if self.active_element_type == "input":
-            return self._active_input
-        else:
-            return self._active_button
+        return self.elements[self.active_element_index]
 
-    @property
-    def _active_input_position(self) -> int:
-        return 2 * (self.active_input_index + 1)
+    def _get_element_position(self, element_index: int) -> int:
+        position = 0
 
-    @property
-    def _active_button_position(self) -> int:
-        # Buttons appear after all inputs
-        return 2 * (len(self.inputs) + 1) + self.active_button_index
+        for i in range(element_index + 1):
+            position += self.elements[i].size[1]
+
+        return position
 
     @property
     def _active_element_position(self) -> int:
-        if self.active_element_type == "input":
-            return self._active_input_position
-        else:
-            return self._active_button_position
+        return self._get_element_position(self.active_element_index)
 
-    def get_offset_for_input(self, input_index: int) -> int:
+    def get_offset_for_element(self, element_index: int) -> int:
         if self._live_render._shape is None:
             return 0
 
-        _, height = self._live_render._shape
-        input_position = 2 * (input_index + 1)
-
-        return height - (input_position + 1)
-
-    def get_offset_for_button(self, button_index: int) -> int:
-        if self._live_render._shape is None:
-            return 0
+        position = self._get_element_position(element_index)
 
         _, height = self._live_render._shape
-        button_position = 2 * (len(self.inputs) + 1) + button_index
 
-        return height - (button_position + 1)
-
-    def get_offset_for_element(self, element_type: str, index: int) -> int:
-        if element_type == "input":
-            return self.get_offset_for_input(index)
-        else:
-            return self.get_offset_for_button(index)
+        return height - position
 
     def get_offset_for_active_element(self) -> int:
-        if self.active_element_type == "input":
-            return self.get_offset_for_input(self.active_input_index)
-        else:
-            return self.get_offset_for_button(self.active_button_index)
+        return self.get_offset_for_element(self.active_element_index)
 
     def move_cursor_to_active_element(self) -> Tuple[Control, ...]:
         move_up = self.get_offset_for_active_element()
@@ -149,12 +167,7 @@ class Form:
         original = (self._live_render.position_cursor(),)
 
         # Use the previous element type and index for cursor positioning
-        move_down = self.get_offset_for_element(
-            self.previous_element_type,
-            self.previous_input_index
-            if self.previous_element_type == "input"
-            else self.previous_button_index,
-        )
+        move_down = self.get_offset_for_element(self.previous_element_index)
 
         if move_down == 0:
             return original
@@ -170,97 +183,40 @@ class Form:
         content = []
 
         # Render inputs
-        for i, input in enumerate(self.inputs):
-            if i == self.active_input_index and self.active_element_type == "input":
-                content.append(f"[green]{input.name}[/]")
-            else:
-                content.append(input.name)
-            content.append(input.render_input())
-
-        # Add a separator if we have both inputs and buttons
-        if self.inputs and self.buttons:
-            content.append("")
-
-        # Render buttons
-        for i, button in enumerate(self.buttons):
-            content.append(
-                button.render(
-                    is_active=(
-                        i == self.active_button_index
-                        and self.active_element_type == "button"
-                    )
-                )
-            )
+        for i, element in enumerate(self.elements):
+            content.append(element.render(is_active=i == self.active_element_index))
 
         title = self.title
 
         if self._live_render._shape is not None:
-            title += f" h: {self._live_render._shape[1]} pos: {self._active_element_position} offset: {self.get_offset_for_active_element()}"
+            title += f" h: {self._live_render._shape[1]} offset: {self.get_offset_for_active_element()}"
 
         return Group(
-            Text(title, style="bold"),
+            # Text(title, style="bold"),
             *content,
         )
 
     def run(self):
-        # Initialize previous element tracking
-        self.previous_element_type = "input"
-        self.previous_input_index = self.active_input_index
-        self.previous_button_index = 0
-
         self._refresh()
         while True:
             try:
                 key = click.getchar()
 
                 # Store the previous element state
-                self.previous_element_type = self.active_element_type
-                self.previous_input_index = self.active_input_index
-                self.previous_button_index = self.active_button_index
+                self.previous_element_index = self.active_element_index
 
                 if key == "\t":
-                    # Tab cycles through all inputs and buttons
-                    if self.active_element_type == "input":
-                        self.active_input_index += 1
-                        if self.active_input_index >= len(self.inputs):
-                            # Move to buttons if we've gone through all inputs
-                            if self.buttons:
-                                self.active_element_type = "button"
-                                self.active_input_index = 0
-                                self.active_button_index = 0
-                            else:
-                                # Cycle back to first input if no buttons
-                                self.active_input_index = 0
-                    else:  # active_element_type == "button"
-                        self.active_button_index += 1
-                        if self.active_button_index >= len(self.buttons):
-                            # Cycle back to first input
-                            self.active_element_type = "input"
-                            self.active_button_index = 0
-                            self.active_input_index = 0
+                    self.active_element_index += 1
+                    if self.active_element_index >= len(self.elements):
+                        self.active_element_index = 0
 
                 elif key == "\r":  # Enter key
-                    if self.active_element_type == "input":
-                        # If on the last input, move to first button or submit
-                        if self.active_input_index == len(self.inputs) - 1:
-                            if self.buttons:
-                                self.active_element_type = "button"
-                                self.active_button_index = 0
-                            else:
-                                break  # Submit form if no buttons
-                        else:
-                            # Move to next input
-                            self.active_input_index += 1
-                    else:  # active_element_type == "button"
-                        # Activate the button
-                        result = self._active_button.activate()
-                        if result is True:  # Button indicates form should be submitted
-                            break
+                    break
 
                 else:
-                    # Only handle text input when an input is active
-                    if self.active_element_type == "input":
-                        self.inputs[self.active_input_index].update_text(key)
+                    if hasattr(self._active_element, "update_text"):
+                        # TODO: this should be handle key
+                        self._active_element.update_text(key)
 
                 self._refresh()
 
@@ -276,11 +232,11 @@ class Form:
 
         return form_data
 
-    def on_update(self, input: Input): ...
-
 
 # Example with multiple inputs and a button
 form = Form(title="Enter your login details")
+
+form.add_button(name="AI", label="AI")
 
 form.add_input(name="name", label="Name", placeholder="Enter your name")
 form.add_input(
@@ -289,6 +245,8 @@ form.add_input(
 
 # Add a submit button
 form.add_button(name="submit", label="Submit")
+form.add_input(name="email", label="Email", placeholder="Enter your email", inline=True)
+
 # Add a cancel button
 form.add_button(name="cancel", label="Cancel")
 
