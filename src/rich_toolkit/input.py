@@ -175,7 +175,7 @@ class Input(LiveInput):
         # and, most importantly, in the right place
         default = self.default or " "
 
-        text = f"[text]{text}[/]" if self.text else f"[placeholder]{default }[/]"
+        text = f"[text]{text}[/]" if self.text else f"[placeholder]{default}[/]"
 
         if self.inline:
             return self.title + " " + text

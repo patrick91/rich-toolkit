@@ -50,17 +50,38 @@ class InputWithLabel:
         self.password = password
         self.inline = inline
         self.input = Input(console=Console(), password=password)
+
+        self._input_position = None
+
         if inline:
             self.input._cursor_offset = len(self.label) + 1
 
+        self._height = None
+
     def render(self, is_active: bool = False) -> RenderableType:
+        label = self.label
+
+        if is_active:
+            label = f"[bold green]{label}[/bold green]"
+        elif not self.input.valid:
+            label = f"[bold red]{label}[/bold red]"
+
+        contents = []
+
         if self.inline:
-            return self.label + " " + self.input.render(is_active=is_active)
+            contents.append(label + " " + self.input.render(is_active=is_active))
+            self._input_position = 1
         else:
-            return Group(
-                Text(f"{self.label}:", style="bold green" if is_active else "bold"),
-                self.input.render(is_active=is_active),
-            )
+            contents.append(label)
+            contents.append(self.input.render(is_active=is_active))
+            self._input_position = 2
+
+        if not self.input.valid:
+            contents.append(Text("This field is required", style="bold red"))
+
+        self._height = len(contents)
+
+        return Group(*contents)
 
     @property
     def should_show_cursor(self) -> bool:
@@ -80,10 +101,9 @@ class InputWithLabel:
 
     @property
     def size(self) -> Tuple[int, int]:
-        if self.inline:
-            return [0, 1]
-        else:
-            return [0, 2]
+        assert self._height is not None
+
+        return [0, self._height]
 
     def update_text(self, text: str):
         self.input.update_text(text)
@@ -119,10 +139,14 @@ class Container:
     def _get_element_position(self, element_index: int) -> int:
         position = 0
 
-        # TODO: we are using just for moving the cursor
-        # with the assumption (wrong) that the cursor stays at the end of the element
         for i in range(element_index + 1):
-            position += self.elements[i].size[1]
+            current_element = self.elements[i]
+
+            # TODO: this is ugly :D
+            if i == element_index and hasattr(current_element, "_input_position"):
+                position += current_element._input_position
+            else:
+                position += current_element.size[1]
 
         return position
 

@@ -39,6 +39,10 @@ class Input(TextInputHandler):
     def should_show_cursor(self) -> bool:
         return True
 
+    @property
+    def valid(self) -> bool:
+        return bool(self.text)
+
     def render_input(self) -> RenderableType:
         text = self.text
 
