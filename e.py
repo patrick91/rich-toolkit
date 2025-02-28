@@ -15,6 +15,7 @@ class Button:
         self.label = label
         self.callback = callback
         self.cursor_position = 0  # For compatibility with Input
+        self.cursor_offset = 0
 
     @property
     def should_show_cursor(self) -> bool:
@@ -49,13 +50,15 @@ class InputWithLabel:
         self.password = password
         self.inline = inline
         self.input = Input(console=Console(), password=password)
+        if inline:
+            self.input._cursor_offset = len(self.label) + 1
 
     def render(self, is_active: bool = False) -> RenderableType:
         if self.inline:
-            return self.input.render(is_active=is_active)
+            return self.label + " " + self.input.render(is_active=is_active)
         else:
             return Group(
-                Text(f"[ {self.label} ]", style="bold green" if is_active else "bold"),
+                Text(f"{self.label}:", style="bold green" if is_active else "bold"),
                 self.input.render(is_active=is_active),
             )
 
@@ -66,6 +69,10 @@ class InputWithLabel:
     @property
     def cursor_position(self) -> int:
         return self.input.cursor_position
+
+    @property
+    def cursor_offset(self) -> int:
+        return self.input._cursor_offset
 
     @property
     def text(self) -> str:
@@ -82,7 +89,7 @@ class InputWithLabel:
         self.input.update_text(text)
 
 
-class Form:
+class Container:
     def __init__(self, title: str):
         self.title = title
         self.elements: List[Input | Button] = []
@@ -91,23 +98,7 @@ class Form:
         self._live_render = LiveRender("")
         self.console = Console()
 
-    def add_input(
-        self,
-        name: str,
-        label: str,
-        placeholder: str,
-        password: bool = False,
-        inline: bool = False,
-    ):
-        input = InputWithLabel(name, label, placeholder, password, inline)
-
-        self.elements.append(input)
-
-    def add_button(self, name: str, label: str, callback: Optional[Callable] = None):
-        button = Button(name=name, label=label, callback=callback)
-        self.elements.append(button)
-
-    def _refresh(self):
+    def _refresh(self, done: bool = False):
         self._live_render.set_renderable(self.render())
 
         self.console.print(
@@ -115,9 +106,11 @@ class Form:
             *self.move_cursor_at_beginning(),
             self._live_render,
         )
-        self.console.print(
-            *self.move_cursor_to_active_element(),
-        )
+
+        if not done:
+            self.console.print(
+                *self.move_cursor_to_active_element(),
+            )
 
     @property
     def _active_element(self) -> Union[Input, Button]:
@@ -126,6 +119,8 @@ class Form:
     def _get_element_position(self, element_index: int) -> int:
         position = 0
 
+        # TODO: we are using just for moving the cursor
+        # with the assumption (wrong) that the cursor stays at the end of the element
         for i in range(element_index + 1):
             position += self.elements[i].size[1]
 
@@ -155,7 +150,7 @@ class Form:
             (Control((ControlType.CURSOR_UP, move_up)),) if move_up > 0 else ()
         )
 
-        _cursor_offset = 0
+        _cursor_offset = self._active_element.cursor_offset
         _cursor_position = self._active_element.cursor_position
 
         return (Control.move_to_column(_cursor_offset + _cursor_position), *move_cursor)
@@ -194,10 +189,12 @@ class Form:
         return Group(
             # Text(title, style="bold"),
             *content,
+            "\n",
         )
 
     def run(self):
         self._refresh()
+
         while True:
             try:
                 key = click.getchar()
@@ -223,14 +220,37 @@ class Form:
             except KeyboardInterrupt:
                 exit()
 
-        # Collect form data
-        form_data = {input.name: input.text for input in self.inputs}
+        self._refresh(done=True)
 
-        # Add which button was activated, if any
-        if self.active_element_type == "button":
-            form_data["_button"] = self.buttons[self.active_button_index].name
 
-        return form_data
+class Form(Container):
+    def add_input(
+        self,
+        name: str,
+        label: str,
+        placeholder: str,
+        password: bool = False,
+        inline: bool = False,
+    ):
+        input = InputWithLabel(name, label, placeholder, password, inline)
+
+        self.elements.append(input)
+
+    def add_button(self, name: str, label: str, callback: Optional[Callable] = None):
+        button = Button(name=name, label=label, callback=callback)
+        self.elements.append(button)
+
+    def run(self):
+        super().run()
+
+        return self._collect_data()
+
+    def _collect_data(self) -> dict:
+        return {
+            input.name: input.text
+            for input in self.elements
+            if isinstance(input, InputWithLabel)
+        }
 
 
 # Example with multiple inputs and a button

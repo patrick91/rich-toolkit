@@ -10,10 +10,10 @@ from rich.live_render import LiveRender
 
 from rich_toolkit.styles.base import BaseStyle
 
-from .input import LiveInput
+from .input import TextInputHandler
 
 
-class Input(LiveInput):
+class Input(TextInputHandler):
     def __init__(
         self,
         console: Console,
@@ -31,13 +31,13 @@ class Input(LiveInput):
 
         self.console = console
         self.style = style
+        self.text = ""
 
-        super().__init__(
-            console=console,
-            style=style,
-            cursor_offset=cursor_offset,
-            **metadata,
-        )
+        super().__init__(cursor_offset=cursor_offset)
+
+    @property
+    def should_show_cursor(self) -> bool:
+        return True
 
     def render_input(self) -> RenderableType:
         text = self.text
@@ -62,29 +62,3 @@ class Input(LiveInput):
     def handle_key(self, key: str) -> None:
         if key == "\r":
             print("enter")
-
-    def ask(self) -> str:
-        self._refresh()
-
-        while True:
-            try:
-                key = click.getchar()
-
-                if key == "\r":
-                    break
-
-                self.update_text(key)
-                if self.container:
-                    self.container.on_update(self)
-
-            except KeyboardInterrupt:
-                exit()
-
-            self._refresh()
-
-        self._refresh(show_result=True)
-
-        for _ in range(self._padding_bottom):
-            self.console.print()
-
-        return self.text or self.default
