@@ -202,7 +202,12 @@ class Container:
                 # Store the previous element state
                 self.previous_element_index = self.active_element_index
 
-                if key == "\t":
+                if key == "\x1b[Z":
+                    self.active_element_index -= 1
+                    if self.active_element_index < 0:
+                        self.active_element_index = len(self.elements) - 1
+
+                elif key == "\t":
                     self.active_element_index += 1
                     if self.active_element_index >= len(self.elements):
                         self.active_element_index = 0
