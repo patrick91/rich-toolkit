@@ -14,7 +14,8 @@ class Form:
     def __init__(self, title: str):
         self.title = title
         self.inputs: List[Input] = []
-        self.active_input_index = 0
+        self.active_input_index = 1
+        self.previous_input_index = 1
         self._live_render = LiveRender("")
         self.console = Console()
 
@@ -31,9 +32,11 @@ class Form:
     def _refresh(self):
         self._live_render.set_renderable(self.render())
         self.console.print(
-            *self.position_cursor(),
+            *self.move_cursor_at_beginning(),
             self._live_render,
-            *self.fix_cursor(),
+        )
+        self.console.print(
+            *self.move_cursor_to_active_input(),
         )
 
     @property
@@ -42,26 +45,25 @@ class Form:
 
     @property
     def _active_input_position(self) -> int:
-        title_size = 1
-        input_size = 2
-        return title_size + input_size * (self.active_input_index + 1)
+        return 2 * (self.active_input_index + 1)
 
-    def fix_cursor(self) -> Tuple[Control, ...]:
-        """Fixes the position of cursor after rendering the container.
-
-        It moves the cursor up based on the current focused container (? input actually)
-        """
-        move_up = self._active_input_position
-
-        # TODO: this is potentially problematic, as we need the size of the container
-        # on *first* render...
+    def get_offset_for_input(self, input_index: int) -> int:
         if self._live_render._shape is None:
-            return ()
+            return 0
 
         _, height = self._live_render._shape
+        input_position = 2 * (input_index + 1)
+
+        return height - (input_position + 1)
+
+    def get_offset_for_active_input(self) -> int:
+        return self.get_offset_for_input(self.active_input_index)
+
+    def move_cursor_to_active_input(self) -> Tuple[Control, ...]:
+        move_up = self.get_offset_for_active_input()
 
         move_cursor = (
-            (Control((ControlType.CURSOR_UP, height - move_up)),) if move_up > 0 else ()
+            (Control((ControlType.CURSOR_UP, move_up)),) if move_up > 0 else ()
         )
 
         _cursor_offset = 0
@@ -69,28 +71,13 @@ class Form:
 
         return (Control.move_to_column(_cursor_offset + _cursor_position), *move_cursor)
 
-    def position_cursor(self) -> Tuple[Control, ...]:
-        """Positions the cursor at the end of the container.
+    def move_cursor_at_beginning(self) -> Tuple[Control, ...]:
+        if self._live_render._shape is None:
+            return (Control(),)
 
-        It moves the cursor up based on the size of the container.
-        It does by taking into account the size of the container.
-
-        We use the shape of the container to calculate the number of times we
-        need to move the cursor up, we do this because the children of the
-        container are dynamic and we need the current size of the container
-        to calculate the correct position of the cursor.
-
-        * Current size means the previous size of the container, but I say
-        current because we haven't rendered the updated container yet :)
-        """
         original = (self._live_render.position_cursor(),)
 
-        if self._live_render._shape is None:
-            return original
-
-        _, height = self._live_render._shape
-
-        move_down = self._active_input_position
+        move_down = self.get_offset_for_input(self.previous_input_index)
 
         if move_down == 0:
             return original
@@ -112,8 +99,13 @@ class Form:
                 content.append(input.name)
             content.append(input.render_input())
 
+        title = self.title
+
+        if self._live_render._shape is not None:
+            title += f" h: {self._live_render._shape[1]} input pos: {self._active_input_position} offset: {self.get_offset_for_active_input()}"
+
         return Group(
-            Text(self.title, style="bold"),
+            Text(title, style="bold"),
             *content,
         )
 
@@ -122,6 +114,8 @@ class Form:
         while True:
             try:
                 key = click.getchar()
+
+                self.previous_input_index = self.active_input_index
 
                 if key == "\t":
                     self.active_input_index += 1
