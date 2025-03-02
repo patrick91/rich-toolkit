@@ -109,6 +109,28 @@ class InputWithLabel:
         self.input.update_text(text)
 
 
+class BorderedStyle:
+    def decorate(
+        self,
+        renderable: InputWithLabel | Any,
+        console: Console,
+        is_active: bool = False,
+    ) -> RenderableType:
+        if isinstance(renderable, InputWithLabel):
+            # just to get some variables set
+            renderable.render()
+            return Group(
+                Text(f"┌ {renderable.label} ─────┐", style="bold"),
+                renderable.text,
+                Text("└───────────────────────┘", style="bold"),
+            )
+
+            # TODO: size should come from whatever is rendered here
+            # TODO: is this fine? the styles know how to render components?
+
+        return renderable.render(is_active=is_active)
+
+
 class Container:
     def __init__(self, title: str):
         self.title = title
@@ -117,6 +139,7 @@ class Container:
         self.previous_element_index = 0
         self._live_render = LiveRender("")
         self.console = Console()
+        self.style = BorderedStyle()
 
     def _refresh(self, done: bool = False):
         self._live_render.set_renderable(self.render())
@@ -203,7 +226,13 @@ class Container:
 
         # Render inputs
         for i, element in enumerate(self.elements):
-            content.append(element.render(is_active=i == self.active_element_index))
+            content.append(
+                self.style.decorate(
+                    element,
+                    is_active=i == self.active_element_index,
+                    console=self.console,
+                )
+            )
 
         title = self.title
 
