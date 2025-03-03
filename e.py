@@ -4,6 +4,7 @@ import click
 from rich.console import Console, Group, RenderableType
 from rich.control import Control, ControlType
 from rich.live_render import LiveRender
+from rich.segment import Segment
 from rich.text import Text
 
 from rich_toolkit.plain_input import Input
@@ -14,16 +15,14 @@ class Button:
         self.name = name
         self.label = label
         self.callback = callback
-        self.cursor_position = 0  # For compatibility with Input
-        self.cursor_offset = 0
 
     @property
     def should_show_cursor(self) -> bool:
         return False
 
     def render(self, is_active: bool = False) -> RenderableType:
-        style = "bold green" if is_active else "bold"
-        return Text(f"[ {self.label} ]", style=style)
+        style = "black on blue" if is_active else "white on black"
+        return Text(f" {self.label} ", style=style)
 
     def activate(self) -> Any:
         if self.callback:
@@ -88,12 +87,8 @@ class InputWithLabel:
         return self.input.should_show_cursor
 
     @property
-    def cursor_position(self) -> int:
-        return self.input.cursor_position
-
-    @property
-    def cursor_offset(self) -> int:
-        return self.input._cursor_offset
+    def cursor_left(self) -> int:
+        return self.input.cursor_left
 
     @property
     def text(self) -> str:
@@ -109,43 +104,29 @@ class InputWithLabel:
         self.input.update_text(text)
 
 
-class BorderedStyle:
-    def decorate(
-        self,
-        renderable: InputWithLabel | Any,
-        console: Console,
-        is_active: bool = False,
-    ) -> RenderableType:
-        if isinstance(renderable, InputWithLabel):
-            # just to get some variables set
-            renderable.render()
-            return Group(
-                Text(f"┌ {renderable.label} ─────┐", style="bold"),
-                renderable.text,
-                Text("└───────────────────────┘", style="bold"),
-            )
-
-            # TODO: size should come from whatever is rendered here
-            # TODO: is this fine? the styles know how to render components?
-
-        return renderable.render(is_active=is_active)
-
-
 class Container:
-    def __init__(self, title: str):
+    def __init__(self, title: str, style: Any):
         self.title = title
         self.elements: List[Input | Button] = []
         self.active_element_index = 0
         self.previous_element_index = 0
         self._live_render = LiveRender("")
         self.console = Console()
-        self.style = BorderedStyle()
+        self.style = style
 
     def _refresh(self, done: bool = False):
         self._live_render.set_renderable(self.render())
 
+        active_element = self.elements[self.active_element_index]
+
+        should_show_cursor = (
+            active_element.should_show_cursor
+            if hasattr(active_element, "should_show_cursor")
+            else False
+        )
+
         self.console.print(
-            Control.show_cursor(self._active_element.should_show_cursor),
+            Control.show_cursor(should_show_cursor),
             *self.move_cursor_at_beginning(),
             self._live_render,
         )
@@ -156,18 +137,17 @@ class Container:
             )
 
     @property
-    def _active_element(self) -> Union[Input, Button]:
-        return self.elements[self.active_element_index]
+    def _active_element(self) -> "RenderWrapper":
+        return self._content[self.active_element_index]
 
     def _get_element_position(self, element_index: int) -> int:
         position = 0
 
         for i in range(element_index + 1):
-            current_element = self.elements[i]
+            current_element = self._content[i]
 
-            # TODO: this is ugly :D
-            if i == element_index and hasattr(current_element, "_input_position"):
-                position += current_element._input_position
+            if i == element_index:
+                position += current_element.cursor_offset[0]
             else:
                 position += current_element.size[1]
 
@@ -197,10 +177,9 @@ class Container:
             (Control((ControlType.CURSOR_UP, move_up)),) if move_up > 0 else ()
         )
 
-        _cursor_offset = self._active_element.cursor_offset
-        _cursor_position = self._active_element.cursor_position
+        cursor_left = self._active_element.cursor_offset[1]
 
-        return (Control.move_to_column(_cursor_offset + _cursor_position), *move_cursor)
+        return (Control.move_to_column(cursor_left), *move_cursor)
 
     def move_cursor_at_beginning(self) -> Tuple[Control, ...]:
         if self._live_render._shape is None:
@@ -222,11 +201,11 @@ class Container:
         )
 
     def render(self) -> RenderableType:
-        content = []
+        self._content = []
 
         # Render inputs
         for i, element in enumerate(self.elements):
-            content.append(
+            self._content.append(
                 self.style.decorate(
                     element,
                     is_active=i == self.active_element_index,
@@ -241,7 +220,7 @@ class Container:
 
         return Group(
             # Text(title, style="bold"),
-            *content,
+            *[wrapper.content for wrapper in self._content],
             "\n",
         )
 
@@ -269,9 +248,11 @@ class Container:
                     break
 
                 else:
-                    if hasattr(self._active_element, "update_text"):
+                    active_element = self.elements[self.active_element_index]
+
+                    if hasattr(active_element, "update_text"):
                         # TODO: this should be handle key
-                        self._active_element.update_text(key)
+                        active_element.update_text(key)
 
                 self._refresh()
 
@@ -311,23 +292,131 @@ class Form(Container):
         }
 
 
-# Example with multiple inputs and a button
-form = Form(title="Enter your login details")
+class RenderWrapper:
+    def __init__(
+        self, content: Any, cursor_offset: tuple[int, int], size: tuple[int, int]
+    ) -> None:
+        self.content = content
+        self.cursor_offset = cursor_offset
+        self.size = size
 
-form.add_button(name="AI", label="AI")
 
-form.add_input(name="name", label="Name", placeholder="Enter your name")
-form.add_input(
-    name="password", label="Password", placeholder="Enter your password", password=True
-)
+class BorderedStyle:
+    def decorate(
+        self,
+        renderable: InputWithLabel | Any,
+        console: Console,
+        is_active: bool = False,
+    ) -> RenderableType:
+        if isinstance(renderable, InputWithLabel):
+            # just to get some variables set
+            renderable.render()
 
-# Add a submit button
-form.add_button(name="submit", label="Submit")
-form.add_input(name="email", label="Email", placeholder="Enter your email", inline=True)
+            if renderable.inline:
+                box_width = 50
 
-# Add a cancel button
-form.add_button(name="cancel", label="Cancel")
+                content = f"─ {renderable.label}: {renderable.text} ─"
 
-results = form.run()
+                cursor_left = len(renderable.label) + 4 + renderable.cursor_left
+                cursor_top = 1
 
-print(results)
+                return RenderWrapper(content, (cursor_top, cursor_left), (box_width, 1))
+            else:
+                box_width = 50
+                title = f"┌ {renderable.label} "
+                title += "─" * (box_width - len(title) - 1)
+                title += "┐"
+
+                footer = "└"
+                footer += "─" * (box_width - 2)
+                footer += "┘"
+
+                padded_text = f" {renderable.text} "
+                padded_text += " " * (box_width - len(padded_text) - 2)
+
+                content = Group(
+                    Text(title, style="bold"),
+                    Segment("│"),
+                    Segment(padded_text),
+                    Segment("│\n"),
+                    Text(footer, style="bold"),
+                )
+
+                cursor_left = renderable.cursor_left + 2
+                cursor_top = 2
+
+                return RenderWrapper(content, (cursor_top, cursor_left), (50, 3))
+
+            # TODO: size should come from whatever is rendered here
+            # TODO: is this fine? the styles know how to render components?
+
+        return RenderWrapper(
+            renderable.render(is_active=is_active),
+            (0, 0),
+            (renderable.size[0], renderable.size[1]),
+        )
+
+
+class TaggedStyle:
+    def __init__(self, tag: str, tag_width: int = 12):
+        self.tag = tag
+        self.tag_width = tag_width
+
+    def _tag_element(self, child: RenderableType) -> Segment:
+        left_padding = self.tag_width - len(self.tag)
+        left_padding = max(0, left_padding)
+
+        element = []
+
+        element.append(Segment(" " * left_padding))
+        element.append(Segment(self.tag))
+        element.append(Segment(" " * left_padding))
+        element.append(child)
+
+        return element
+
+    def decorate(
+        self,
+        renderable: InputWithLabel | Any,
+        console: Console,
+        is_active: bool = False,
+    ) -> RenderableType:
+        rendered = renderable.render(is_active=is_active)
+
+        if isinstance(rendered, Group):
+            renderables = []
+
+            for child in rendered._renderables:
+                renderables.extend(self._tag_element(child))
+
+            return RenderWrapper(Group(*renderables), (0, 0), (50, 3))
+
+        return RenderWrapper(Group(*self._tag_element(rendered)), (0, 0), (50, 3))
+
+
+for style in [BorderedStyle(), TaggedStyle("straw")]:
+    # Example with multiple inputs and a button
+    form = Form(title="Enter your login details", style=style)
+
+    form.add_button(name="AI", label="AI")
+
+    form.add_input(name="name", label="Name", placeholder="Enter your name")
+    form.add_input(
+        name="password",
+        label="Password",
+        placeholder="Enter your password",
+        password=True,
+    )
+
+    # Add a submit button
+    form.add_button(name="submit", label="Submit")
+    form.add_input(
+        name="email", label="Email", placeholder="Enter your email", inline=True
+    )
+
+    # Add a cancel button
+    form.add_button(name="cancel", label="Cancel")
+
+    results = form.run()
+
+    print(results)
