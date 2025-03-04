@@ -1,6 +1,7 @@
 from typing import Any, Callable, List, Optional, Tuple, Union
 
 import click
+import rich
 from rich.console import Console, Group, RenderableType
 from rich.control import Control, ControlType
 from rich.live_render import LiveRender
@@ -75,12 +76,15 @@ class InputWithLabel:
             contents.append(self.input.render(is_active=is_active))
             self._input_position = 2
 
-        if not self.input.valid:
+        if self.input.valid is False:
             contents.append(Text("This field is required", style="bold red"))
 
         self._height = len(contents)
 
         return Group(*contents)
+
+    def on_blur(self):
+        self.input.on_blur()
 
     @property
     def should_show_cursor(self) -> bool:
@@ -235,11 +239,17 @@ class Container:
                 self.previous_element_index = self.active_element_index
 
                 if key == "\x1b[Z":
+                    if hasattr(self.elements[self.active_element_index], "on_blur"):
+                        self.elements[self.active_element_index].on_blur()
+
                     self.active_element_index -= 1
                     if self.active_element_index < 0:
                         self.active_element_index = len(self.elements) - 1
 
                 elif key == "\t":
+                    if hasattr(self.elements[self.active_element_index], "on_blur"):
+                        self.elements[self.active_element_index].on_blur()
+
                     self.active_element_index += 1
                     if self.active_element_index >= len(self.elements):
                         self.active_element_index = 0
@@ -257,6 +267,7 @@ class Container:
                 self._refresh()
 
             except KeyboardInterrupt:
+                # TODO: move the cursor to the end of the last element
                 exit()
 
         self._refresh(done=True)
@@ -334,20 +345,31 @@ class BorderedStyle:
                 padded_text = f" {renderable.text} "
                 padded_text += " " * (box_width - len(padded_text) - 2)
 
+                if renderable.input.valid is False:
+                    validation_message = (
+                        Text("This field is required", style="bold red"),
+                    )
+                else:
+                    validation_message = ()
+
                 content = Group(
                     Text(title, style="bold"),
                     Segment("│"),
                     Segment(padded_text),
                     Segment("│\n"),
                     Text(footer, style="bold"),
+                    *validation_message,
                 )
 
                 cursor_left = renderable.cursor_left + 2
                 cursor_top = 2
 
-                return RenderWrapper(content, (cursor_top, cursor_left), (50, 3))
+                return RenderWrapper(
+                    content,
+                    (cursor_top, cursor_left),
+                    (50, 3 + len(validation_message)),
+                )
 
-            # TODO: size should come from whatever is rendered here
             # TODO: is this fine? the styles know how to render components?
 
         return RenderWrapper(
@@ -419,4 +441,6 @@ for style in [BorderedStyle(), TaggedStyle("straw")]:
 
     results = form.run()
 
-    print(results)
+    print()
+    rich.print(results)
+    print()

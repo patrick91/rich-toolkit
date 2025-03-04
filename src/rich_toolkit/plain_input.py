@@ -32,6 +32,7 @@ class Input(TextInputHandler):
         self.console = console
         self.style = style
         self.text = ""
+        self.valid: bool | None = None
 
         super().__init__(cursor_offset=cursor_offset)
 
@@ -39,9 +40,8 @@ class Input(TextInputHandler):
     def should_show_cursor(self) -> bool:
         return True
 
-    @property
-    def valid(self) -> bool:
-        return bool(self.text)
+    def on_blur(self):
+        self.valid = bool(self.text)
 
     def render_input(self) -> RenderableType:
         text = self.text
