@@ -1,9 +1,11 @@
-from typing import Any, Callable, List, Optional, Tuple, Union
+import time
+from typing import Any, Callable, List, Optional, Tuple
 
 import click
 import rich
 from rich.console import Console, Group, RenderableType
 from rich.control import Control, ControlType
+from rich.live import Live
 from rich.live_render import LiveRender
 from rich.segment import Segment
 from rich.text import Text
@@ -108,9 +110,41 @@ class InputWithLabel:
         self.input.update_text(text)
 
 
+class StreamingContainer(Live):
+    def __init__(self, container: "Container"):
+        self.container = container
+        self.container.title = "Streaming container"
+        self.logs = []
+        self.footer_content = ""
+        super().__init__()
+
+    def log(self, text: str):
+        self.logs.append(text)
+
+    def footer(self, text: str):
+        self.footer_content = text
+
+    def __enter__(self):
+        self.start()
+
+        return self
+
+    def render(self, is_active: bool = False) -> RenderableType:
+        return Group(
+            *self.logs,
+            self.footer_content,
+        )
+
+    @property
+    def size(self) -> Tuple[int, int]:
+        return [0, len(self.logs) + 1]
+
+    def get_renderable(self) -> RenderableType:
+        return self.container.style.decorate(self).content
+
+
 class Container:
-    def __init__(self, title: str, style: Any):
-        self.title = title
+    def __init__(self, style: Any):
         self.elements: List[Input | Button] = []
         self.active_element_index = 0
         self.previous_element_index = 0
@@ -213,7 +247,6 @@ class Container:
                 self.style.decorate(
                     element,
                     is_active=i == self.active_element_index,
-                    console=self.console,
                 )
             )
 
@@ -227,6 +260,9 @@ class Container:
             *[wrapper.content for wrapper in self._content],
             "\n",
         )
+
+    def stream(self):
+        return StreamingContainer(self)
 
     def run(self):
         self._refresh()
@@ -274,6 +310,11 @@ class Container:
 
 
 class Form(Container):
+    def __init__(self, title: str, style: Any):
+        super().__init__(style)
+
+        self.title = title
+
     def add_input(
         self,
         name: str,
@@ -316,7 +357,6 @@ class BorderedStyle:
     def decorate(
         self,
         renderable: InputWithLabel | Any,
-        console: Console,
         is_active: bool = False,
     ) -> RenderableType:
         if isinstance(renderable, InputWithLabel):
@@ -400,7 +440,6 @@ class TaggedStyle:
     def decorate(
         self,
         renderable: InputWithLabel | Any,
-        console: Console,
         is_active: bool = False,
     ) -> RenderableType:
         rendered = renderable.render(is_active=is_active)
@@ -416,7 +455,7 @@ class TaggedStyle:
         return RenderWrapper(Group(*self._tag_element(rendered)), (0, 0), (50, 3))
 
 
-for style in [BorderedStyle(), TaggedStyle("straw")]:
+def run_form(style: Any):
     # Example with multiple inputs and a button
     form = Form(title="Enter your login details", style=style)
 
@@ -444,3 +483,24 @@ for style in [BorderedStyle(), TaggedStyle("straw")]:
     print()
     rich.print(results)
     print()
+
+
+def run_logs(style: Any):
+    container = Container(style=style)
+
+    with container.stream() as stream:
+        for x in range(10):
+            stream.log(f"Hello {x}")
+            stream.footer(f"Footer {x}")
+            time.sleep(1)
+
+    ...
+
+
+for style in [BorderedStyle(), TaggedStyle("straw")]:
+    print(f"Running with {style.__class__.__name__}")
+    run_form(style)
+
+    print()
+
+    run_logs(style)
