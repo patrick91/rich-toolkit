@@ -598,11 +598,9 @@ class TaggedStyle:
         self.tag_width = tag_width
 
     def _tag_element(self, child: RenderableType) -> Segment:
-        table = Table(
+        table = Table.grid(
             Column(width=self.tag_width),
             padding=(0, 1, 0, 0),
-            show_header=False,
-            box=box.SIMPLE,
         )
         
         left_padding = self.tag_width - len(self.tag) - 2
