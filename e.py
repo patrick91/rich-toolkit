@@ -1,6 +1,6 @@
 import time
 from rich.table import Column, Table
-from typing import Any, Callable, List, Optional, Tuple
+from typing import Any, Callable, List, Optional, Tuple, NamedTuple
 
 import click
 import rich
@@ -32,7 +32,16 @@ from rich.cells import cell_len
 #  └──────────────────────────────────────────────────────────────┘
 
 
-class ToolkitPanel(Panel):
+class CursorOffset(NamedTuple):
+    top: int
+    left: int
+
+
+class Element:
+    cursor_offset: CursorOffset = CursorOffset(top=0, left=0)
+
+
+class ToolkitPanel(Panel, Element):
     def __rich_console__(
         self, console: "Console", options: "ConsoleOptions"
     ) -> "RenderResult":
@@ -174,7 +183,7 @@ class ToolkitPanel(Panel):
         yield new_line
 
 
-class Button:
+class Button(Element):
     def __init__(self, name: str, label: str, callback: Optional[Callable] = None):
         self.name = name
         self.label = label
@@ -198,7 +207,7 @@ class Button:
         return [0, 1]
 
 
-class InputWithLabel:
+class InputWithLabel(Element):
     def __init__(
         self,
         name: str,
@@ -258,6 +267,10 @@ class InputWithLabel:
         return self.input.cursor_left
 
     @property
+    def cursor_offset(self) -> CursorOffset:
+        return CursorOffset(top=0, left=self.input.cursor_left)
+
+    @property
     def text(self) -> str:
         return self.input.text
 
@@ -271,7 +284,7 @@ class InputWithLabel:
         self.input.update_text(text)
 
 
-class StreamingContainer(Live):
+class StreamingContainer(Live, Element):
     def __init__(self, container: "Container"):
         self.container = container
         self.container.title = "Streaming container"
@@ -346,7 +359,7 @@ class Container:
             current_element = self._content[i]
 
             if i == element_index:
-                position += current_element.cursor_offset[0]
+                position += current_element.cursor_offset.top
             else:
                 position += current_element.size[1]
 
@@ -376,7 +389,7 @@ class Container:
             (Control((ControlType.CURSOR_UP, move_up)),) if move_up > 0 else ()
         )
 
-        cursor_left = self._active_element.cursor_offset[1]
+        cursor_left = self._active_element.cursor_offset.left
 
         return (Control.move_to_column(cursor_left), *move_cursor)
 
@@ -509,17 +522,19 @@ class Form(Container):
 
 class RenderWrapper:
     def __init__(
-        self, content: Any, cursor_offset: tuple[int, int], size: tuple[int, int]
+        self, content: Any, cursor_offset: CursorOffset
     ) -> None:
         self.content = content
         self.cursor_offset = cursor_offset
-        self._size = size
 
     @property
     def size(self) -> tuple[int, int]:
         console = Console()
+        lines = console.render_lines(self.content, console.options, pad=False)
+        shape = Segment.get_shape(lines)
+        # print(shape, self.content)
         # print(measure_renderables(console, console.options, [self.content]))
-        return self._size
+        return shape
 
 
 class BorderedStyle:
@@ -536,9 +551,7 @@ class BorderedStyle:
                     ),
                     renderable.footer_content,
                 ),
-                (0, 0),
-                # TODO: how can we use rich to calculate the height?
-                (50, 0),
+                CursorOffset(top=0, left=0),
             )
 
         if isinstance(renderable, InputWithLabel):
@@ -553,7 +566,10 @@ class BorderedStyle:
                 cursor_left = len(renderable.label) + 4 + renderable.cursor_left
                 cursor_top = 1
 
-                return RenderWrapper(content, (cursor_top, cursor_left), (box_width, 1))
+                return RenderWrapper(
+                    content,
+                    CursorOffset(top=cursor_top, left=cursor_left),
+                )
             else:
                 if renderable.input.valid is False:
                     validation_message = (
@@ -579,16 +595,14 @@ class BorderedStyle:
 
                 return RenderWrapper(
                     content,
-                    (cursor_top, cursor_left),
-                    (50, 3 + len(validation_message)),
+                    CursorOffset(top=cursor_top, left=cursor_left),
                 )
 
             # TODO: is this fine? the styles know how to render components?
 
         return RenderWrapper(
             renderable.render(is_active=is_active),
-            (0, 0),
-            (renderable.size[0], renderable.size[1]),
+            CursorOffset(top=0, left=0),
         )
 
 
@@ -602,7 +616,7 @@ class TaggedStyle:
             Column(width=self.tag_width),
             padding=(0, 1, 0, 0),
         )
-        
+
         left_padding = self.tag_width - len(self.tag) - 2
         left_padding = max(0, left_padding)
 
@@ -619,15 +633,16 @@ class TaggedStyle:
     ) -> RenderableType:
         rendered = renderable.render(is_active=is_active)
 
-        # if isinstance(rendered, Group):
-        #     renderables = []
+        cursor_offset_left = self.tag_width + 1 + renderable.cursor_offset.left
+        cursor_offset_top = 2
 
-        #     for child in rendered._renderables:
-        #         renderables.append(self._tag_element(child))
-
-        #     return RenderWrapper(Group(*renderables), (0, 0), (50, 3))
-
-        return RenderWrapper(self._tag_element(rendered), (0, 0), (50, 3))
+        return RenderWrapper(
+            self._tag_element(rendered),
+            CursorOffset(
+                top=cursor_offset_top,
+                left=cursor_offset_left,
+            ),
+        )
 
 
 def run_form(style: Any):
@@ -667,12 +682,12 @@ def run_logs(style: Any):
         for x in range(5):
             stream.log(f"Hello {x}")
             stream.footer(f"Footer {x}")
-            time.sleep(.5)
+            time.sleep(0.5)
 
     ...
 
 
-for style in [BorderedStyle(), TaggedStyle("straw")]:
+for style in [TaggedStyle("straw"), BorderedStyle()]:
     print(f"Running with {style.__class__.__name__}")
     run_form(style)
 
