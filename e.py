@@ -1,4 +1,5 @@
 import time
+from rich.table import Column, Table
 from typing import Any, Callable, List, Optional, Tuple
 
 import click
@@ -597,17 +598,21 @@ class TaggedStyle:
         self.tag_width = tag_width
 
     def _tag_element(self, child: RenderableType) -> Segment:
-        left_padding = self.tag_width - len(self.tag)
+        table = Table(
+            Column(width=self.tag_width),
+            padding=(0, 1, 0, 0),
+            show_header=False,
+            box=box.SIMPLE,
+        )
+        
+        left_padding = self.tag_width - len(self.tag) - 2
         left_padding = max(0, left_padding)
 
-        element = []
+        left_text = " " * left_padding + "[on red] " + self.tag + " [/on red]"
 
-        element.append(Segment(" " * left_padding))
-        element.append(Segment(self.tag))
-        element.append(Segment(" " * left_padding))
-        element.append(child)
+        table.add_row(left_text, child)
 
-        return element
+        return table
 
     def decorate(
         self,
@@ -616,15 +621,15 @@ class TaggedStyle:
     ) -> RenderableType:
         rendered = renderable.render(is_active=is_active)
 
-        if isinstance(rendered, Group):
-            renderables = []
+        # if isinstance(rendered, Group):
+        #     renderables = []
 
-            for child in rendered._renderables:
-                renderables.extend(self._tag_element(child))
+        #     for child in rendered._renderables:
+        #         renderables.append(self._tag_element(child))
 
-            return RenderWrapper(Group(*renderables), (0, 0), (50, 3))
+        #     return RenderWrapper(Group(*renderables), (0, 0), (50, 3))
 
-        return RenderWrapper(Group(*self._tag_element(rendered)), (0, 0), (50, 3))
+        return RenderWrapper(self._tag_element(rendered), (0, 0), (50, 3))
 
 
 def run_form(style: Any):
@@ -661,10 +666,10 @@ def run_logs(style: Any):
     container = Container(style=style)
 
     with container.stream() as stream:
-        for x in range(10):
+        for x in range(5):
             stream.log(f"Hello {x}")
             stream.footer(f"Footer {x}")
-            time.sleep(1)
+            time.sleep(.5)
 
     ...
 
