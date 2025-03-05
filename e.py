@@ -463,7 +463,8 @@ class Container:
                 self._refresh()
 
             except KeyboardInterrupt:
-                # TODO: move the cursor to the end of the last element
+                # TODO: this is somewhat broken
+                self._refresh(done=True)
                 exit()
 
         self._refresh(done=True)
