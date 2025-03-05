@@ -7,6 +7,8 @@ from rich.console import Console, Group, RenderableType
 from rich.control import Control, ControlType
 from rich.live import Live
 from rich.live_render import LiveRender
+from rich.measure import measure_renderables
+from rich.panel import Panel
 from rich.segment import Segment
 from rich.text import Text
 
@@ -350,7 +352,11 @@ class RenderWrapper:
     ) -> None:
         self.content = content
         self.cursor_offset = cursor_offset
-        self.size = size
+        self._size = size
+
+    @property
+    def size(self) -> tuple[int, int]:
+        return self._size
 
 
 class BorderedStyle:
@@ -359,6 +365,40 @@ class BorderedStyle:
         renderable: InputWithLabel | Any,
         is_active: bool = False,
     ) -> RenderableType:
+        if isinstance(renderable, StreamingContainer):
+            top = "┌"
+            bottom = "└"
+
+            top += "─" * 49
+            top += "┐"
+            bottom += "─" * 49
+            bottom += "┘"
+
+            content = [top]
+
+            for log in renderable.logs:
+                line = f"│ {log}"
+                line += " " * (50 - len(line))
+                line += "│"
+
+                content.append(line)
+
+            content.append(bottom)
+            content.append(renderable.footer_content)
+
+            height = len(content)
+
+            return RenderWrapper(
+                Group(
+                    Panel.fit(Group(*renderable.logs), title="LOL"),
+                    renderable.footer_content,
+                ),
+                (0, 0),
+                (50, height),
+            )
+
+            return RenderWrapper(Group(*content), (0, 0), (50, height))
+
         if isinstance(renderable, InputWithLabel):
             # just to get some variables set
             renderable.render()
