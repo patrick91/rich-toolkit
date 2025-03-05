@@ -464,6 +464,7 @@ class Container:
 
             except KeyboardInterrupt:
                 # TODO: this is somewhat broken
+                # TODO: send a message to all elements that the user cancelled
                 self._refresh(done=True)
                 exit()
 
