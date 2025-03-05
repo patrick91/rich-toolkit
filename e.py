@@ -356,6 +356,8 @@ class RenderWrapper:
 
     @property
     def size(self) -> tuple[int, int]:
+        console = Console()
+        print(measure_renderables(console, console.options, [self.content]))
         return self._size
 
 
