@@ -268,7 +268,11 @@ class InputWithLabel(Element):
 
     @property
     def cursor_offset(self) -> CursorOffset:
-        return CursorOffset(top=0, left=self.input.cursor_left)
+        # TODO: why 2?
+        top = 1 if self.inline else 2
+        left_offset = len(self.label) + 1 if self.inline else 0
+
+        return CursorOffset(top=top, left=self.input.cursor_left + left_offset)
 
     @property
     def text(self) -> str:
@@ -529,11 +533,12 @@ class RenderWrapper:
 
     @property
     def size(self) -> tuple[int, int]:
+        # TODO: use existing console
         console = Console()
         lines = console.render_lines(self.content, console.options, pad=False)
+
         shape = Segment.get_shape(lines)
-        # print(shape, self.content)
-        # print(measure_renderables(console, console.options, [self.content]))
+        
         return shape
 
 
@@ -559,8 +564,6 @@ class BorderedStyle:
             renderable.render()
 
             if renderable.inline:
-                box_width = 50
-
                 content = f"─ {renderable.label}: {renderable.text} ─"
 
                 cursor_left = len(renderable.label) + 4 + renderable.cursor_left
@@ -598,8 +601,6 @@ class BorderedStyle:
                     CursorOffset(top=cursor_top, left=cursor_left),
                 )
 
-            # TODO: is this fine? the styles know how to render components?
-
         return RenderWrapper(
             renderable.render(is_active=is_active),
             CursorOffset(top=0, left=0),
@@ -634,7 +635,7 @@ class TaggedStyle:
         rendered = renderable.render(is_active=is_active)
 
         cursor_offset_left = self.tag_width + 1 + renderable.cursor_offset.left
-        cursor_offset_top = 2
+        cursor_offset_top = renderable.cursor_offset.top
 
         return RenderWrapper(
             self._tag_element(rendered),
@@ -684,11 +685,10 @@ def run_logs(style: Any):
             stream.footer(f"Footer {x}")
             time.sleep(0.5)
 
-    ...
-
 
 for style in [TaggedStyle("straw"), BorderedStyle()]:
     print(f"Running with {style.__class__.__name__}")
+    
     run_form(style)
 
     print()
