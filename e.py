@@ -563,6 +563,9 @@ class BorderedStyle:
             # just to get some variables set
             renderable.render()
 
+            # TODO: can we use some of the existing render code from input? (maybe just for inline?)
+            # or we can remove the label from the input so we don't render it twice?
+
             if renderable.inline:
                 content = f"─ {renderable.label}: {renderable.text} ─"
 
