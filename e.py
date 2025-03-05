@@ -15,6 +15,14 @@ from rich.text import Text
 from rich_toolkit.plain_input import Input
 
 
+# ┌ Name ──────────────────────────────────────────┐
+# │ patr                                           │
+# └────────────────────────────────────────────────┘
+# ┌ Password ──────────────────────────────────────┐
+# │                                                │
+# └────────────────────────────────────────────────┘
+# This field is required
+
 class Button:
     def __init__(self, name: str, label: str, callback: Optional[Callable] = None):
         self.name = name
@@ -357,7 +365,7 @@ class RenderWrapper:
     @property
     def size(self) -> tuple[int, int]:
         console = Console()
-        print(measure_renderables(console, console.options, [self.content]))
+        # print(measure_renderables(console, console.options, [self.content]))
         return self._size
 
 
@@ -368,38 +376,15 @@ class BorderedStyle:
         is_active: bool = False,
     ) -> RenderableType:
         if isinstance(renderable, StreamingContainer):
-            top = "┌"
-            bottom = "└"
-
-            top += "─" * 49
-            top += "┐"
-            bottom += "─" * 49
-            bottom += "┘"
-
-            content = [top]
-
-            for log in renderable.logs:
-                line = f"│ {log}"
-                line += " " * (50 - len(line))
-                line += "│"
-
-                content.append(line)
-
-            content.append(bottom)
-            content.append(renderable.footer_content)
-
-            height = len(content)
-
             return RenderWrapper(
                 Group(
-                    Panel.fit(Group(*renderable.logs), title="LOL"),
+                    Panel.fit(Group(*renderable.logs), title="LOL", title_align="left"),
                     renderable.footer_content,
                 ),
                 (0, 0),
-                (50, height),
+                # TODO: how can we use rich to calculate the height?
+                (50, 0),
             )
-
-            return RenderWrapper(Group(*content), (0, 0), (50, height))
 
         if isinstance(renderable, InputWithLabel):
             # just to get some variables set
@@ -415,18 +400,6 @@ class BorderedStyle:
 
                 return RenderWrapper(content, (cursor_top, cursor_left), (box_width, 1))
             else:
-                box_width = 50
-                title = f"┌ {renderable.label} "
-                title += "─" * (box_width - len(title) - 1)
-                title += "┐"
-
-                footer = "└"
-                footer += "─" * (box_width - 2)
-                footer += "┘"
-
-                padded_text = f" {renderable.text} "
-                padded_text += " " * (box_width - len(padded_text) - 2)
-
                 if renderable.input.valid is False:
                     validation_message = (
                         Text("This field is required", style="bold red"),
@@ -435,11 +408,12 @@ class BorderedStyle:
                     validation_message = ()
 
                 content = Group(
-                    Text(title, style="bold"),
-                    Segment("│"),
-                    Segment(padded_text),
-                    Segment("│\n"),
-                    Text(footer, style="bold"),
+                    Panel(
+                        renderable.text,
+                        title=renderable.label,
+                        title_align="left",
+                        width=50,
+                    ),
                     *validation_message,
                 )
 
