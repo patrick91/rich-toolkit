@@ -4,13 +4,13 @@ import click
 from rich import get_console
 from rich.console import Console, Group, RenderableType
 from rich.control import Control
+from rich.live_render import LiveRender
 from rich.segment import ControlType
 from rich.text import Text
-from rich.live_render import LiveRender
 from typing_extensions import Any, Literal, TypedDict
 
+from ._input import LiveInput, TextInputHandler
 from .styles.base import BaseStyle
-from .input import TextInputHandler, LiveInput
 
 ReturnValue = TypeVar("ReturnValue")
 

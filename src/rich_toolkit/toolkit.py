@@ -1,10 +1,13 @@
+from __future__ import annotations
+
 from typing import Any, Dict, List, Union
 
 from rich.console import Console, RenderableType
 from rich.theme import Theme
 
-from .input import Input
-from .menu import Menu, Option, ReturnValue
+from ._input import Input
+
+# from .menu import Menu, Option, ReturnValue
 from .progress import Progress
 from .styles.base import BaseStyle
 

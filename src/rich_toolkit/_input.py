@@ -1,6 +1,5 @@
-# this will become the input class, but for now we make a copy
-# so we don't fear to change stuff
 import string
+from abc import ABC, abstractmethod
 from typing import Any, Optional, Tuple
 
 import click
@@ -67,35 +66,98 @@ class TextInputHandler:
         return (Control.move_to_column(self._cursor_offset + self.cursor_left),)
 
 
-class Input(TextInputHandler):
+class LiveInput(ABC, TextInputHandler):
     def __init__(
         self,
         console: Console,
         style: Optional[BaseStyle] = None,
-        default: str = "",
-        container: ... = None,
         cursor_offset: int = 0,
-        # TODO: call this is_secure?
-        password: bool = False,
+        inline: bool = False,
         **metadata: Any,
     ):
-        self.default = default
-        self.password = password
-        self.container = container
+        self.inline = inline
 
         self.console = console
-        self.style = style
-        self.text = ""
-        self.valid: bool | None = None
+        self._live_render = LiveRender("")
+
+        if style is None:
+            self._live_render = LiveRender("")
+        else:
+            self._live_render = style.decorate_class(LiveRender, **metadata)("")
+
+        self._padding_bottom = 1
 
         super().__init__(cursor_offset=cursor_offset)
+
+    @abstractmethod
+    def render_result(self) -> RenderableType:
+        raise NotImplementedError
+
+    @abstractmethod
+    def render_input(self) -> RenderableType:
+        raise NotImplementedError
 
     @property
     def should_show_cursor(self) -> bool:
         return True
 
-    def on_blur(self):
-        self.valid = bool(self.text)
+    def position_cursor(self) -> Tuple[Control, ...]:
+        return (self._live_render.position_cursor(),)
+
+    def _refresh(self, show_result: bool = False) -> None:
+        renderable = self.render_result() if show_result else self.render_input()
+
+        self._live_render.set_renderable(renderable)
+
+        self._render(show_result)
+
+    def _render(self, show_result: bool = False) -> None:
+        after = self.fix_cursor() if not show_result else ()
+
+        self.console.print(
+            Control.show_cursor(self.should_show_cursor),
+            *self.position_cursor(),
+            self._live_render,
+            *after,
+        )
+
+
+class Input(LiveInput):
+    def __init__(
+        self,
+        console: Console,
+        title: str,
+        style: Optional[BaseStyle] = None,
+        default: str = "",
+        # TODO: do we use this? (seems based on the theme)
+        cursor_offset: int = 0,
+        inline: bool = False,
+        password: bool = False,
+        **metadata: Any,
+    ):
+        self.title = title
+        self.default = default
+        self.password = password
+
+        self.console = console
+        self.style = style
+
+        if inline:
+            cursor_offset += len(self.title) + 1
+
+        super().__init__(
+            console=console,
+            style=style,
+            cursor_offset=cursor_offset,
+            inline=inline,
+            **metadata,
+        )
+
+    def render_result(self) -> RenderableType:
+        if self.password:
+            return self.title
+
+        return self.title + " [result]" + (self.text or self.default)
 
     def render_input(self) -> RenderableType:
         text = self.text
@@ -109,14 +171,31 @@ class Input(TextInputHandler):
 
         text = f"[text]{text}[/]" if self.text else f"[placeholder]{default}[/]"
 
-        return text
+        if self.inline:
+            return self.title + " " + text
 
-    def render_result(self) -> RenderableType:
-        return self.render_input()
+        return Group(self.title, text)
 
-    def render(self, is_active: bool = False) -> RenderableType:
-        return self.render_input()
+    def ask(self) -> str:
+        self._refresh()
 
-    def handle_key(self, key: str) -> None:
-        if key == "\r":
-            print("enter")
+        while True:
+            try:
+                key = click.getchar()
+
+                if key == "\r":
+                    break
+
+                self.update_text(key)
+
+            except KeyboardInterrupt:
+                exit()
+
+            self._refresh()
+
+        self._refresh(show_result=True)
+
+        for _ in range(self._padding_bottom):
+            self.console.print()
+
+        return self.text or self.default

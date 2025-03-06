@@ -1,100 +1,48 @@
-from typing import Any, Generator, Iterable, List
+from typing import Any
 
-from rich._loop import loop_first_last
-from rich.console import Console
+from rich.console import RenderableType
 from rich.segment import Segment
-from rich.style import Style
+from rich.table import Column, Table
 
-from .base import ANIMATION_STATUS, BaseStyle
+from rich_toolkit._render_wrapper import RenderWrapper
+from rich_toolkit.element import CursorOffset
+from rich_toolkit.input import InputWithLabel
 
 
-class TaggedStyle(BaseStyle):
-    def __init__(self, *args, **kwargs) -> None:
-        self.tag_width = kwargs.pop("tag_width", 14)
+class TaggedStyle:
+    def __init__(self, tag: str, tag_width: int = 12):
+        self.tag = tag
+        self.tag_width = tag_width
 
-        super().__init__(*args, **kwargs)
+    def _tag_element(self, child: RenderableType) -> Segment:
+        table = Table.grid(
+            Column(width=self.tag_width),
+            padding=(0, 1, 0, 0),
+        )
 
-        self.padding = 2
-        self.cursor_offset = self.tag_width + self.padding
-        self.decoration_size = self.tag_width + self.padding
-
-    def _render_tag(
-        self,
-        text: str,
-        console: Console,
-        **metadata: Any,
-    ) -> Generator[Segment, None, None]:
-        style_name = "tag.title" if metadata.get("title", False) else "tag"
-
-        style = console.get_style(style_name)
-
-        if text:
-            text = f" {text} "
-
-        left_padding = self.tag_width - len(text)
+        left_padding = self.tag_width - len(self.tag) - 2
         left_padding = max(0, left_padding)
 
-        yield Segment(" " * left_padding)
-        yield Segment(text, style=style)
-        yield Segment(" " * self.padding)
+        left_text = " " * left_padding + "[on red] " + self.tag + " [/on red]"
+
+        table.add_row(left_text, child)
+
+        return table
 
     def decorate(
         self,
-        console: Console,
-        lines: Iterable[List[Segment]],
-        animation_status: ANIMATION_STATUS = "no_animation",
-        **metadata: Any,
-    ) -> Generator[Segment, None, None]:
-        if animation_status != "no_animation":
-            yield from self.decorate_with_animation(
-                lines=lines,
-                console=console,
-                animation_status=animation_status,
-                **metadata,
-            )
+        renderable: InputWithLabel | Any,
+        is_active: bool = False,
+    ) -> RenderableType:
+        rendered = renderable.render(is_active=is_active)
 
-            return
+        cursor_offset_left = self.tag_width + 1 + renderable.cursor_offset.left
+        cursor_offset_top = renderable.cursor_offset.top
 
-        tag = metadata.get("tag", "")
-
-        for first, last, line in loop_first_last(lines):
-            text = tag if first else ""
-            yield from self._render_tag(text, console=console, **metadata)
-            yield from line
-
-            if not last:
-                yield Segment.line()
-
-    def decorate_with_animation(
-        self,
-        console: Console,
-        lines: Iterable[List[Segment]],
-        animation_status: ANIMATION_STATUS = "no_animation",
-        **metadata: Any,
-    ) -> Generator[Segment, None, None]:
-        block = "█"
-        block_length = 5
-        colors = self._get_animation_colors(
-            console, steps=block_length, animation_status=animation_status, **metadata
+        return RenderWrapper(
+            self._tag_element(rendered),
+            CursorOffset(
+                top=cursor_offset_top,
+                left=cursor_offset_left,
+            ),
         )
-
-        left_padding = self.tag_width - block_length
-        left_padding = max(0, left_padding)
-
-        self._animation_counter += 1
-
-        for first, _, line in loop_first_last(lines):
-            if first:
-                yield Segment(" " * left_padding)
-
-                for j in range(block_length):
-                    color_index = (j + self._animation_counter) % len(colors)
-                    yield Segment(block, style=Style(color=colors[color_index]))
-
-            else:
-                yield Segment(" " * self.tag_width)
-
-            yield Segment(" " * self.padding)
-
-            yield from line
-            yield Segment.line()
