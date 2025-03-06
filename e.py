@@ -2,11 +2,21 @@ import time
 from typing import Any
 
 import rich
+from rich.console import Console
 
 from rich_toolkit.container import Container
 from rich_toolkit.form import Form
+from rich_toolkit.input import InputWithLabel
 from rich_toolkit.styles.border import BorderedStyle
 from rich_toolkit.styles.tagged import TaggedStyle
+
+
+def run_input(style: Any):
+    input = InputWithLabel(
+        name="name", label="Enter your name", placeholder="Patrick", style=style
+    )
+
+    print(input.ask())
 
 
 def run_form(style: Any):
@@ -51,6 +61,10 @@ def run_logs(style: Any):
 
 for style in [TaggedStyle("straw"), BorderedStyle()]:
     print(f"Running with {style.__class__.__name__}")
+
+    run_input(style)
+
+    print()
 
     run_form(style)
 

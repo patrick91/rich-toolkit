@@ -116,7 +116,3 @@ class Input(TextInputHandler):
 
     def render(self, is_active: bool = False) -> RenderableType:
         return self.render_input()
-
-    def handle_key(self, key: str) -> None:
-        if key == "\r":
-            print("enter")

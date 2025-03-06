@@ -5,6 +5,7 @@ from rich.text import Text
 
 from .element import CursorOffset, Element
 from .plain_input import Input
+from .styles.base import BaseStyle
 
 
 class InputWithLabel(Element):
@@ -15,6 +16,7 @@ class InputWithLabel(Element):
         placeholder: str,
         password: bool = False,
         inline: bool = False,
+        style: BaseStyle = None,
     ):
         self.name = name
         self.label = label
@@ -24,6 +26,7 @@ class InputWithLabel(Element):
         self.input = Input(console=Console(), password=password)
 
         self._input_position = None
+        self.style = style
 
         if inline:
             self.input._cursor_offset = len(self.label) + 1
@@ -86,3 +89,13 @@ class InputWithLabel(Element):
 
     def update_text(self, text: str):
         self.input.update_text(text)
+
+    def ask(self) -> str:
+        from .container import Container
+
+        container = Container(style=self.style)
+        container.title = self.label
+
+        container.elements = [self]
+
+        return container.run()
