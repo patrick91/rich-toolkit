@@ -1,6 +1,6 @@
-from typing import Any, Tuple
+from typing import Any
 
-from rich.console import Console, Group, RenderableType
+from rich.console import Group, RenderableType
 from rich.text import Text
 
 from ._input_handler import TextInputHandler

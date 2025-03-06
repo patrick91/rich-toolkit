@@ -14,12 +14,18 @@ from .base import BaseStyle
 
 
 class BorderedStyle(BaseStyle):
+    def empty_line(self) -> RenderableType:
+        return "─"
+
     def decorate(
         self,
         renderable: Element,
         is_active: bool = False,
         **metadata: Any,
     ) -> RenderableType:
+        if isinstance(renderable, str):
+            return RenderWrapper(renderable, CursorOffset(top=0, left=0))
+
         if isinstance(renderable, StreamingContainer):
             return RenderWrapper(
                 Group(
@@ -44,7 +50,7 @@ class BorderedStyle(BaseStyle):
                     CursorOffset(top=cursor_top, left=cursor_left),
                 )
             else:
-                if renderable.input.valid is False:
+                if renderable.valid is False:
                     validation_message = (
                         Text("This field is required", style="bold red"),
                     )
