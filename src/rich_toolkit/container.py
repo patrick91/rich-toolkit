@@ -7,6 +7,7 @@ from rich.console import (
     RenderableType,
 )
 from rich.control import Control, ControlType
+from rich.segment import Segment
 from rich.live_render import LiveRender
 
 from ._render_wrapper import RenderWrapper
@@ -47,6 +48,11 @@ class Container:
     @property
     def _active_element(self) -> "RenderWrapper":
         return self._content[self.active_element_index]
+
+    def _get_size(self, renderable: RenderableType) -> tuple[int, int]:
+        lines = self.console.render_lines(renderable, self.console.options, pad=False)
+
+        return Segment.get_shape(lines)
 
     def _get_element_position(self, element_index: int) -> int:
         position = 0
