@@ -35,9 +35,5 @@ class StreamingContainer(Live, Element):
             self.footer_content,
         )
 
-    @property
-    def size(self) -> Tuple[int, int]:
-        return [0, len(self.logs) + 1]
-
     def get_renderable(self) -> RenderableType:
         return self.container.style.decorate(self).content

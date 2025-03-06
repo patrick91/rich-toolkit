@@ -32,7 +32,6 @@ class Input(Element, TextInputHandler):
         self.text = ""
         self.valid = None
 
-        self._height = None
         super().__init__()
 
     def render(self, is_active: bool = False) -> RenderableType:
@@ -67,12 +66,6 @@ class Input(Element, TextInputHandler):
         left_offset = len(self.label) + 1 if self.inline else 0
 
         return CursorOffset(top=top, left=self.cursor_left + left_offset)
-
-    @property
-    def size(self) -> Tuple[int, int]:
-        assert self._height is not None
-
-        return [0, self._height]
 
     @property
     def should_show_cursor(self) -> bool:
