@@ -23,7 +23,7 @@ class Container:
         self.style = style
 
     def _refresh(self, done: bool = False):
-        self._live_render.set_renderable(self.render())
+        self._live_render.set_renderable(self.render(done=done))
 
         active_element = self.elements[self.active_element_index]
 
@@ -108,13 +108,11 @@ class Container:
             *original,
         )
 
-    def render(self) -> RenderableType:
+    def render(self, done: bool = False) -> RenderableType:
         self._content = []
 
         # maybe it's not the container that knows how to render things, but the app
         # but we still want to be able to render individual components
-
-        # Render inputs
         for i, element in enumerate(self.elements):
             self._content.append(
                 self.style.decorate(
@@ -123,15 +121,9 @@ class Container:
                 )
             )
 
-        title = self.title
-
-        if self._live_render._shape is not None:
-            title += f" h: {self._live_render._shape[1]} offset: {self.get_offset_for_active_element()}"
-
         return Group(
-            # Text(title, style="bold"),
             *[wrapper.content for wrapper in self._content],
-            "\n",
+            "\n" if not done else "",
         )
 
     def stream(self):
