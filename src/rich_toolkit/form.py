@@ -2,7 +2,7 @@ from typing import Any, Callable, Optional
 
 from .button import Button
 from .container import Container
-from .input import InputWithLabel
+from .input import Input
 
 
 class Form(Container):
@@ -19,7 +19,7 @@ class Form(Container):
         password: bool = False,
         inline: bool = False,
     ):
-        input = InputWithLabel(name, label, placeholder, password, inline)
+        input = Input(name, label, placeholder, password, inline)
 
         self.elements.append(input)
 
@@ -36,5 +36,5 @@ class Form(Container):
         return {
             input.name: input.text
             for input in self.elements
-            if isinstance(input, InputWithLabel)
+            if isinstance(input, Input)
         }

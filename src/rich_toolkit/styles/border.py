@@ -1,10 +1,12 @@
+from typing import Any
+
 from rich import box
 from rich.console import Group, RenderableType
 from rich.text import Text
 
 from rich_toolkit._render_wrapper import RenderWrapper
 from rich_toolkit.element import CursorOffset, Element
-from rich_toolkit.input import InputWithLabel
+from rich_toolkit.input import Input
 from rich_toolkit.panel import Panel
 from rich_toolkit.streaming_container import StreamingContainer
 
@@ -16,6 +18,7 @@ class BorderedStyle(BaseStyle):
         self,
         renderable: Element,
         is_active: bool = False,
+        **metadata: Any,
     ) -> RenderableType:
         if isinstance(renderable, StreamingContainer):
             return RenderWrapper(
@@ -26,7 +29,7 @@ class BorderedStyle(BaseStyle):
                 CursorOffset(top=0, left=0),
             )
 
-        if isinstance(renderable, InputWithLabel):
+        if isinstance(renderable, Input):
             # TODO: can we use some of the existing render code from input? (maybe just for inline?)
             # or we can remove the label from the input so we don't render it twice?
 

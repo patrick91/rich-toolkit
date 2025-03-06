@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Union
 from rich.console import Console, RenderableType
 from rich.theme import Theme
 
-from ._input import Input
+from .input import Input
 
 # from .menu import Menu, Option, ReturnValue
 from .progress import Progress
@@ -42,13 +42,15 @@ class RichToolkit:
 
         self.console.print()
 
+        return None
+
     def print_title(self, title: str, **metadata: Any) -> None:
         self.console.print(
-            self.theme.style.with_decoration(title, title=True, **metadata)
+            self.theme.style.decorate(title, title=True, **metadata).content
         )
 
     def print(self, *renderables: RenderableType, **metadata: Any) -> None:
-        self.console.print(self.theme.style.with_decoration(*renderables, **metadata))
+        self.console.print(self.theme.style.decorate(*renderables, **metadata).content)
 
     def print_as_string(self, *renderables: RenderableType, **metadata: Any) -> str:
         with self.console.capture() as capture:
@@ -98,13 +100,12 @@ class RichToolkit:
         **metadata: Any,
     ) -> str:
         return Input(
-            console=self.console,
-            style=self.theme.style,
-            title=title,
-            default=default,
-            cursor_offset=self.theme.style.cursor_offset,
+            name=title,
+            label=title,
+            placeholder=default,
             password=password,
             inline=inline,
+            style=self.theme.style,
             **metadata,
         ).ask()
 
