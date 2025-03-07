@@ -4,7 +4,6 @@ from rich import box
 from rich.console import Group, RenderableType
 from rich.text import Text
 
-from rich_toolkit._render_wrapper import RenderWrapper
 from rich_toolkit.element import CursorOffset, Element
 from rich_toolkit.input import Input
 from rich_toolkit.panel import Panel
@@ -24,15 +23,12 @@ class BorderedStyle(BaseStyle):
         **metadata: Any,
     ) -> RenderableType:
         if isinstance(renderable, str):
-            return RenderWrapper(renderable, CursorOffset(top=0, left=0))
+            return renderable
 
         if isinstance(renderable, StreamingContainer):
-            return RenderWrapper(
-                Group(
-                    Panel.fit(Group(*renderable.logs), title="LOL", title_align="left"),
+            return Group(
+                Panel.fit(Group(*renderable.logs), title="LOL", title_align="left"),
                     renderable.footer_content,
-                ),
-                CursorOffset(top=0, left=0),
             )
 
         if isinstance(renderable, Input):
@@ -45,10 +41,8 @@ class BorderedStyle(BaseStyle):
                 cursor_left = len(renderable.label) + 4 + renderable.cursor_left
                 cursor_top = 1
 
-                return RenderWrapper(
-                    content,
-                    CursorOffset(top=cursor_top, left=cursor_left),
-                )
+                return content
+                # TODO: how can we pass the offset?
             else:
                 if renderable.valid is False:
                     validation_message = (
@@ -72,12 +66,12 @@ class BorderedStyle(BaseStyle):
                 cursor_left = renderable.cursor_left + 2
                 cursor_top = 2
 
-                return RenderWrapper(
-                    content,
-                    CursorOffset(top=cursor_top, left=cursor_left),
-                )
+                return content
 
-        return RenderWrapper(
-            renderable.render(is_active=is_active),
-            CursorOffset(top=0, left=0),
+        return renderable.render(is_active=is_active)
+
+    def get_cursor_offset_for_element(self, element: Element) -> CursorOffset:
+        return CursorOffset(
+            top=element.cursor_offset.top,
+            left=element.cursor_offset.left + 2,
         )

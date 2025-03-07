@@ -5,8 +5,7 @@ from rich.segment import Segment
 from rich.table import Column, Table
 from rich.theme import Theme
 
-from rich_toolkit._render_wrapper import RenderWrapper
-from rich_toolkit.element import CursorOffset
+from rich_toolkit.element import CursorOffset, Element
 from rich_toolkit.input import Input
 
 
@@ -21,7 +20,7 @@ class TaggedStyle:
         self.tag = tag
         self.tag_width = tag_width
 
-    def _tag_element(self, child: RenderableType, **metadata: Any) -> Segment:
+    def _tag_element(self, child: RenderableType, **metadata: Any) -> RenderableType:
         console = Console()
         console.push_theme(Theme(self.theme))
 
@@ -63,18 +62,16 @@ class TaggedStyle:
     ) -> RenderableType:
         if isinstance(renderable, str):
             rendered = renderable
-            cursor_offset_left = 0
-            cursor_offset_top = 0
         else:
             rendered = renderable.render(is_active=is_active)
 
-            cursor_offset_left = self.tag_width + renderable.cursor_offset.left
-            cursor_offset_top = renderable.cursor_offset.top
+            # cursor_offset_left = self.tag_width + renderable.cursor_offset.left
+            # cursor_offset_top = renderable.cursor_offset.top
 
-        return RenderWrapper(
-            self._tag_element(rendered, **metadata),
-            CursorOffset(
-                top=cursor_offset_top,
-                left=cursor_offset_left,
-            ),
+        return self._tag_element(rendered, **metadata)
+
+    def get_cursor_offset_for_element(self, element: Element) -> CursorOffset:
+        return CursorOffset(
+            top=element.cursor_offset.top,
+            left=self.tag_width + element.cursor_offset.left,
         )

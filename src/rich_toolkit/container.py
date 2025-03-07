@@ -10,7 +10,6 @@ from rich.control import Control, ControlType
 from rich.segment import Segment
 from rich.live_render import LiveRender
 
-from ._render_wrapper import RenderWrapper
 from .element import Element
 
 
@@ -46,8 +45,8 @@ class Container:
             )
 
     @property
-    def _active_element(self) -> "RenderWrapper":
-        return self._content[self.active_element_index]
+    def _active_element(self) -> Element:
+        return self.elements[self.active_element_index]
 
     def _get_size(self, renderable: RenderableType) -> tuple[int, int]:
         lines = self.console.render_lines(renderable, self.console.options, pad=False)
@@ -61,7 +60,11 @@ class Container:
             current_element = self._content[i]
 
             if i == element_index:
-                position += current_element.cursor_offset.top
+                # TODO: we need to figure out this (maybe another call to style?)
+                # position += current_element.cursor_offset.top
+                position += self.style.get_cursor_offset_for_element(
+                    self.elements[i]
+                ).top
             else:
                 position += current_element.size[1]
 
@@ -91,7 +94,7 @@ class Container:
             (Control((ControlType.CURSOR_UP, move_up)),) if move_up > 0 else ()
         )
 
-        cursor_left = self._active_element.cursor_offset.left
+        cursor_left = self.style.get_cursor_offset_for_element(self._active_element).left
 
         return (Control.move_to_column(cursor_left), *move_cursor)
 
@@ -117,8 +120,6 @@ class Container:
     def render(self, done: bool = False) -> RenderableType:
         self._content = []
 
-        # maybe it's not the container that knows how to render things, but the app
-        # but we still want to be able to render individual components
         for i, element in enumerate(self.elements):
             self._content.append(
                 self.style.decorate(
@@ -128,7 +129,7 @@ class Container:
             )
 
         return Group(
-            *[wrapper.content for wrapper in self._content],
+            *[wrapper for wrapper in self._content],
             "\n" if not done else "",
         )
 

@@ -45,12 +45,10 @@ class RichToolkit:
         return None
 
     def print_title(self, title: str, **metadata: Any) -> None:
-        self.console.print(
-            self.theme.style.decorate(title, title=True, **metadata).content
-        )
+        self.console.print(self.theme.style.decorate(title, title=True, **metadata))
 
     def print(self, *renderables: RenderableType, **metadata: Any) -> None:
-        self.console.print(self.theme.style.decorate(*renderables, **metadata).content)
+        self.console.print(self.theme.style.decorate(*renderables, **metadata))
 
     def print_as_string(self, *renderables: RenderableType, **metadata: Any) -> str:
         with self.console.capture() as capture:

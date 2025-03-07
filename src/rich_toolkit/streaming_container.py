@@ -36,4 +36,4 @@ class StreamingContainer(Live, Element):
         )
 
     def get_renderable(self) -> RenderableType:
-        return self.container.style.decorate(self).content
+        return self.container.style.decorate(self)

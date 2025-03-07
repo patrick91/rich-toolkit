@@ -1,7 +1,4 @@
 import string
-from typing import Tuple
-
-from rich.control import Control
 
 
 class TextInputHandler:
@@ -12,10 +9,9 @@ class TextInputHandler:
     BACKSPACE_KEY = "\x7f"
     DELETE_KEY = "\x1b[3~"
 
-    def __init__(self, cursor_offset: int = 0):
+    def __init__(self):
         self.text = ""
         self.cursor_left = 0
-        self._cursor_offset = cursor_offset
 
     def _move_cursor_left(self) -> None:
         self.cursor_left = max(0, self.cursor_left - 1)
@@ -55,6 +51,3 @@ class TextInputHandler:
             for char in text:
                 if char in string.printable:
                     self._insert_char(char)
-
-    def fix_cursor(self) -> Tuple[Control, ...]:
-        return (Control.move_to_column(self._cursor_offset + self.cursor_left),)
