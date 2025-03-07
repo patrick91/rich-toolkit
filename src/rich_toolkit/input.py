@@ -99,6 +99,9 @@ class Input(Element, TextInputHandler):
         return True
 
     def on_blur(self):
+        self.on_validate()
+
+    def on_validate(self):
         self.valid = bool(self.text)
 
     def render_input(self) -> RenderableType:

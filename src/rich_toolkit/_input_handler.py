@@ -8,6 +8,9 @@ class TextInputHandler:
     RIGHT_KEY = "\x1b[C"
     BACKSPACE_KEY = "\x7f"
     DELETE_KEY = "\x1b[3~"
+    TAB_KEY = "\t"
+    SHIFT_TAB_KEY = "\x1b[Z"
+    ENTER_KEY = "\r"
 
     def __init__(self):
         self.text = ""
@@ -36,18 +39,26 @@ class TextInputHandler:
 
         self.text = self.text[: self.cursor_left] + self.text[self.cursor_left + 1 :]
 
-    def update_text(self, text: str) -> None:
-        if text == self.BACKSPACE_KEY:
+    def handle_key(self, key: str) -> None:
+        if key == self.BACKSPACE_KEY:
             self._delete_char()
-        elif text == self.DELETE_KEY:
+        elif key == self.DELETE_KEY:
             self._delete_forward()
-        elif text == self.LEFT_KEY:
+        elif key == self.LEFT_KEY:
             self._move_cursor_left()
-        elif text == self.RIGHT_KEY:
+        elif key == self.RIGHT_KEY:
             self._move_cursor_right()
-        elif text in (self.UP_KEY, self.DOWN_KEY):
+        elif key in (
+            self.UP_KEY,
+            self.DOWN_KEY,
+            self.ENTER_KEY,
+            self.SHIFT_TAB_KEY,
+            self.TAB_KEY,
+        ):
             pass
         else:
-            for char in text:
+            # even if we call this handle key, in some cases we might receive multiple keys
+            # at once
+            for char in key:
                 if char in string.printable:
                     self._insert_char(char)

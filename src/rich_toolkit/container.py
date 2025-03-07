@@ -11,6 +11,8 @@ from rich.segment import Segment
 from rich.live_render import LiveRender
 
 from .element import Element
+from .input import Input
+from ._input_handler import TextInputHandler
 
 
 class Container:
@@ -66,7 +68,8 @@ class Container:
                     self.elements[i]
                 ).top
             else:
-                position += current_element.size[1]
+                size = self._get_size(current_element)
+                position += size[1]
 
         return position
 
@@ -94,7 +97,9 @@ class Container:
             (Control((ControlType.CURSOR_UP, move_up)),) if move_up > 0 else ()
         )
 
-        cursor_left = self.style.get_cursor_offset_for_element(self._active_element).left
+        cursor_left = self.style.get_cursor_offset_for_element(
+            self._active_element
+        ).left
 
         return (Control.move_to_column(cursor_left), *move_cursor)
 
@@ -138,6 +143,17 @@ class Container:
 
         return StreamingContainer(self)
 
+    def handle_enter_key(self) -> bool:
+        active_element = self.elements[self.active_element_index]
+
+        if isinstance(active_element, Input):
+            active_element.on_validate()
+
+            if active_element.valid is False:
+                return False
+
+        return True
+
     def run(self):
         self._refresh()
 
@@ -148,31 +164,29 @@ class Container:
                 # Store the previous element state
                 self.previous_element_index = self.active_element_index
 
-                if key == "\x1b[Z":
+                if key in (TextInputHandler.SHIFT_TAB_KEY, TextInputHandler.TAB_KEY):
                     if hasattr(self.elements[self.active_element_index], "on_blur"):
                         self.elements[self.active_element_index].on_blur()
 
-                    self.active_element_index -= 1
+                    if key == TextInputHandler.SHIFT_TAB_KEY:
+                        self.active_element_index -= 1
+                    else:
+                        self.active_element_index += 1
+
                     if self.active_element_index < 0:
                         self.active_element_index = len(self.elements) - 1
 
-                elif key == "\t":
-                    if hasattr(self.elements[self.active_element_index], "on_blur"):
-                        self.elements[self.active_element_index].on_blur()
-
-                    self.active_element_index += 1
-                    if self.active_element_index >= len(self.elements):
+                    elif self.active_element_index >= len(self.elements):
                         self.active_element_index = 0
 
-                elif key == "\r":  # Enter key
-                    break
+                active_element = self.elements[self.active_element_index]
 
-                else:
-                    active_element = self.elements[self.active_element_index]
+                if hasattr(active_element, "handle_key"):
+                    active_element.handle_key(key)
 
-                    if hasattr(active_element, "update_text"):
-                        # TODO: this should be handle key
-                        active_element.update_text(key)
+                if key == TextInputHandler.ENTER_KEY:
+                    if self.handle_enter_key():
+                        break
 
                 self._refresh()
 

@@ -32,6 +32,18 @@ class Form(Container):
 
         return self._collect_data()
 
+    def handle_enter_key(self) -> bool:
+        all_valid = True
+
+        for element in self.elements:
+            if isinstance(element, Input):
+                element.on_validate()
+
+                if element.valid is False:
+                    all_valid = False
+
+        return all_valid
+
     def _collect_data(self) -> dict:
         return {
             input.name: input.text
