@@ -38,12 +38,12 @@ class BorderedStyle(BaseStyle):
                 validation_message = ()
 
             renderable._should_show_label = False
-
+            renderable._should_show_validation = False
             content = Group(
                 Panel(
                     renderable.render(is_active=is_active),
                     highlight=is_active,
-                    title=renderable.label,
+                    title=renderable.render_label(is_active=is_active),
                     title_align="left",
                     width=50,
                     box=box.SQUARE,

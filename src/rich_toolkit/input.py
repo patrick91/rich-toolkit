@@ -1,14 +1,12 @@
 from typing import Any
 
 from rich.console import Group, RenderableType
-from rich.text import Text
 
 from ._input_handler import TextInputHandler
 from .element import CursorOffset, Element
 from .styles.base import BaseStyle
 
 
-# maybe all elements handle input?
 class Input(Element, TextInputHandler):
     label: str | None = None
     placeholder: str | None = None
@@ -42,7 +40,7 @@ class Input(Element, TextInputHandler):
     def render_label(self, is_active: bool = False) -> str | None:
         label: str | None = None
 
-        if self.label and self._should_show_label:
+        if self.label:
             label = self.label
 
             if is_active:
@@ -52,8 +50,14 @@ class Input(Element, TextInputHandler):
 
         return label
 
+    def render_validation_message(self) -> str | None:
+        if self.valid is False:
+            return f"[bold red]{self.validation_message}[/bold red]"
+
+        return None
+
     def render(self, is_active: bool = False) -> RenderableType:
-        label = self.render_label(is_active)
+        label = self.render_label(is_active) if self._should_show_label else None
         text = self.render_input()
 
         contents = []
@@ -69,8 +73,8 @@ class Input(Element, TextInputHandler):
 
             contents.append(text)
 
-        if self.validation_message:
-            contents.append(Text(self.validation_message, style="bold red"))
+        if self.validation_message and self._should_show_validation:
+            contents.append(self.render_validation_message())
 
         self._height = len(contents)
 
