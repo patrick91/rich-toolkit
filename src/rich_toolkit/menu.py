@@ -59,6 +59,7 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
         self._options = options
 
         self._padding_bottom = 1
+        self.valid = None
 
         cursor_offset = cursor_offset + len(self.filter_prompt)
 
@@ -133,13 +134,22 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
                 prefix = not_selected_prefix
                 style = self.console.get_style("text")
 
-            menu.append(Text.assemble(prefix, option["name"], separator, style=style))
+            is_last = id_ == len(self.options) - 1
+
+            menu.append(
+                Text.assemble(
+                    prefix,
+                    option["name"],
+                    separator if not is_last else "",
+                    style=style,
+                )
+            )
 
         # TODO: inline is not wrapped (maybe that's good?)
 
         if not self.options:
             # menu.append("No results found", style=self.console.get_style("text"))
-            menu = Text("No results found\n\n", style=self.console.get_style("text"))
+            menu = Text("No results found", style=self.console.get_style("text"))
 
         filter = (
             [
@@ -161,6 +171,9 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
         content.extend(filter)
         content.append(menu)
 
+        if self.validation_message:
+            content.append(Text(self.validation_message))
+
         return Group(*content)
 
     def render_result(self) -> RenderableType:
@@ -175,15 +188,31 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
 
         return result_text
 
+    def is_next_key(self, key: str) -> bool:
+        keys = self.RIGHT_KEYS if self.inline else self.DOWN_KEYS
+
+        if self.allow_filtering:
+            keys = [keys[0]]
+
+        return key in keys
+
+    def is_prev_key(self, key: str) -> bool:
+        keys = self.LEFT_KEYS if self.inline else self.UP_KEYS
+
+        if self.allow_filtering:
+            keys = [keys[0]]
+
+        return key in keys
+
     def handle_key(self, key: str) -> None:
         current_selection: Optional[str] = None
 
         if self.options:
             current_selection = self.options[self.selected]["name"]
 
-        if key == self.DOWN_KEY:
+        if self.is_next_key(key):
             self._update_selection("next")
-        elif key == self.UP_KEY:
+        elif self.is_prev_key(key):
             self._update_selection("prev")
         else:
             super().handle_key(key)
@@ -208,6 +237,19 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
 
     def render(self, is_active: bool = False) -> RenderableType:
         return self.render_input()
+
+    @property
+    def validation_message(self) -> str | None:
+        if self.valid is False:
+            return "This field is required"
+
+        return None
+
+    def on_blur(self):
+        self.on_validate()
+
+    def on_validate(self):
+        self.valid = len(self.options) > 0
 
     @property
     def should_show_cursor(self) -> bool:

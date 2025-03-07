@@ -12,6 +12,7 @@ from rich.live_render import LiveRender
 
 from .element import Element
 from .input import Input
+from .menu import Menu
 from ._input_handler import TextInputHandler
 
 
@@ -146,7 +147,7 @@ class Container:
     def handle_enter_key(self) -> bool:
         active_element = self.elements[self.active_element_index]
 
-        if isinstance(active_element, Input):
+        if isinstance(active_element, (Input, Menu)):
             active_element.on_validate()
 
             if active_element.valid is False:
