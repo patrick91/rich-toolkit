@@ -10,7 +10,7 @@ from typing_extensions import Any, Literal, TypedDict
 
 from ._input_handler import TextInputHandler
 from .styles.base import BaseStyle
-from .element import Element
+from .element import Element, CursorOffset
 
 ReturnValue = TypeVar("ReturnValue")
 
@@ -223,3 +223,11 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
         container.run()
 
         return self.options[self.selected]["value"]
+
+    @property
+    def cursor_offset(self) -> CursorOffset:
+        top = 2
+
+        left_offset = len(self.filter_prompt) + self.cursor_left
+
+        return CursorOffset(top=top, left=left_offset)
