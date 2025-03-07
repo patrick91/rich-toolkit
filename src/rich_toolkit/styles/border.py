@@ -6,6 +6,7 @@ from rich.text import Text
 
 from rich_toolkit.element import CursorOffset, Element
 from rich_toolkit.input import Input
+from rich_toolkit.menu import Menu
 from rich_toolkit.panel import Panel
 from rich_toolkit.streaming_container import StreamingContainer
 
@@ -45,6 +46,11 @@ class BorderedStyle(BaseStyle):
 
             title = renderable.render_label(is_active=is_active)
 
+        if isinstance(renderable, Menu):
+            title = renderable.render_label()
+
+            renderable._should_show_label = False
+            renderable._should_show_validation = False
 
 
         content = Group(

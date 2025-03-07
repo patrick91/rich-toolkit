@@ -30,6 +30,9 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
     selection_char = "○"
     filter_prompt = "Filter: "
 
+    _should_show_label = True
+    _should_show_validation = False
+
     def __init__(
         self,
         title: str,
@@ -111,6 +114,9 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
         if self.selected >= len(self.options):
             self.selected = 0
 
+    def render_label(self) -> RenderableType:
+        return self.title
+
     def render_input(self) -> RenderableType:
         menu = Text(justify="left")
 
@@ -147,7 +153,15 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
             else []
         )
 
-        return Group(self.title, *filter, menu)
+        content = []
+
+        if self._should_show_label:
+            content.append(self.render_label())
+
+        content.extend(filter)
+        content.append(menu)
+
+        return Group(*content)
 
     def render_result(self) -> RenderableType:
         result_text = Text()
