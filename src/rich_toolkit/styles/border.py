@@ -31,6 +31,9 @@ class BorderedStyle(BaseStyle):
                 renderable.footer_content,
             )
 
+
+        title : str | None = None
+        validation_message: tuple[str, ...] = ()
         if isinstance(renderable, Input):
             if renderable.valid is False:
                 validation_message = (Text("This field is required", style="bold red"),)
@@ -39,21 +42,24 @@ class BorderedStyle(BaseStyle):
 
             renderable._should_show_label = False
             renderable._should_show_validation = False
-            content = Group(
-                Panel(
-                    renderable.render(is_active=is_active),
-                    highlight=is_active,
-                    title=renderable.render_label(is_active=is_active),
-                    title_align="left",
-                    width=50,
-                    box=box.SQUARE,
-                ),
-                *validation_message,
-            )
 
-            return content
+            title = renderable.render_label(is_active=is_active)
 
-        return renderable.render(is_active=is_active)
+
+
+        content = Group(
+            Panel(
+                renderable.render(is_active=is_active),
+                highlight=is_active,
+                title=title,
+                title_align="left",
+                width=50,
+                box=box.SQUARE,
+            ),
+            *validation_message,
+        )
+
+        return content
 
     def get_cursor_offset_for_element(self, element: Element) -> CursorOffset:
         top_offset = element.cursor_offset.top
