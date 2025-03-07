@@ -4,13 +4,13 @@ import click
 from rich import get_console
 from rich.console import Console, Group, RenderableType
 from rich.control import Control
-from rich.live_render import LiveRender
 from rich.segment import ControlType
 from rich.text import Text
 from typing_extensions import Any, Literal, TypedDict
 
-from ._input import LiveInput, TextInputHandler
+from ._input_handler import TextInputHandler
 from .styles.base import BaseStyle
+from .element import Element
 
 ReturnValue = TypeVar("ReturnValue")
 
@@ -20,7 +20,7 @@ class Option(TypedDict, Generic[ReturnValue]):
     value: ReturnValue
 
 
-class Menu(Generic[ReturnValue], LiveInput):
+class Menu(Generic[ReturnValue], Element, TextInputHandler):
     DOWN_KEYS = [TextInputHandler.DOWN_KEY, "j"]
     UP_KEYS = [TextInputHandler.UP_KEY, "k"]
     LEFT_KEYS = [TextInputHandler.LEFT_KEY, "h"]
@@ -59,12 +59,7 @@ class Menu(Generic[ReturnValue], LiveInput):
 
         cursor_offset = cursor_offset + len(self.filter_prompt)
 
-        super().__init__(
-            console=self.console,
-            style=self.style,
-            cursor_offset=cursor_offset,
-            **metadata,
-        )
+        super().__init__()
 
     def get_key(self) -> Optional[str]:
         char = click.getchar()
@@ -140,10 +135,6 @@ class Menu(Generic[ReturnValue], LiveInput):
             # menu.append("No results found", style=self.console.get_style("text"))
             menu = Text("No results found\n\n", style=self.console.get_style("text"))
 
-        h = 0
-        if self._live_render._shape is not None:
-            _, h = self._live_render._shape
-
         filter = (
             [
                 Text.assemble(
@@ -156,7 +147,7 @@ class Menu(Generic[ReturnValue], LiveInput):
             else []
         )
 
-        return Group(self.title, *filter, *menu)
+        return Group(self.title, *filter, menu)
 
     def render_result(self) -> RenderableType:
         result_text = Text()
@@ -170,25 +161,30 @@ class Menu(Generic[ReturnValue], LiveInput):
 
         return result_text
 
-    def update_text(self, text: str) -> None:
+    def handle_key(self, key: str) -> None:
         current_selection: Optional[str] = None
 
         if self.options:
             current_selection = self.options[self.selected]["name"]
 
-        super().update_text(text)
+        if key == self.DOWN_KEY:
+            self._update_selection("next")
+        elif key == self.UP_KEY:
+            self._update_selection("prev")
+        else:
+            super().handle_key(key)
 
-        if current_selection:
-            matching_index = next(
-                (
-                    index
-                    for index, option in enumerate(self.options)
-                    if option["name"] == current_selection
-                ),
-                0,
-            )
+        # if current_selection:
+        #     matching_index = next(
+        #         (
+        #             index
+        #             for index, option in enumerate(self.options)
+        #             if option["name"] == current_selection
+        #         ),
+        #         0,
+        #     )
 
-            self.selected = matching_index
+        #     self.selected = matching_index
 
     def _handle_enter(self) -> bool:
         if self.allow_filtering and self.text and len(self.options) == 0:
@@ -196,107 +192,20 @@ class Menu(Generic[ReturnValue], LiveInput):
 
         return True
 
-    def reposition_cursor(self) -> Control:
-        if self.allow_filtering:
-            if self._live_render._shape is None:
-                return Control()
-
-            _, height = self._live_render._shape
-
-            move_down = height - 2
-
-            return Control(
-                (ControlType.CURSOR_DOWN, move_down),
-                ControlType.CARRIAGE_RETURN,
-                (ControlType.ERASE_IN_LINE, 2),
-                *(
-                    (
-                        (ControlType.CURSOR_UP, 1),
-                        (ControlType.ERASE_IN_LINE, 2),
-                    )
-                    * (height - 1)
-                ),
-            )
-
-        return self._live_render.position_cursor()
-
-    def position_cursor(self) -> Tuple[Control, ...]:
-        """Positions the cursor at the end of the menu.
-
-        It moves the cursor up based on the size of the menu when filtering
-        is enabled. It does by taking into account the size of the menu
-        and the fact that we moved the cursor up in the previous render.
-
-        We use the shape of the menu to calculate the number of times we
-        need to move the cursor up, we do this because the options are
-        dynamic and we need the current size* of the menu to calculate
-        the correct position of the cursor.
-
-        * Current size means the previous size of the menu, but I say
-        current because we haven't rendered the updated menu yet :)
-        """
-        original = super().position_cursor()
-
-        if self._live_render._shape is None or not self.allow_filtering:
-            return original
-
-        _, height = self._live_render._shape
-
-        move_down = height - 2
-
-        return (
-            Control(
-                (ControlType.CURSOR_DOWN, move_down),
-            ),
-            *original,
-        )
-
-    def fix_cursor(self) -> Tuple[Control, ...]:
-        """Fixes the position of cursor after rendering the menu.
-
-        It moves the cursor up based on the size of the menu, but
-        only if allow_filtering is enabled. (We don't show the cursor
-        when filtering is disabled.)
-        """
-        move_cursor = ()
-
-        if self.allow_filtering:
-            height = len(self.options) + 1 if self.options else 2
-
-            move_cursor = (Control((ControlType.CURSOR_UP, height)),)
-
-        return (*super().fix_cursor(), *move_cursor)
+    def render(self, is_active: bool = False) -> RenderableType:
+        return self.render_input()
 
     @property
     def should_show_cursor(self) -> bool:
         return self.allow_filtering
 
     def ask(self) -> ReturnValue:
-        self._refresh()
+        from .container import Container
 
-        while True:
-            try:
-                key = self.get_key()
+        container = Container(style=self.style)
 
-                if key == "enter":
-                    if self._handle_enter():
-                        break
+        container.elements = [self]
 
-                elif key is not None:
-                    if key in ["next", "prev"]:
-                        key = cast(Literal["next", "prev"], key)
-                        self._update_selection(key)
-                    else:
-                        self.update_text(key)
-
-            except KeyboardInterrupt:
-                exit()
-
-            self._refresh()
-
-        self._refresh(show_result=True)
-
-        for _ in range(self._padding_bottom):
-            self.console.print()
+        container.run()
 
         return self.options[self.selected]["value"]

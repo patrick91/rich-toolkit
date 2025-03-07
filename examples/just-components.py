@@ -21,7 +21,7 @@ theme = Theme(
 )
 console = Console(theme=theme)
 
-value = Input(console=console, title="Enter your name:").ask()
+value = Input(console=console, title="Enter your name:", name="name").ask()
 
 print(f"Hello, {value}!")
 

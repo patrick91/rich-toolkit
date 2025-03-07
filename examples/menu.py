@@ -1,7 +1,8 @@
 import random
 from typing import List
 from rich_toolkit import RichToolkit, RichToolkitTheme
-from rich_toolkit.styles import FancyStyle, TaggedStyle
+from rich_toolkit.styles.border import BorderedStyle
+from rich_toolkit.styles.tagged import TaggedStyle
 from rich_toolkit.menu import Option
 
 
@@ -38,7 +39,7 @@ def get_options() -> List[Option]:
     ]
 
 
-for style in [TaggedStyle(tag_width=12), FancyStyle()]:
+for style in [TaggedStyle(tag_width=12), BorderedStyle()]:
     theme = RichToolkitTheme(
         style=style,
         theme={

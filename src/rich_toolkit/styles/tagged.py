@@ -16,8 +16,7 @@ class TaggedStyle:
     }
 
     # TODO: maybe the theme needs to own the console
-    def __init__(self, tag: str, tag_width: int = 12):
-        self.tag = tag
+    def __init__(self, tag_width: int = 12):
         self.tag_width = tag_width
 
     def _tag_element(self, child: RenderableType, **metadata: Any) -> RenderableType:
@@ -35,7 +34,7 @@ class TaggedStyle:
 
         style = console.get_style(style_name)
 
-        tag = metadata.get("tag", self.tag)
+        tag = metadata.get("tag", "")
 
         if tag:
             tag = f" {tag} "
@@ -45,7 +44,7 @@ class TaggedStyle:
 
         left = [Segment(" " * left_padding), Segment(tag, style=style)]
 
-        table.add_row(Group(*left), child)
+        table.add_row(Group(*left), Group(child))
 
         console.pop_theme()
 

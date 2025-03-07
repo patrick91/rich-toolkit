@@ -7,7 +7,7 @@ from rich.theme import Theme
 
 from .input import Input
 
-# from .menu import Menu, Option, ReturnValue
+from .menu import Menu, Option, ReturnValue
 from .progress import Progress
 from .styles.base import BaseStyle
 
@@ -85,7 +85,6 @@ class RichToolkit:
             style=self.theme.style,
             inline=inline,
             allow_filtering=allow_filtering,
-            cursor_offset=self.theme.style.cursor_offset,
             **metadata,
         ).ask()
 
