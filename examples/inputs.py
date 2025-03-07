@@ -34,4 +34,6 @@ for style in [TaggedStyle(tag_width=12, tag="name"), BorderedStyle()]:
         app.input("What's your password?", tag="password", password=True)
         app.print_line()
 
+        app.input("Inline input:", tag="inline", inline=True)
+        app.print_line()
         app.print("Done")

@@ -7,5 +7,10 @@ class CursorOffset(NamedTuple):
 
 
 class Element:
-    cursor_offset: CursorOffset = CursorOffset(top=0, left=0)
-    should_show_cursor: bool = False
+    @property
+    def cursor_offset(self) -> CursorOffset:
+        return CursorOffset(top=0, left=0)
+
+    @property
+    def should_show_cursor(self) -> bool:
+        return False

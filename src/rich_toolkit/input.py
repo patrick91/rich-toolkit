@@ -10,11 +10,17 @@ from .styles.base import BaseStyle
 
 # maybe all elements handle input?
 class Input(Element, TextInputHandler):
+    label: str | None = None
+    placeholder: str | None = None
+    _should_show_label: bool = True
+    _should_show_validation: bool = True
+
     def __init__(
         self,
+        # TODO: do we need name?
         name: str,
-        label: str,
-        placeholder: str,
+        label: str | None = None,
+        placeholder: str | None = None,
         password: bool = False,
         inline: bool = False,
         style: BaseStyle = None,
@@ -26,7 +32,6 @@ class Input(Element, TextInputHandler):
         self.password = password
         self.inline = inline
 
-        self._input_position = None
         self.style = style
         self.metadata = metadata
         self.text = ""
@@ -34,36 +39,58 @@ class Input(Element, TextInputHandler):
 
         super().__init__()
 
-    def render(self, is_active: bool = False) -> RenderableType:
-        label = self.label
+    def render_label(self, is_active: bool = False) -> str | None:
+        label: str | None = None
 
-        if is_active:
-            label = f"[bold green]{label}[/bold green]"
-        elif not self.valid:
-            label = f"[bold red]{label}[/bold red]"
+        if self.label and self._should_show_label:
+            label = self.label
+
+            if is_active:
+                label = f"[bold green]{label}[/bold green]"
+            elif not self.valid:
+                label = f"[bold red]{label}[/bold red]"
+
+        return label
+
+    def render(self, is_active: bool = False) -> RenderableType:
+        label = self.render_label(is_active)
+        text = self.render_input()
 
         contents = []
 
         if self.inline:
-            contents.append(label + " " + self.render_input())
-            self._input_position = 1
-        else:
-            contents.append(label)
-            contents.append(self.render_input())
-            self._input_position = 2
+            if label:
+                text = f"{label} {text}"
 
-        if self.valid is False:
-            contents.append(Text("This field is required", style="bold red"))
+            contents.append(text)
+        else:
+            if label:
+                contents.append(label)
+
+            contents.append(text)
+
+        if self.validation_message:
+            contents.append(Text(self.validation_message, style="bold red"))
 
         self._height = len(contents)
 
         return Group(*contents)
 
     @property
+    def validation_message(self) -> str | None:
+        if self.valid is False:
+            return "This field is required"
+
+        return None
+
+    @property
     def cursor_offset(self) -> CursorOffset:
-        # TODO: why 2?
         top = 1 if self.inline else 2
-        left_offset = len(self.label) + 1 if self.inline else 0
+
+        left_offset = 0
+
+        if self.inline and self.label and self._should_show_label:
+            left_offset = len(self.label) + 1
 
         return CursorOffset(top=top, left=self.cursor_left + left_offset)
 

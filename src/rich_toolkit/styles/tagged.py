@@ -65,9 +65,6 @@ class TaggedStyle:
         else:
             rendered = renderable.render(is_active=is_active)
 
-            # cursor_offset_left = self.tag_width + renderable.cursor_offset.left
-            # cursor_offset_top = renderable.cursor_offset.top
-
         return self._tag_element(rendered, **metadata)
 
     def get_cursor_offset_for_element(self, element: Element) -> CursorOffset:
