@@ -172,6 +172,8 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
         content.append(menu)
 
         if self.validation_message:
+            content.append(Text(""))
+
             content.append(Text(self.validation_message))
 
         return Group(*content)
@@ -207,9 +209,6 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
     def handle_key(self, key: str) -> None:
         current_selection: Optional[str] = None
 
-        if self.options:
-            current_selection = self.options[self.selected]["name"]
-
         if self.is_next_key(key):
             self._update_selection("next")
         elif self.is_prev_key(key):
@@ -217,17 +216,20 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
         else:
             super().handle_key(key)
 
-        # if current_selection:
-        #     matching_index = next(
-        #         (
-        #             index
-        #             for index, option in enumerate(self.options)
-        #             if option["name"] == current_selection
-        #         ),
-        #         0,
-        #     )
+        if self.options:
+            current_selection = self.options[self.selected]["name"]
 
-        #     self.selected = matching_index
+        if current_selection:
+            matching_index = next(
+                (
+                    index
+                    for index, option in enumerate(self.options)
+                    if option["name"] == current_selection
+                ),
+                0,
+            )
+
+            self.selected = matching_index
 
     def _handle_enter(self) -> bool:
         if self.allow_filtering and self.text and len(self.options) == 0:
