@@ -2,15 +2,15 @@ import random
 import time
 
 from rich_toolkit import RichToolkit, RichToolkitTheme
-from rich_toolkit.styles import FancyStyle, TaggedStyle, MinimalStyle
+from rich_toolkit.styles.border import BorderedStyle
+from rich_toolkit.styles.tagged import TaggedStyle
 
 
 def random_name_generator() -> str:
     return f"{random.choice(['fancy', 'cool', 'awesome'])}-{random.choice(['banana', 'apple', 'strawberry'])}"
 
 
-
-for style in [TaggedStyle(tag_width=7), FancyStyle(), MinimalStyle()]:
+for style in [TaggedStyle(tag_width=12), BorderedStyle()]:
     theme = RichToolkitTheme(
         style=style,
         theme={
@@ -56,3 +56,4 @@ for style in [TaggedStyle(tag_width=7), FancyStyle(), MinimalStyle()]:
         with app.progress("Some demo here") as progress:
             for x in range(3):
                 time.sleep(1)
+                progress.log(f"Step {x} done")

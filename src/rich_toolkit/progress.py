@@ -69,7 +69,7 @@ class Progress(Live):
                 ]
             )
 
-        return self.style.with_decoration(
+        return self.style.decorate(
             content,
             animation_status=animation_status,
         )

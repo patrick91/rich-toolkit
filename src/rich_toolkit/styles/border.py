@@ -23,18 +23,9 @@ class BorderedStyle(BaseStyle):
         is_active: bool = False,
         **metadata: Any,
     ) -> RenderableType:
-        if isinstance(renderable, str):
-            return renderable
-
-        if isinstance(renderable, StreamingContainer):
-            return Group(
-                Panel.fit(Group(*renderable.logs), title="LOL", title_align="left"),
-                renderable.footer_content,
-            )
-
-
-        title : str | None = None
+        title: str | None = None
         validation_message: tuple[str, ...] = ()
+
         if isinstance(renderable, Input):
             if renderable.valid is False:
                 validation_message = (Text("This field is required", style="bold red"),)
@@ -52,10 +43,14 @@ class BorderedStyle(BaseStyle):
             renderable._should_show_label = False
             renderable._should_show_validation = False
 
+        if isinstance(renderable, str):
+            rendered = renderable
+        else:
+            rendered = renderable.render(is_active=is_active)
 
         content = Group(
             Panel(
-                renderable.render(is_active=is_active),
+                rendered,
                 highlight=is_active,
                 title=title,
                 title_align="left",
