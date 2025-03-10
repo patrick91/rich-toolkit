@@ -1,15 +1,19 @@
-from typing import List, Optional
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, List, Optional
 
 from rich.console import Console, Group
 from rich.live import Live, RenderableType
 from typing_extensions import Literal
 
 from .element import Element
-from .styles.base import BaseStyle
+
+if TYPE_CHECKING:
+    from .styles.base import BaseStyle
 
 
 class ProgressLine(Element):
-    def __init__(self, text: str, parent: "Progress"):
+    def __init__(self, text: str, parent: Progress):
         self.text = text
         self.parent = parent
 

@@ -3,6 +3,7 @@ import time
 
 from rich_toolkit import RichToolkit, RichToolkitTheme
 from rich_toolkit.styles.border import BorderedStyle
+from rich_toolkit.styles.fancy import FancyStyle
 from rich_toolkit.styles.tagged import TaggedStyle
 
 
@@ -10,7 +11,7 @@ def random_name_generator() -> str:
     return f"{random.choice(['fancy', 'cool', 'awesome'])}-{random.choice(['banana', 'apple', 'strawberry'])}"
 
 
-for style in [TaggedStyle(tag_width=12), BorderedStyle()]:
+for style in [FancyStyle(), TaggedStyle(tag_width=12), BorderedStyle()]:
     theme = RichToolkitTheme(
         style=style,
         theme={

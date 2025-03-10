@@ -1,10 +1,14 @@
-from typing import Any
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
 
 from rich.console import Group, RenderableType
 
 from ._input_handler import TextInputHandler
 from .element import CursorOffset, Element
-from .styles.base import BaseStyle
+
+if TYPE_CHECKING:
+    from .styles.base import BaseStyle
 
 
 class Input(Element, TextInputHandler):

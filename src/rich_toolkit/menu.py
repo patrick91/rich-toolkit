@@ -1,16 +1,18 @@
-from typing import Generic, List, Optional, Tuple, TypeVar, cast
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Generic, List, Optional, TypeVar
 
 import click
 from rich import get_console
 from rich.console import Console, Group, RenderableType
-from rich.control import Control
-from rich.segment import ControlType
 from rich.text import Text
 from typing_extensions import Any, Literal, TypedDict
 
 from ._input_handler import TextInputHandler
-from .styles.base import BaseStyle
-from .element import Element, CursorOffset
+from .element import CursorOffset, Element
+
+if TYPE_CHECKING:
+    from .styles.base import BaseStyle
 
 ReturnValue = TypeVar("ReturnValue")
 

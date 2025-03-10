@@ -14,6 +14,8 @@ from .base import BaseStyle
 
 
 class BorderedStyle(BaseStyle):
+    box = box.SQUARE
+
     def empty_line(self) -> RenderableType:
         return ""
 
@@ -67,7 +69,7 @@ class BorderedStyle(BaseStyle):
                 title_align="left",
                 highlight=is_active,
                 width=50,
-                box=box.SQUARE,
+                box=self.box,
             ),
             *validation_message,
         )
