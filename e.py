@@ -58,7 +58,7 @@ def run_logs(style: Any):
             time.sleep(0.5)
 
 
-for style in [TaggedStyle("straw"), BorderedStyle()]:
+for style in [TaggedStyle(tag_width=12), BorderedStyle()]:
     print(f"Running with {style.__class__.__name__}")
 
     run_input(style)
