@@ -22,7 +22,7 @@ def run_form(style: Any):
     # Example with multiple inputs and a button
     form = Form(title="Enter your login details", style=style)
 
-    form.add_button(name="AI", label="AI")
+    form.add_button(name="AI", label="AI", tag="form")
 
     form.add_input(name="name", label="Name", placeholder="Enter your name")
     form.add_input(

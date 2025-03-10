@@ -1,4 +1,4 @@
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 
 class CursorOffset(NamedTuple):
@@ -7,6 +7,13 @@ class CursorOffset(NamedTuple):
 
 
 class Element:
+    metadata: dict = {}
+
+    def __init__(self, **metadata: Any):
+        self.metadata = metadata
+
+        super().__init__()
+
     @property
     def cursor_offset(self) -> CursorOffset:
         return CursorOffset(top=0, left=0)

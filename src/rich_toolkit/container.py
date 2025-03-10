@@ -7,13 +7,13 @@ from rich.console import (
     RenderableType,
 )
 from rich.control import Control, ControlType
-from rich.segment import Segment
 from rich.live_render import LiveRender
+from rich.segment import Segment
 
+from ._input_handler import TextInputHandler
 from .element import Element
 from .input import Input
 from .menu import Menu
-from ._input_handler import TextInputHandler
 
 
 class Container:
@@ -131,6 +131,7 @@ class Container:
                 self.style.decorate(
                     element,
                     is_active=i == self.active_element_index,
+                    **element.metadata,
                 )
             )
 

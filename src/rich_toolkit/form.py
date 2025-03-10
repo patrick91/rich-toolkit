@@ -23,8 +23,14 @@ class Form(Container):
 
         self.elements.append(input)
 
-    def add_button(self, name: str, label: str, callback: Optional[Callable] = None):
-        button = Button(name=name, label=label, callback=callback)
+    def add_button(
+        self,
+        name: str,
+        label: str,
+        callback: Optional[Callable] = None,
+        **metadata: Any,
+    ):
+        button = Button(name=name, label=label, callback=callback, **metadata)
         self.elements.append(button)
 
     def run(self):

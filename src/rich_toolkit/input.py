@@ -35,7 +35,7 @@ class Input(Element, TextInputHandler):
         self.text = ""
         self.valid = None
 
-        super().__init__()
+        super().__init__(**metadata)
 
     def render_label(self, is_active: bool = False) -> str | None:
         label: str | None = None
