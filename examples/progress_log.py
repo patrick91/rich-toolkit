@@ -4,9 +4,10 @@ import time
 from rich.text import Text
 
 from rich_toolkit import RichToolkit, RichToolkitTheme
-from rich_toolkit.styles import FancyStyle, TaggedStyle
+from rich_toolkit.styles.border import BorderedStyle
+from rich_toolkit.styles.tagged import TaggedStyle
 
-for style in [TaggedStyle(tag_width=8), FancyStyle()]:
+for style in [TaggedStyle(tag_width=8), BorderedStyle()]:
     theme = RichToolkitTheme(
         style=style,
         theme={
@@ -26,7 +27,7 @@ for style in [TaggedStyle(tag_width=8), FancyStyle()]:
         app.print_line()
 
         with app.progress(
-            "Progress with inline logs using ansi codes",
+            "Progress with inline logs using markup",
             inline_logs=True,
             lines_to_show=10,
         ) as progress:
@@ -34,7 +35,7 @@ for style in [TaggedStyle(tag_width=8), FancyStyle()]:
                 time.sleep(random.uniform(0.05, 0.35))
                 progress.log(
                     Text.from_markup(
-                        "Build Summary: [link=http://example.com]http://example.com[/link]"
+                        f"[{x}] Build [blue]Summary[/]: [link=http://example.com]http://example.com[/link]"
                     )
                 )
 

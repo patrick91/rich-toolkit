@@ -8,7 +8,7 @@ from rich_toolkit.element import CursorOffset, Element
 from rich_toolkit.input import Input
 from rich_toolkit.menu import Menu
 from rich_toolkit.panel import Panel
-from rich_toolkit.streaming_container import StreamingContainer
+from rich_toolkit.progress import Progress, ProgressLine
 
 from .base import BaseStyle
 
@@ -19,7 +19,7 @@ class BorderedStyle(BaseStyle):
 
     def decorate(
         self,
-        renderable: Element,
+        renderable: Element | str,
         is_active: bool = False,
         **metadata: Any,
     ) -> RenderableType:
@@ -43,17 +43,29 @@ class BorderedStyle(BaseStyle):
             renderable._should_show_label = False
             renderable._should_show_validation = False
 
-        if isinstance(renderable, str):
-            rendered = renderable
-        else:
+        if isinstance(renderable, Progress):
+            title = renderable.title
+
+        if isinstance(renderable, Element):
             rendered = renderable.render(is_active=is_active)
+        else:
+            rendered = renderable
+
+        if isinstance(renderable, ProgressLine):
+            # TODO: call this decorate? or do decorate -> render
+            return self.render_progress_log_line(
+                rendered,
+                index=metadata.get("index", 0),
+                max_lines=metadata.get("max_lines", -1),
+                total_lines=metadata.get("total_lines", -1),
+            )
 
         content = Group(
             Panel(
                 rendered,
-                highlight=is_active,
                 title=title,
                 title_align="left",
+                highlight=is_active,
                 width=50,
                 box=box.SQUARE,
             ),

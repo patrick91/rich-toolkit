@@ -6,10 +6,12 @@ from rich.table import Column, Table
 from rich.theme import Theme
 
 from rich_toolkit.element import CursorOffset, Element
-from rich_toolkit.input import Input
+from rich_toolkit.progress import ProgressLine
+
+from .base import BaseStyle
 
 
-class TaggedStyle:
+class TaggedStyle(BaseStyle):
     theme = {
         "tag.title": "black on #A7E3A2",
         "tag": "white on #893AE3",
@@ -50,19 +52,24 @@ class TaggedStyle:
 
         return table
 
-    def empty_line(self) -> RenderableType:
-        return ""
-
     def decorate(
         self,
-        renderable: Input | Any,
+        renderable: Element | str,
         is_active: bool = False,
         **metadata: Any,
     ) -> RenderableType:
-        if isinstance(renderable, str):
-            rendered = renderable
-        else:
+        if isinstance(renderable, Element):
             rendered = renderable.render(is_active=is_active)
+        else:
+            rendered = renderable
+
+        if isinstance(renderable, ProgressLine):
+            return self.render_progress_log_line(
+                rendered,
+                index=metadata.get("index", 0),
+                max_lines=metadata.get("max_lines", -1),
+                total_lines=metadata.get("total_lines", -1),
+            )
 
         return self._tag_element(rendered, **metadata)
 

@@ -4,10 +4,20 @@ from rich.console import Console, Group
 from rich.live import Live, RenderableType
 from typing_extensions import Literal
 
+from .element import Element
 from .styles.base import BaseStyle
 
 
-class Progress(Live):
+class ProgressLine(Element):
+    def __init__(self, text: str, parent: "Progress"):
+        self.text = text
+        self.parent = parent
+
+    def render(self, is_active: bool = False) -> RenderableType:
+        return self.text
+
+
+class Progress(Element, Live):
     def __init__(
         self,
         title: str,
@@ -18,14 +28,15 @@ class Progress(Live):
         inline_logs: bool = False,
         lines_to_show: int = -1,
     ) -> None:
+        self.title = title
         self.current_message = title
         self.style = style
         self.is_error = False
         self._transient_on_error = transient_on_error
         self._inline_logs = inline_logs
-        self._lines_to_show = lines_to_show
+        self.lines_to_show = lines_to_show
 
-        self.logs: List[str] = []
+        self.logs: List[ProgressLine] = []
 
         super().__init__(console=console, refresh_per_second=8, transient=transient)
 
@@ -35,12 +46,36 @@ class Progress(Live):
 
         return self
 
+    @property
+    def content(self) -> RenderableType:
+        content: str | Group = self.current_message
+
+        if self._inline_logs:
+            lines_to_show = (
+                self.logs[-self.lines_to_show :]
+                if self.lines_to_show > 0
+                else self.logs
+            )
+
+            content = Group(
+                *[
+                    self.style.decorate(
+                        line,
+                        index=index,
+                        max_lines=self.lines_to_show,
+                        total_lines=len(lines_to_show),
+                    )
+                    for index, line in enumerate(lines_to_show)
+                ]
+            )
+
+        return content
+
+    def render(self, is_active: bool = False) -> RenderableType:
+        return self.content
+
     def get_renderable(self) -> RenderableType:
-        current_message = self.current_message
-
-        if not self.style:
-            return current_message
-
+        # like inputs? create a container?...
         animation_status: Literal["started", "stopped", "error"] = (
             "started" if self._started else "stopped"
         )
@@ -48,35 +83,14 @@ class Progress(Live):
         if self.is_error:
             animation_status = "error"
 
-        content: str | Group = current_message
-
-        if self._inline_logs:
-            lines_to_show = (
-                self.logs[-self._lines_to_show :]
-                if self._lines_to_show > 0
-                else self.logs
-            )
-
-            content = Group(
-                *[
-                    self.style.decorate_progress_log_line(
-                        line,
-                        index=index,
-                        max_lines=self._lines_to_show,
-                        total_lines=len(lines_to_show),
-                    )
-                    for index, line in enumerate(lines_to_show)
-                ]
-            )
-
         return self.style.decorate(
-            content,
+            self,
             animation_status=animation_status,
         )
 
     def log(self, text: str) -> None:
         if self._inline_logs:
-            self.logs.append(text)
+            self.logs.append(ProgressLine(text, self))
         else:
             self.current_message = text
 
