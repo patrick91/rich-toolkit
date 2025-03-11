@@ -90,6 +90,7 @@ class Progress(Element, Live):
         return self.style.decorate(
             self,
             animation_status=animation_status,
+            started=self._started,
         )
 
     def log(self, text: str) -> None:

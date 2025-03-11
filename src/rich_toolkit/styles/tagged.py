@@ -1,3 +1,4 @@
+import re
 from typing import Any
 
 from rich.console import Console, Group, RenderableType
@@ -9,6 +10,10 @@ from rich_toolkit.element import CursorOffset, Element
 from rich_toolkit.progress import ProgressLine
 
 from .base import BaseStyle
+
+
+def has_emoji(tag: str) -> bool:
+    return bool(re.search(r"[\U0001F300-\U0001F9FF]", tag))
 
 
 class TaggedStyle(BaseStyle):
@@ -41,7 +46,12 @@ class TaggedStyle(BaseStyle):
         if tag:
             tag = f" {tag} "
 
-        left_padding = self.tag_width - len(tag) - 2
+        right_padding = 2
+
+        if has_emoji(tag):
+            right_padding = 3
+
+        left_padding = self.tag_width - len(tag) - right_padding
         left_padding = max(0, left_padding)
 
         left = [Segment(" " * left_padding), Segment(tag, style=style)]

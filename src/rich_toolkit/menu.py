@@ -147,10 +147,7 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
                 )
             )
 
-        # TODO: inline is not wrapped (maybe that's good?)
-
         if not self.options:
-            # menu.append("No results found", style=self.console.get_style("text"))
             menu = Text("No results found", style=self.console.get_style("text"))
 
         filter = (

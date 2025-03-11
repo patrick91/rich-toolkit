@@ -1,8 +1,9 @@
 from rich_toolkit import RichToolkit, RichToolkitTheme
 from rich_toolkit.styles.border import BorderedStyle
+from rich_toolkit.styles.fancy import FancyStyle
 from rich_toolkit.styles.tagged import TaggedStyle
 
-for style in [TaggedStyle(tag_width=12), BorderedStyle()]:
+for style in [TaggedStyle(tag_width=12), BorderedStyle(), FancyStyle()]:
     theme = RichToolkitTheme(
         style=style,
         theme={
