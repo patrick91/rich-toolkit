@@ -23,6 +23,7 @@ class BorderedStyle(BaseStyle):
         self,
         renderable: Element | str,
         is_active: bool = False,
+        done: bool = False,
         **metadata: Any,
     ) -> RenderableType:
         title: str | None = None
@@ -49,7 +50,7 @@ class BorderedStyle(BaseStyle):
             title = renderable.title
 
         if isinstance(renderable, Element):
-            rendered = renderable.render(is_active=is_active)
+            rendered = renderable.render(is_active=is_active, done=done)
         else:
             rendered = renderable
 

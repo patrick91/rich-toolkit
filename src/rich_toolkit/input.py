@@ -72,13 +72,15 @@ class Input(Element, TextInputHandler):
 
         return None
 
-    def render(self, is_active: bool = False) -> RenderableType:
+    def render(self, is_active: bool = False, done: bool = False) -> RenderableType:
         label = self.render_label(is_active) if self._should_show_label else None
         text = self.render_input()
 
         contents = []
 
-        if self.inline:
+        if self.inline or done:
+            if done and self.password:
+                text = "*" * len(self.text)
             if label:
                 text = f"{label} {text}"
 
@@ -89,8 +91,10 @@ class Input(Element, TextInputHandler):
 
             contents.append(text)
 
-        if self.validation_message and self._should_show_validation:
-            contents.append(self.render_validation_message())
+        if self._should_show_validation and (
+            validation_message := self.render_validation_message()
+        ):
+            contents.append(validation_message)
 
         self._height = len(contents)
 

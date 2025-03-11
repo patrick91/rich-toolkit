@@ -131,6 +131,7 @@ class Container:
                 self.style.decorate(
                     element,
                     is_active=i == self.active_element_index,
+                    done=done,
                     **element.metadata,
                 )
             )
@@ -193,7 +194,6 @@ class Container:
                 self._refresh()
 
             except KeyboardInterrupt:
-                # TODO: this is somewhat broken
                 # TODO: send a message to all elements that the user cancelled
                 self._refresh(done=True)
                 exit()

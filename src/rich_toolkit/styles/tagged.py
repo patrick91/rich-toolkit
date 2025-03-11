@@ -66,10 +66,11 @@ class TaggedStyle(BaseStyle):
         self,
         renderable: Element | str,
         is_active: bool = False,
+        done: bool = False,
         **metadata: Any,
     ) -> RenderableType:
         if isinstance(renderable, Element):
-            rendered = renderable.render(is_active=is_active)
+            rendered = renderable.render(is_active=is_active, done=done)
         else:
             rendered = renderable
 
