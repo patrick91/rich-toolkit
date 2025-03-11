@@ -6,7 +6,6 @@ from rich.console import Console, RenderableType
 from rich.theme import Theme
 
 from .input import Input
-
 from .menu import Menu, Option, ReturnValue
 from .progress import Progress
 from .styles.base import BaseStyle
@@ -99,7 +98,7 @@ class RichToolkit:
         return Input(
             name=title,
             label=title,
-            placeholder=default,
+            default=default,
             password=password,
             inline=inline,
             style=self.theme.style,

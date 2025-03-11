@@ -13,33 +13,45 @@ if TYPE_CHECKING:
 
 class Input(Element, TextInputHandler):
     label: str | None = None
-    placeholder: str | None = None
+
     _should_show_label: bool = True
     _should_show_validation: bool = True
 
     def __init__(
         self,
-        # TODO: do we need name?
-        name: str,
         label: str | None = None,
         placeholder: str | None = None,
+        default: str | None = None,
+        default_as_placeholder: bool = True,
+        required: bool = True,
         password: bool = False,
         inline: bool = False,
-        style: BaseStyle = None,
+        name: str | None = None,
+        style: BaseStyle | None = None,
         **metadata: Any,
     ):
         self.name = name
         self.label = label
-        self.placeholder = placeholder
+        self._placeholder = placeholder
+        self.default = default
+        self.default_as_placeholder = default_as_placeholder
+        self.required = required
         self.password = password
         self.inline = inline
-
         self.style = style
         self.metadata = metadata
+
         self.text = ""
         self.valid = None
 
         super().__init__(**metadata)
+
+    @property
+    def placeholder(self) -> str | None:
+        if self.default_as_placeholder and self.default:
+            return self.default
+
+        return self._placeholder
 
     def render_label(self, is_active: bool = False) -> str | None:
         label: str | None = None
@@ -110,7 +122,12 @@ class Input(Element, TextInputHandler):
         self.on_validate()
 
     def on_validate(self):
-        self.valid = bool(self.text)
+        if not self.required:
+            self.valid = True
+        elif self.text.strip():
+            self.valid = True
+        else:
+            self.valid = bool(self.default)
 
     def render_input(self) -> RenderableType:
         text = self.text
@@ -130,7 +147,6 @@ class Input(Element, TextInputHandler):
         from .container import Container
 
         container = Container(style=self.style)
-        container.title = self.label
 
         container.elements = [self]
 
