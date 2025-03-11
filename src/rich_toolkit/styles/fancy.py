@@ -76,12 +76,13 @@ class FancyStyle(BorderedStyle):
         renderable: Element | str,
         is_active: bool = False,
         done: bool = False,
+        parent: Element | None = None,
         **metadata: Any,
     ) -> RenderableType:
         title: str | None = None
 
         if isinstance(renderable, Element):
-            rendered = renderable.render(is_active=is_active, done=done)
+            rendered = renderable.render(is_active=is_active, done=done, parent=parent)
         else:
             rendered = renderable
 

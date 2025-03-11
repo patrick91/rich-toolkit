@@ -5,10 +5,9 @@ from rich.panel import Panel as RichPanel
 from rich.segment import Segment
 from rich.text import Text
 
-from .element import Element
 
-
-class Panel(RichPanel, Element):
+# TODO: this is not an ELEMENT, so move it to _rich_components or something
+class Panel(RichPanel):
     def __rich_console__(
         self, console: "Console", options: "ConsoleOptions"
     ) -> "RenderResult":

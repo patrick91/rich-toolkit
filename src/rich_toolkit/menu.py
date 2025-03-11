@@ -120,7 +120,12 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
     def render_label(self) -> RenderableType:
         return self.title
 
-    def render_input(self) -> RenderableType:
+    def render(
+        self,
+        is_active: bool = False,
+        done: bool = False,
+        parent: Element | None = None,
+    ) -> RenderableType:
         menu = Text(justify="left")
 
         selected_prefix = Text(self.current_selection_char + " ")
@@ -235,9 +240,6 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
             return False
 
         return True
-
-    def render(self, is_active: bool = False) -> RenderableType:
-        return self.render_input()
 
     @property
     def validation_message(self) -> str | None:

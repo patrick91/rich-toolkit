@@ -16,7 +16,7 @@ from .input import Input
 from .menu import Menu
 
 
-class Container:
+class Container(Element):
     def __init__(self, style: Any):
         self.elements: List[Element] = []
         self.active_element_index = 0
@@ -63,8 +63,6 @@ class Container:
             current_element = self._content[i]
 
             if i == element_index:
-                # TODO: we need to figure out this (maybe another call to style?)
-                # position += current_element.cursor_offset.top
                 position += self.style.get_cursor_offset_for_element(
                     self.elements[i]
                 ).top
@@ -123,7 +121,12 @@ class Container:
             *original,
         )
 
-    def render(self, done: bool = False) -> RenderableType:
+    def render(
+        self,
+        done: bool = False,
+        is_active: bool = False,
+        parent: Element | None = None,
+    ) -> RenderableType:
         self._content = []
 
         for i, element in enumerate(self.elements):
@@ -164,7 +167,6 @@ class Container:
             try:
                 key = click.getchar()
 
-                # Store the previous element state
                 self.previous_element_index = self.active_element_index
 
                 if key in (TextInputHandler.SHIFT_TAB_KEY, TextInputHandler.TAB_KEY):

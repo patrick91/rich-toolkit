@@ -24,6 +24,7 @@ class BorderedStyle(BaseStyle):
         renderable: Element | str,
         is_active: bool = False,
         done: bool = False,
+        parent: Element | None = None,
         **metadata: Any,
     ) -> RenderableType:
         title: str | None = None
@@ -38,7 +39,10 @@ class BorderedStyle(BaseStyle):
             renderable._should_show_label = False
             renderable._should_show_validation = False
 
-            title = renderable.render_label(is_active=is_active)
+            title = renderable.render_label(
+                is_active=is_active,
+                parent=parent,
+            )
 
         if isinstance(renderable, Menu):
             title = renderable.render_label()
@@ -50,7 +54,11 @@ class BorderedStyle(BaseStyle):
             title = renderable.title
 
         if isinstance(renderable, Element):
-            rendered = renderable.render(is_active=is_active, done=done)
+            rendered = renderable.render(
+                is_active=is_active,
+                done=done,
+                parent=parent,
+            )
         else:
             rendered = renderable
 

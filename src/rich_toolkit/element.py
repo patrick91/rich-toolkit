@@ -1,4 +1,9 @@
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
 from typing import Any, NamedTuple
+
+from rich.console import RenderableType
 
 
 class CursorOffset(NamedTuple):
@@ -6,7 +11,7 @@ class CursorOffset(NamedTuple):
     left: int
 
 
-class Element:
+class Element(ABC):
     metadata: dict = {}
 
     def __init__(self, **metadata: Any):
@@ -21,3 +26,13 @@ class Element:
     @property
     def should_show_cursor(self) -> bool:
         return False
+
+    @abstractmethod
+    def render(
+        self,
+        *,
+        is_active: bool = False,
+        done: bool = False,
+        parent: Element | None = None,
+    ) -> RenderableType:
+        pass

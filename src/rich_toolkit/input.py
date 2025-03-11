@@ -53,16 +53,23 @@ class Input(Element, TextInputHandler):
 
         return self._placeholder
 
-    def render_label(self, is_active: bool = False) -> str | None:
+    def render_label(
+        self,
+        is_active: bool = False,
+        parent: Element | None = None,
+    ) -> str | None:
+        from .form import Form
+
         label: str | None = None
 
         if self.label:
             label = self.label
 
-            if is_active:
-                label = f"[bold green]{label}[/bold green]"
-            elif not self.valid:
-                label = f"[bold red]{label}[/bold red]"
+            if isinstance(parent, Form):
+                if is_active:
+                    label = f"[bold green]{label}[/bold green]"
+                elif not self.valid:
+                    label = f"[bold red]{label}[/bold red]"
 
         return label
 
@@ -72,8 +79,15 @@ class Input(Element, TextInputHandler):
 
         return None
 
-    def render(self, is_active: bool = False, done: bool = False) -> RenderableType:
-        label = self.render_label(is_active) if self._should_show_label else None
+    def render(
+        self,
+        is_active: bool = False,
+        done: bool = False,
+        parent: Element | None = None,
+    ) -> RenderableType:
+        label = (
+            self.render_label(is_active, parent) if self._should_show_label else None
+        )
         text = self.render_input()
 
         contents = []

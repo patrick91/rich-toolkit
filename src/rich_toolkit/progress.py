@@ -75,11 +75,15 @@ class Progress(Element, Live):
 
         return content
 
-    def render(self, is_active: bool = False) -> RenderableType:
+    def render(
+        self,
+        is_active: bool = False,
+        done: bool = False,
+        parent: Element | None = None,
+    ) -> RenderableType:
         return self.content
 
     def get_renderable(self) -> RenderableType:
-        # like inputs? create a container?...
         animation_status: Literal["started", "stopped", "error"] = (
             "started" if self._started else "stopped"
         )

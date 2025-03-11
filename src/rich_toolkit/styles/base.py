@@ -1,4 +1,5 @@
-from typing import Type, TypeVar
+from abc import ABC, abstractmethod
+from typing import Any, Type, TypeVar
 
 from rich.color import Color
 from rich.console import (
@@ -7,6 +8,7 @@ from rich.console import (
 )
 from rich.text import Text
 
+from rich_toolkit.element import CursorOffset, Element
 from rich_toolkit.utils.colors import lighten_text
 
 ConsoleRenderableClass = TypeVar(
@@ -14,14 +16,16 @@ ConsoleRenderableClass = TypeVar(
 )
 
 
-class BaseStyle:
-    # TODO: make this an ABC?
-
+class BaseStyle(ABC):
     def empty_line(self) -> RenderableType:
         return ""
 
     def render_progress_log_line(
-        self, line: str | Text, index: int, max_lines: int = -1, total_lines: int = -1
+        self,
+        line: str | Text,
+        index: int,
+        max_lines: int = -1,
+        total_lines: int = -1,
     ) -> Text:
         line = Text.from_markup(line) if isinstance(line, str) else line
         if max_lines == -1:
@@ -41,3 +45,18 @@ class BaseStyle:
         color = f"#{r:02x}{g:02x}{b:02x}"
 
         return lighten_text(line, Color.parse(color), brightness_pct)
+
+    @abstractmethod
+    def decorate(
+        self,
+        renderable: Element | str,
+        is_active: bool = False,
+        done: bool = False,
+        parent: Element | None = None,
+        **metadata: Any,
+    ) -> RenderableType:
+        pass
+
+    @abstractmethod
+    def get_cursor_offset_for_element(self, element: Element) -> CursorOffset:
+        pass
