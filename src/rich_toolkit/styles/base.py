@@ -51,7 +51,7 @@ class BaseStyle(ABC):
         current_min_brightness = min_brightness + abs(shown_lines - max_lines) * 0.1
         current_min_brightness = min(max(current_min_brightness, min_brightness), 1.0)
 
-        brightness_multiplier = (index / shown_lines) * (
+        brightness_multiplier = ((index + 1) / shown_lines) * (
             1.0 - current_min_brightness
         ) + current_min_brightness
 
