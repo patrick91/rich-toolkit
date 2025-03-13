@@ -22,8 +22,6 @@ class FancyPanel:
     ) -> None:
         self.renderable = renderable
         self._title = title
-        self.style = "blue"
-        self.border_style = "blue"
         self.metadata = metadata or {}
         self.width = None
         self.expand = True
@@ -32,9 +30,8 @@ class FancyPanel:
         self, console: "Console", options: "ConsoleOptions"
     ) -> "RenderResult":
         renderable = self.renderable
-        style = console.get_style(self.style)
 
-        lines = console.render_lines(renderable, style=style)
+        lines = console.render_lines(renderable)
 
         line_start = Segment("┌" if self.metadata.get("title") else "◆")
         new_line = Segment.line()
@@ -99,9 +96,7 @@ class FancyStyle(BorderedStyle):
             )
 
         content = FancyPanel(
-            Group(
-                rendered,
-            ),
+            rendered,
             title=title,
             metadata=metadata,
         )

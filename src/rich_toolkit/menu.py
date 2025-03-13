@@ -117,7 +117,7 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
         if self.selected >= len(self.options):
             self.selected = 0
 
-    def render_label(self) -> RenderableType:
+    def render_label(self) -> str:
         return self.title
 
     def render(
@@ -132,6 +132,20 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
         not_selected_prefix = Text(self.selection_char + " ")
 
         separator = Text("\t" if self.inline else "\n")
+
+        if done:
+            result_content = Text()
+
+            if self._should_show_label:
+                result_content.append(self.render_label())
+                result_content.append(" ")
+
+            result_content.append(
+                self.options[self.selected]["name"],
+                style=self.console.get_style("result"),
+            )
+
+            return result_content
 
         for id_, option in enumerate(self.options):
             if id_ == self.selected:
@@ -167,7 +181,7 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
             else []
         )
 
-        content = []
+        content: list[RenderableType] = []
 
         if self._should_show_label:
             content.append(self.render_label())
