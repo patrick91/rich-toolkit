@@ -28,7 +28,7 @@ for style in [FancyStyle(), TaggedStyle(tag_width=8), BorderedStyle()]:
         app.print_line()
 
         with app.progress(
-            "Progress with inline logs using markup",
+            "Progress with logs and clolros",
             inline_logs=True,
             lines_to_show=10,
         ) as progress:
@@ -36,7 +36,7 @@ for style in [FancyStyle(), TaggedStyle(tag_width=8), BorderedStyle()]:
                 time.sleep(random.uniform(0.05, 0.35))
                 progress.log(
                     Text.from_markup(
-                        f"[{x}] Build [blue]Summary[/]: [link=http://example.com]http://example.com[/link]"
+                        f"[{x}] [green]Build[/] [blue]Summary[/] [red]red[/]: [link=http://example.com]http://example.com[/link]"
                     )
                 )
 

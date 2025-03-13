@@ -9,7 +9,7 @@ from rich.console import (
 from rich.text import Text
 
 from rich_toolkit.element import CursorOffset, Element
-from rich_toolkit.utils.colors import lighten_text
+from rich_toolkit.utils.colors import darken_text
 
 ConsoleRenderableClass = TypeVar(
     "ConsoleRenderableClass", bound=Type[ConsoleRenderable]
@@ -42,9 +42,7 @@ class BaseStyle(ABC):
         # Apply brightness to RGB values
         r = g = b = int(255 * brightness_pct)
 
-        color = f"#{r:02x}{g:02x}{b:02x}"
-
-        return lighten_text(line, Color.parse(color), brightness_pct)
+        return darken_text(line, Color.from_rgb(255, 255, 255), 1 - brightness_pct)
 
     @abstractmethod
     def decorate(
