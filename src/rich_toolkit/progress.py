@@ -17,7 +17,9 @@ class ProgressLine(Element):
         self.text = text
         self.parent = parent
 
-    def render(self, is_active: bool = False) -> RenderableType:
+    def render(
+        self, is_active: bool = False, done: bool = False, parent: Element | None = None
+    ) -> RenderableType:
         return self.text
 
 
