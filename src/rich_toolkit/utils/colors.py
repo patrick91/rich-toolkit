@@ -36,21 +36,57 @@ def darken(color: Color, amount: float) -> Color:
     return Color.from_triplet(ColorTriplet(r, g, b))
 
 
-def _brighten_text(
-    text: Text, base_color: Color, amount: float, func: Callable[[Color, float], Color]
-) -> Text:
+def fade_color(
+    color: Color, background_color: Color, brightness_multiplier: float
+) -> Color:
     """
-    Lighten the text by the given amount and function.
-
-    It will ignore any background colors.
+    Fade a color towards the background color based on a brightness multiplier.
 
     Args:
-        text (Text): The text to lighten.
-        amount (float): The amount to lighten the text by.
+        color: The original color (Rich Color object)
+        background_color: The background color to fade towards
+        brightness_multiplier: Float between 0.0 and 1.0 where:
+            - 1.0 = original color (no fading)
+            - 0.0 = completely faded to background color
 
     Returns:
-        Text: The text with the new color.
+        A new Color object with the faded color
     """
+    # Extract RGB components from the original color
+
+    color_triplet = color.triplet
+
+    if color_triplet is None:
+        color_triplet = color.get_truecolor()
+
+    r, g, b = color_triplet
+
+    assert background_color.triplet is not None
+    # Extract RGB components from the background color
+    bg_r, bg_g, bg_b = background_color.triplet
+
+    # Blend the original color with the background color based on the brightness multiplier
+    new_r = int(r * brightness_multiplier + bg_r * (1 - brightness_multiplier))
+    new_g = int(g * brightness_multiplier + bg_g * (1 - brightness_multiplier))
+    new_b = int(b * brightness_multiplier + bg_b * (1 - brightness_multiplier))
+
+    # Ensure values are within valid RGB range (0-255)
+    new_r = max(0, min(255, new_r))
+    new_g = max(0, min(255, new_g))
+    new_b = max(0, min(255, new_b))
+
+    # Return a new Color object with the calculated RGB values
+    return Color.from_rgb(new_r, new_g, new_b)
+
+
+def fade_text(
+    text: Text,
+    text_color: Color,
+    background_color: str,
+    brightness_multiplier: float,
+) -> Text:
+    bg_color = Color.parse(background_color)
+
     new_spans = []
     for span in text._spans:
         style: Style | str = span.style
@@ -62,24 +98,16 @@ def _brighten_text(
             color = style.color
 
             if color == Color.default():
-                color = base_color
+                color = text_color
 
             style = style.copy()
-            style._color = func(color, amount)
+            style._color = fade_color(color, bg_color, brightness_multiplier)
 
         new_spans.append(span._replace(style=style))
     text = text.copy()
     text._spans = new_spans
-    text.style = Style(color=func(base_color, amount))
+    text.style = Style(color=fade_color(text_color, bg_color, brightness_multiplier))
     return text
-
-
-def lighten_text(text: Text, base_color: Color, amount: float) -> Text:
-    return _brighten_text(text, base_color, amount, lighten)
-
-
-def darken_text(text: Text, base_color: Color, amount: float) -> Text:
-    return _brighten_text(text, base_color, amount, darken)
 
 
 def get_terminal_background_color(default_color: str = "#000000") -> str:
@@ -88,6 +116,7 @@ def get_terminal_background_color(default_color: str = "#000000") -> str:
     import select
     import sys
 
+    # TODO: take a look at https://github.com/microsoft/terminal/issues/3718
     try:
         import termios
         import tty

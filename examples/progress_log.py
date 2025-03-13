@@ -28,7 +28,7 @@ for style in [FancyStyle(), TaggedStyle(tag_width=8), BorderedStyle()]:
         app.print_line()
 
         with app.progress(
-            "Progress with logs and clolros",
+            "Progress with logs and colors",
             inline_logs=True,
             lines_to_show=10,
         ) as progress:

@@ -22,9 +22,10 @@ class TaggedStyle(BaseStyle):
         "tag": "white on #893AE3",
     }
 
-    # TODO: maybe the theme needs to own the console
     def __init__(self, tag_width: int = 12):
         self.tag_width = tag_width
+
+        super().__init__()
 
     def _tag_element(self, child: RenderableType, **metadata: Any) -> RenderableType:
         console = Console()

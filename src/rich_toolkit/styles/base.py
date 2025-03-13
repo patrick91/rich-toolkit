@@ -6,10 +6,11 @@ from rich.console import (
     ConsoleRenderable,
     RenderableType,
 )
+from rich.style import Style
 from rich.text import Text
 
 from rich_toolkit.element import CursorOffset, Element
-from rich_toolkit.utils.colors import darken_text
+from rich_toolkit.utils.colors import fade_text, get_terminal_background_color
 
 ConsoleRenderableClass = TypeVar(
     "ConsoleRenderableClass", bound=Type[ConsoleRenderable]
@@ -17,6 +18,9 @@ ConsoleRenderableClass = TypeVar(
 
 
 class BaseStyle(ABC):
+    def __init__(self, background_color: str = "#000000"):
+        self.background_color = get_terminal_background_color(background_color)
+
     def empty_line(self) -> RenderableType:
         return ""
 
@@ -31,18 +35,43 @@ class BaseStyle(ABC):
         if max_lines == -1:
             return line
 
-        # Adjust minimum brightness based on number of lines
-        # Fewer lines = higher minimum brightness
-        min_brightness = max(0.4, 1.0 - (total_lines / max_lines) * 0.6)
-        brightness_range = 1.0 - min_brightness
+        shown_lines = min(total_lines, max_lines)
 
-        # Calculate brightness based on position in the sequence
-        brightness_pct = (index / total_lines) * brightness_range + min_brightness
+        # this is the minimum brightness based on the max_lines
+        min_brightness = 0.4
+        # but we want to have a slightly higher brightness if there's less than max_lines
+        # otherwise you could get the something like this:
 
-        # Apply brightness to RGB values
-        r = g = b = int(255 * brightness_pct)
+        # line 1 -> very dark
+        # line 2 -> slightly darker
+        # line 3 -> normal
 
-        return darken_text(line, Color.from_rgb(255, 255, 255), 1 - brightness_pct)
+        # which is ok, but not great, so we we increase the brightness if there's less than max_lines
+        # so that the last line is always the brightest
+        current_min_brightness = min_brightness + abs(shown_lines - max_lines) * 0.1
+        current_min_brightness = min(max(current_min_brightness, min_brightness), 1.0)
+
+        brightness_multiplier = (index / shown_lines) * (
+            1.0 - current_min_brightness
+        ) + current_min_brightness
+
+        text = Text(
+            str(brightness_multiplier),
+            style=Style(
+                color=Color.from_rgb(
+                    255 * brightness_multiplier,
+                    255 * brightness_multiplier,
+                    255 * brightness_multiplier,
+                )
+            ),
+        )
+
+        return fade_text(
+            line,
+            text_color=Color.from_rgb(255, 255, 255),
+            background_color=self.background_color,
+            brightness_multiplier=brightness_multiplier,
+        )
 
     @abstractmethod
     def decorate(

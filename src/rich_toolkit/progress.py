@@ -69,7 +69,7 @@ class Progress(Element, Live):
                         line,
                         index=index,
                         max_lines=self.lines_to_show,
-                        total_lines=len(lines_to_show),
+                        total_lines=len(self.logs),
                     )
                     for index, line in enumerate(lines_to_show)
                 ]
