@@ -1,9 +1,8 @@
-from typing import Callable
-
 from rich.color import Color
 from rich.color_triplet import ColorTriplet
 from rich.style import Style
 from rich.text import Text
+from typing_extensions import Literal
 
 
 def lighten(color: Color, amount: float) -> Color:
@@ -110,13 +109,26 @@ def fade_text(
     return text
 
 
-def get_terminal_background_color(default_color: str = "#000000") -> str:
+def _get_terminal_color(
+    color_type: Literal["text", "background"], default_color: str
+) -> str:
     import os
     import re
     import select
     import sys
 
-    # TODO: take a look at https://github.com/microsoft/terminal/issues/3718
+    # Set appropriate OSC code and default color based on color_type
+    if color_type.lower() == "text":
+        osc_code = "10"
+        if default_color is None:
+            default_color = "#FFFFFF"  # Default text color (white)
+    elif color_type.lower() == "background":
+        osc_code = "11"
+        if default_color is None:
+            default_color = "#000000"  # Default background color (black)
+    else:
+        raise ValueError("color_type must be either 'text' or 'background'")
+
     try:
         import termios
         import tty
@@ -134,8 +146,8 @@ def get_terminal_background_color(default_color: str = "#000000") -> str:
         # Set terminal to raw mode
         tty.setraw(sys.stdin)
 
-        # Send OSC 11 escape sequence to query background color
-        sys.stdout.write("\033]11;?\033\\")
+        # Send OSC escape sequence to query color
+        sys.stdout.write(f"\033]{osc_code};?\033\\")
         sys.stdout.flush()
 
         # Wait for response with timeout
@@ -151,7 +163,7 @@ def get_terminal_background_color(default_color: str = "#000000") -> str:
                 if len(response) > 50:  # Safety limit
                     break
 
-            # Parse the response (format: \033]11;rgb:RRRR/GGGG/BBBB\033\\)
+            # Parse the response (format: \033]10;rgb:RRRR/GGGG/BBBB\033\\)
             match = re.search(
                 r"rgb:([0-9a-f]+)/([0-9a-f]+)/([0-9a-f]+)", response, re.IGNORECASE
             )
@@ -171,5 +183,16 @@ def get_terminal_background_color(default_color: str = "#000000") -> str:
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
 
 
+def get_terminal_text_color(default_color: str = "#FFFFFF") -> str:
+    """Get the terminal text (foreground) color."""
+    return _get_terminal_color("text", default_color)
+
+
+def get_terminal_background_color(default_color: str = "#000000") -> str:
+    """Get the terminal background color."""
+    return _get_terminal_color("background", default_color)
+
+
 if __name__ == "__main__":
     print(get_terminal_background_color())
+    print(get_terminal_text_color())

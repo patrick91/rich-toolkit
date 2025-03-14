@@ -2,15 +2,15 @@ from abc import ABC, abstractmethod
 from typing import Any, Type, TypeVar
 
 from rich.color import Color
-from rich.console import (
-    ConsoleRenderable,
-    RenderableType,
-)
-from rich.style import Style
+from rich.console import ConsoleRenderable, RenderableType
 from rich.text import Text
 
 from rich_toolkit.element import CursorOffset, Element
-from rich_toolkit.utils.colors import fade_text, get_terminal_background_color
+from rich_toolkit.utils.colors import (
+    fade_text,
+    get_terminal_background_color,
+    get_terminal_text_color,
+)
 
 ConsoleRenderableClass = TypeVar(
     "ConsoleRenderableClass", bound=Type[ConsoleRenderable]
@@ -18,8 +18,9 @@ ConsoleRenderableClass = TypeVar(
 
 
 class BaseStyle(ABC):
-    def __init__(self, background_color: str = "#000000"):
+    def __init__(self, background_color: str = "#000000", text_color: str = "#FFFFFF"):
         self.background_color = get_terminal_background_color(background_color)
+        self.text_color = get_terminal_text_color(text_color)
 
     def empty_line(self) -> RenderableType:
         return ""
@@ -57,7 +58,7 @@ class BaseStyle(ABC):
 
         return fade_text(
             line,
-            text_color=Color.from_rgb(255, 255, 255),
+            text_color=Color.parse(self.text_color),
             background_color=self.background_color,
             brightness_multiplier=brightness_multiplier,
         )
