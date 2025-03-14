@@ -84,6 +84,5 @@ class BaseStyle(ABC):
     ) -> RenderableType:
         pass
 
-    @abstractmethod
     def get_cursor_offset_for_element(self, element: Element) -> CursorOffset:
-        pass
+        return CursorOffset(top=0, left=0)

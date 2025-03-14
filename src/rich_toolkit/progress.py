@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, List, Optional
 
 from rich.console import Console, Group
 from rich.live import Live, RenderableType
+from rich.text import Text
 from typing_extensions import Literal
 
 from .element import Element
@@ -13,7 +14,7 @@ if TYPE_CHECKING:
 
 
 class ProgressLine(Element):
-    def __init__(self, text: str, parent: Progress):
+    def __init__(self, text: str | Text, parent: Progress):
         self.text = text
         self.parent = parent
 
@@ -24,6 +25,8 @@ class ProgressLine(Element):
 
 
 class Progress(Element, Live):
+    current_message: str | Text
+
     def __init__(
         self,
         title: str,
@@ -34,6 +37,11 @@ class Progress(Element, Live):
         inline_logs: bool = False,
         lines_to_show: int = -1,
     ) -> None:
+        if style is None:
+            from .styles import MinimalStyle
+
+            style = MinimalStyle()
+
         self.title = title
         self.current_message = title
         self.style = style
@@ -54,7 +62,7 @@ class Progress(Element, Live):
 
     @property
     def content(self) -> RenderableType:
-        content: str | Group = self.current_message
+        content: str | Group | Text = self.current_message
 
         if self._inline_logs:
             lines_to_show = (
@@ -99,7 +107,7 @@ class Progress(Element, Live):
             started=self._started,
         )
 
-    def log(self, text: str) -> None:
+    def log(self, text: str | Text) -> None:
         if self._inline_logs:
             self.logs.append(ProgressLine(text, self))
         else:
