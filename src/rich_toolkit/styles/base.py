@@ -1,12 +1,15 @@
+from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any, Type, TypeVar
+from typing_extensions import Literal
 
 from rich.color import Color
 from rich.console import ConsoleRenderable, RenderableType
 from rich.text import Text
-
+from rich.console import Console
 from rich_toolkit.element import CursorOffset, Element
 from rich_toolkit.utils.colors import (
+    lighten,
     fade_text,
     get_terminal_background_color,
     get_terminal_text_color,
@@ -21,9 +24,46 @@ class BaseStyle(ABC):
     def __init__(self, background_color: str = "#000000", text_color: str = "#FFFFFF"):
         self.background_color = get_terminal_background_color(background_color)
         self.text_color = get_terminal_text_color(text_color)
+        self.animation_counter = 0
+        self.console = Console()
 
     def empty_line(self) -> RenderableType:
         return ""
+
+    def _get_animation_colors(
+        self,
+        steps: int = 5,
+        breathe: bool = False,
+        animation_status: Literal["started", "error"] = "started",
+        **metadata: Any,
+    ) -> list[Color]:
+        animated = animation_status == "started"
+
+        # if animation_status == "error":
+        #     base_color = self.console.get_style("error").color
+
+        #     if base_color is None:
+        #         base_color = Color.parse("red")
+
+        # else:
+        #     base_color = self.console.get_style("progress").bgcolor
+
+        # if not base_color:
+        base_color = Color.from_rgb(255, 0, 0)
+
+        if breathe:
+            steps = steps // 2
+
+        if animated and base_color.triplet is not None:
+            colors = [lighten(base_color, 0.1 * i) for i in range(0, steps)]
+
+        else:
+            colors = [base_color] * steps
+
+        if breathe:
+            colors = colors + colors[::-1]
+
+        return colors
 
     def render_progress_log_line(
         self,

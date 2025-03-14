@@ -120,12 +120,8 @@ def _get_terminal_color(
     # Set appropriate OSC code and default color based on color_type
     if color_type.lower() == "text":
         osc_code = "10"
-        if default_color is None:
-            default_color = "#FFFFFF"  # Default text color (white)
     elif color_type.lower() == "background":
         osc_code = "11"
-        if default_color is None:
-            default_color = "#000000"  # Default background color (black)
     else:
         raise ValueError("color_type must be either 'text' or 'background'")
 

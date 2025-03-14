@@ -2,13 +2,15 @@ from typing import Any
 
 from rich._loop import loop_first_last
 from rich.console import Console, ConsoleOptions, Group, RenderableType, RenderResult
+from rich.color import Color
 from rich.segment import Segment
 from rich.text import Text
-
+from rich.style import Style
 from rich_toolkit.element import CursorOffset, Element
 from rich_toolkit.input import Input
 from rich_toolkit.menu import Menu
 from rich_toolkit.progress import Progress, ProgressLine
+from rich_toolkit.styles.base import BaseStyle
 
 from .border import BorderedStyle
 
@@ -19,12 +21,31 @@ class FancyPanel:
         renderable: RenderableType,
         title: str | None = None,
         metadata: dict[str, Any] | None = None,
+        is_animated: bool | None = None,
+        animation_counter: int | None = None,
+        style: BaseStyle | None = None,
     ) -> None:
         self.renderable = renderable
         self._title = title
         self.metadata = metadata or {}
         self.width = None
         self.expand = True
+        self.is_animated = is_animated
+        self.counter = animation_counter or 0
+        self.style = style
+
+    def _get_decoration(self, suffix: str = "") -> Segment:
+        char = "┌" if self.metadata.get("title") else "◆"
+        # char = str(self.counter)
+
+        color = self.style._get_animation_colors(steps=14, breathe=True)[
+            self.counter % 14
+        ]
+
+        if self.is_animated:
+            return Segment(char + suffix, style=Style.from_color(color))
+        else:
+            return Segment(char + suffix, style=Style(color="green"))
 
     def __rich_console__(
         self, console: "Console", options: "ConsoleOptions"
@@ -33,7 +54,8 @@ class FancyPanel:
 
         lines = console.render_lines(renderable)
 
-        line_start = Segment("┌" if self.metadata.get("title") else "◆")
+        line_start = self._get_decoration()
+
         new_line = Segment.line()
 
         if self._title is not None:
@@ -43,13 +65,17 @@ class FancyPanel:
 
         for first, last, line in loop_first_last(lines):
             if first and not self._title:
-                decoration = "┌ " if self.metadata.get("title", False) else "◆ "
+                decoration = (
+                    Segment("┌ ")
+                    if self.metadata.get("title", False)
+                    else self._get_decoration(suffix=" ")
+                )
             elif last and self.metadata.get("started", True):
-                decoration = "└ "
+                decoration = Segment("└ ")
             else:
-                decoration = "│ "
+                decoration = Segment("│ ")
 
-            yield Segment(decoration)
+            yield decoration
             yield from line
 
             if not last:
@@ -77,6 +103,7 @@ class FancyStyle(BorderedStyle):
         **metadata: Any,
     ) -> RenderableType:
         title: str | None = None
+        is_animated: bool | None = None
 
         if isinstance(renderable, Element):
             rendered = renderable.render(is_active=is_active, done=done, parent=parent)
@@ -85,6 +112,7 @@ class FancyStyle(BorderedStyle):
 
         if isinstance(renderable, Progress):
             title = renderable.title
+            is_animated = True
 
         if isinstance(renderable, ProgressLine):
             # TODO: call this decorate? or do decorate -> render
@@ -99,7 +127,13 @@ class FancyStyle(BorderedStyle):
             rendered,
             title=title,
             metadata=metadata,
+            is_animated=is_animated,
+            animation_counter=self.animation_counter,
+            style=self,
         )
+
+        # TODO: maybe this should be based on the renderable?
+        self.animation_counter += 1
 
         return content
 
