@@ -55,17 +55,6 @@ class BaseStyle(ABC):
             1.0 - current_min_brightness
         ) + current_min_brightness
 
-        text = Text(
-            str(brightness_multiplier),
-            style=Style(
-                color=Color.from_rgb(
-                    255 * brightness_multiplier,
-                    255 * brightness_multiplier,
-                    255 * brightness_multiplier,
-                )
-            ),
-        )
-
         return fade_text(
             line,
             text_color=Color.from_rgb(255, 255, 255),

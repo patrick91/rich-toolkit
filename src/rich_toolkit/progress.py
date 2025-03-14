@@ -24,7 +24,7 @@ class ProgressLine(Element):
         return self.text
 
 
-class Progress(Element, Live):
+class Progress(Live, Element):
     current_message: str | Text
 
     def __init__(
@@ -37,11 +37,6 @@ class Progress(Element, Live):
         inline_logs: bool = False,
         lines_to_show: int = -1,
     ) -> None:
-        if style is None:
-            from .styles import MinimalStyle
-
-            style = MinimalStyle()
-
         self.title = title
         self.current_message = title
         self.style = style
@@ -60,9 +55,17 @@ class Progress(Element, Live):
 
         return self
 
-    @property
-    def content(self) -> RenderableType:
+    def render(
+        self,
+        is_active: bool = False,
+        done: bool = False,
+        parent: Element | None = None,
+    ) -> RenderableType:
         content: str | Group | Text = self.current_message
+
+        # TODO: support for inline logs when no style is provided
+        if self.style is None:
+            return content
 
         if self._inline_logs:
             lines_to_show = (
@@ -85,14 +88,6 @@ class Progress(Element, Live):
 
         return content
 
-    def render(
-        self,
-        is_active: bool = False,
-        done: bool = False,
-        parent: Element | None = None,
-    ) -> RenderableType:
-        return self.content
-
     def get_renderable(self) -> RenderableType:
         animation_status: Literal["started", "stopped", "error"] = (
             "started" if self._started else "stopped"
@@ -100,6 +95,9 @@ class Progress(Element, Live):
 
         if self.is_error:
             animation_status = "error"
+
+        if self.style is None:
+            return self.render()
 
         return self.style.decorate(
             self,
