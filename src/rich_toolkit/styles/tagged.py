@@ -46,12 +46,12 @@ class TaggedStyle(BaseStyle):
 
         tag = metadata.get("tag", "")
 
-        right_padding = 2
+        right_padding = 0
 
         # TODO: this is a hack to make the tag width consistent with the emoji width
         # probably won't work with all emojis and if there's more than one emoji
         if has_emoji(tag):
-            right_padding = 3
+            right_padding = 1
 
         if tag:
             tag = f" {tag} "
