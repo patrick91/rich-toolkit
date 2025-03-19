@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Union, Optional
 
 from rich import box
 from rich.console import Group, RenderableType
@@ -21,13 +21,13 @@ class BorderedStyle(BaseStyle):
 
     def decorate(
         self,
-        renderable: Element | str,
+        renderable: Union[Element, str],
         is_active: bool = False,
         done: bool = False,
-        parent: Element | None = None,
+        parent: Optional[Element] = None,
         **metadata: Any,
     ) -> RenderableType:
-        title: str | None = None
+        title: Optional[str] = None
         validation_message: tuple[str, ...] = ()
 
         if isinstance(renderable, Input):

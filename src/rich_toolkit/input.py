@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional
 
 from rich.console import Group, RenderableType
 
@@ -12,22 +12,22 @@ if TYPE_CHECKING:
 
 
 class Input(Element, TextInputHandler):
-    label: str | None = None
+    label: Optional[str] = None
 
     _should_show_label: bool = True
     _should_show_validation: bool = True
 
     def __init__(
         self,
-        label: str | None = None,
-        placeholder: str | None = None,
-        default: str | None = None,
+        label: Optional[str] = None,
+        placeholder: Optional[str] = None,
+        default: Optional[str] = None,
         default_as_placeholder: bool = True,
         required: bool = True,
         password: bool = False,
         inline: bool = False,
-        name: str | None = None,
-        style: BaseStyle | None = None,
+        name: Optional[str] = None,
+        style: Optional[BaseStyle] = None,
         **metadata: Any,
     ):
         self.name = name
@@ -47,7 +47,7 @@ class Input(Element, TextInputHandler):
         super().__init__(**metadata)
 
     @property
-    def placeholder(self) -> str | None:
+    def placeholder(self) -> Optional[str]:
         if self.default_as_placeholder and self.default:
             return self.default
 
@@ -56,11 +56,11 @@ class Input(Element, TextInputHandler):
     def render_label(
         self,
         is_active: bool = False,
-        parent: Element | None = None,
-    ) -> str | None:
+        parent: Optional[Element] = None,
+    ) -> Optional[str]:
         from .form import Form
 
-        label: str | None = None
+        label: Optional[str] = None
 
         if self.label:
             label = self.label
@@ -73,7 +73,7 @@ class Input(Element, TextInputHandler):
 
         return label
 
-    def render_validation_message(self) -> str | None:
+    def render_validation_message(self) -> Optional[str]:
         if self.valid is False:
             return f"[bold red]{self.validation_message}[/bold red]"
 
@@ -83,7 +83,7 @@ class Input(Element, TextInputHandler):
         self,
         is_active: bool = False,
         done: bool = False,
-        parent: Element | None = None,
+        parent: Optional[Element] = None,
     ) -> RenderableType:
         label = (
             self.render_label(is_active, parent) if self._should_show_label else None
@@ -115,7 +115,7 @@ class Input(Element, TextInputHandler):
         return Group(*contents)
 
     @property
-    def validation_message(self) -> str | None:
+    def validation_message(self) -> Optional[str]:
         if self.valid is False:
             return "This field is required"
 

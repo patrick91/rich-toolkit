@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, NamedTuple
+from typing import Any, NamedTuple, Optional
 
 from rich.console import RenderableType
 
@@ -33,6 +33,6 @@ class Element(ABC):
         *,
         is_active: bool = False,
         done: bool = False,
-        parent: Element | None = None,
+        parent: Optional[Element] = None,
     ) -> RenderableType:
         pass

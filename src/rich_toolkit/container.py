@@ -1,8 +1,7 @@
-from typing import Any, List, Tuple
+from typing import Any, List, Tuple, Optional
 
 import click
 from rich.console import (
-    Console,
     Group,
     RenderableType,
 )
@@ -125,7 +124,7 @@ class Container(Element):
         self,
         done: bool = False,
         is_active: bool = False,
-        parent: Element | None = None,
+        parent: Optional[Element] = None,
     ) -> RenderableType:
         self._content = []
 

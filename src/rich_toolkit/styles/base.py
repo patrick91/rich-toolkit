@@ -1,6 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Any, Type, TypeVar
+from typing import Any, Type, TypeVar, Union, Optional, Dict
 from typing_extensions import Literal
 
 from rich.color import Color
@@ -26,7 +26,7 @@ class BaseStyle(ABC):
 
     def __init__(
         self,
-        theme: dict[str, str] | None = None,
+        theme: Optional[Dict[str, str]] = None,
         background_color: str = "#000000",
         text_color: str = "#FFFFFF",
     ):
@@ -118,10 +118,10 @@ class BaseStyle(ABC):
     @abstractmethod
     def decorate(
         self,
-        renderable: Element | str,
+        renderable: Union[Element, str],
         is_active: bool = False,
         done: bool = False,
-        parent: Element | None = None,
+        parent: Optional[Element] = None,
         **metadata: Any,
     ) -> RenderableType:
         pass

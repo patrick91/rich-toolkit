@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Union, Optional
 
 from rich.console import Console, RenderableType
 from rich.theme import Theme
@@ -20,8 +20,8 @@ class RichToolkitTheme:
 class RichToolkit:
     def __init__(
         self,
-        style: BaseStyle | None = None,
-        theme: RichToolkitTheme | None = None,
+        style: Optional[BaseStyle] = None,
+        theme: Optional[RichToolkitTheme] = None,
         handle_keyboard_interrupts: bool = True,
     ) -> None:
         # TODO: deprecate this

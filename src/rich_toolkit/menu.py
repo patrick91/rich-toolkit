@@ -124,7 +124,7 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
         self,
         is_active: bool = False,
         done: bool = False,
-        parent: Element | None = None,
+        parent: Optional[Element] = None,
     ) -> RenderableType:
         menu = Text(justify="left")
 
@@ -256,7 +256,7 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
         return True
 
     @property
-    def validation_message(self) -> str | None:
+    def validation_message(self) -> Optional[str]:
         if self.valid is False:
             return "This field is required"
 

@@ -1,5 +1,5 @@
 import re
-from typing import Any
+from typing import Any, Union, Optional, Dict
 from typing_extensions import Literal
 
 from rich.console import Group, RenderableType
@@ -20,7 +20,7 @@ class TaggedStyle(BaseStyle):
     block = "█"
     block_length = 5
 
-    def __init__(self, tag_width: int = 12, theme: dict[str, str] | None = None):
+    def __init__(self, tag_width: int = 12, theme: Optional[Dict[str, str]] = None):
         self.tag_width = tag_width
 
         super().__init__(theme=theme)
@@ -84,10 +84,10 @@ class TaggedStyle(BaseStyle):
 
     def decorate(
         self,
-        renderable: Element | str,
+        renderable: Union[Element, str],
         is_active: bool = False,
         done: bool = False,
-        parent: Element | None = None,
+        parent: Optional[Element] = None,
         **metadata: Any,
     ) -> RenderableType:
         if isinstance(renderable, Element):

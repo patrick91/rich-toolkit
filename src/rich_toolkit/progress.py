@@ -19,7 +19,10 @@ class ProgressLine(Element):
         self.parent = parent
 
     def render(
-        self, is_active: bool = False, done: bool = False, parent: Element | None = None
+        self,
+        is_active: bool = False,
+        done: bool = False,
+        parent: Optional[Element] = None,
     ) -> RenderableType:
         return self.text
 
@@ -59,7 +62,7 @@ class Progress(Live, Element):
         self,
         is_active: bool = False,
         done: bool = False,
-        parent: Element | None = None,
+        parent: Optional[Element] = None,
     ) -> RenderableType:
         content: str | Group | Text = self.current_message
 

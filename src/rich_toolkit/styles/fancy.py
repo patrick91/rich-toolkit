@@ -1,14 +1,12 @@
-from typing import Any
+from typing import Any, Union, Optional
 
 from rich._loop import loop_first_last
-from rich.console import Console, ConsoleOptions, Group, RenderableType, RenderResult
-from rich.color import Color
+from rich.console import Console, ConsoleOptions, RenderableType, RenderResult
 from rich.segment import Segment
 from rich.text import Text
 from rich.style import Style
+from typing import Dict
 from rich_toolkit.element import CursorOffset, Element
-from rich_toolkit.input import Input
-from rich_toolkit.menu import Menu
 from rich_toolkit.progress import Progress, ProgressLine
 from rich_toolkit.styles.base import BaseStyle
 
@@ -19,11 +17,11 @@ class FancyPanel:
     def __init__(
         self,
         renderable: RenderableType,
-        title: str | None = None,
-        metadata: dict[str, Any] | None = None,
-        is_animated: bool | None = None,
-        animation_counter: int | None = None,
-        style: BaseStyle | None = None,
+        title: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        is_animated: Optional[bool] = None,
+        animation_counter: Optional[int] = None,
+        style: Optional[BaseStyle] = None,
     ) -> None:
         self.renderable = renderable
         self._title = title
@@ -82,11 +80,6 @@ class FancyPanel:
 
 
 class FancyStyle(BorderedStyle):
-    theme = {
-        "fancy.title": "bold cyan",
-        "fancy.normal": "cyan",
-    }
-
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
@@ -95,14 +88,14 @@ class FancyStyle(BorderedStyle):
 
     def decorate(
         self,
-        renderable: Element | str,
+        renderable: Union[Element, str],
         is_active: bool = False,
         done: bool = False,
-        parent: Element | None = None,
+        parent: Optional[Element] = None,
         **metadata: Any,
     ) -> RenderableType:
-        title: str | None = None
-        is_animated: bool | None = None
+        title: Optional[str] = None
+        is_animated: Optional[bool] = None
 
         if isinstance(renderable, Element):
             rendered = renderable.render(is_active=is_active, done=done, parent=parent)
