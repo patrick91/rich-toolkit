@@ -3,6 +3,7 @@ from rich.color_triplet import ColorTriplet
 from rich.style import Style
 from rich.text import Text
 from typing_extensions import Literal
+import io
 
 
 def lighten(color: Color, amount: float) -> Color:
@@ -132,7 +133,11 @@ def _get_terminal_color(
         # Not on Unix-like systems (probably Windows), so we return the default color
         return default_color
 
-    if not os.isatty(sys.stdin.fileno()):
+    try:
+        if not os.isatty(sys.stdin.fileno()):
+            return default_color
+    except (AttributeError, IOError, io.UnsupportedOperation):
+        # Handle cases where stdin is redirected or not a real TTY (like in tests)
         return default_color
 
     # Save terminal settings so we can restore them
