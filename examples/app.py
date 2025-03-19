@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Any, List, Optional
+from typing_extensions import Annotated
 import uvicorn
 
 app = FastAPI()
@@ -33,17 +34,20 @@ def create_book(book: Book):
 
 @app.get("/books/", response_model=List[Book])
 def read_books():
-    1 / 0
+    print(1 / 0)
     return db
 
 
+BookDependency = Annotated[Book, Depends(get_book_by_id)]
+
+
 @app.get("/books/{book_id}", response_model=Book)
-def read_book(book: Book = Depends(get_book_by_id)):
+def read_book(book: BookDependency):
     return book
 
 
 @app.put("/books/{book_id}", response_model=Book)
-def update_book(updated_book: Book, book: Book = Depends(get_book_by_id)):
+def update_book(updated_book: Book, book: BookDependency):
     book.title = updated_book.title
     book.author = updated_book.author
     book.year = updated_book.year
@@ -51,7 +55,7 @@ def update_book(updated_book: Book, book: Book = Depends(get_book_by_id)):
 
 
 @app.delete("/books/{book_id}", response_model=Book)
-def delete_book(book: Book = Depends(get_book_by_id)):
+def delete_book(book: BookDependency):
     db.remove(book)
     return book
 

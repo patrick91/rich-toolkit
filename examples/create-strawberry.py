@@ -82,7 +82,7 @@ with RichToolkit(
     app.print_line()
 
     with app.progress("Downloading template...") as progress:
-        for x in range(10):
+        for _ in range(10):
             time.sleep(random.uniform(0.05, 0.35))
 
     app.print_line()

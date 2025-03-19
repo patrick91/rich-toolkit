@@ -31,3 +31,11 @@ dev = [
     "fastapi[standard]>=0.112.2",
 ]
 lint = ["mypy>=1.11.2"]
+
+[tool.ruff]
+select = ["E", "W", "F", "B"]
+ignore = ["E501"]
+fix = true
+
+[tool.ruff.lint]
+extend-select = ["E", "W", "F", "B"]

@@ -48,7 +48,7 @@ def test_can_print_renderables(capsys: CaptureFixture[str]) -> None:
 
     assert captured.out == snapshot(
         """\
-◆ root                                                                          
+◆ root
 └ └── child                                                                     \
 """
     )
@@ -66,7 +66,7 @@ def test_can_print_multiple_renderables(capsys: CaptureFixture[str]) -> None:
 
     assert captured.out == snapshot(
         """\
-◆ root                                                                          
+◆ root
 └ └── child                                                                     \
 """
     )
@@ -85,6 +85,7 @@ def test_handles_keyboard_interrupt(capsys: CaptureFixture[str]) -> None:
 
 """
     )
+
 
 def test_ignores_keyboard_interrupt(capsys: CaptureFixture[str]) -> None:
     app = RichToolkit(theme=theme, handle_keyboard_interrupts=False)
