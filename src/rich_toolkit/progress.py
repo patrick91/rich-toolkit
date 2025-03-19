@@ -67,7 +67,7 @@ class Progress(Live, Element):
         if self.style is None:
             return content
 
-        if self._inline_logs:
+        if self.logs and self._inline_logs:
             lines_to_show = (
                 self.logs[-self.lines_to_show :]
                 if self.lines_to_show > 0

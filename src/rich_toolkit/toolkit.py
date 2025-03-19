@@ -20,11 +20,24 @@ class RichToolkitTheme:
 class RichToolkit:
     def __init__(
         self,
-        theme: RichToolkitTheme,
+        style: BaseStyle | None = None,
+        theme: RichToolkitTheme | None = None,
         handle_keyboard_interrupts: bool = True,
     ) -> None:
-        self.console = Console(theme=theme.rich_theme)
+        # TODO: deprecate this
+
         self.theme = theme
+        if theme is not None:
+            self.style = theme.style
+            self.style.theme = theme.rich_theme
+            self.style.console = Console(theme=theme.rich_theme)
+        else:
+            assert style is not None
+
+            self.style = style
+
+        self.console = self.style.console
+
         self.handle_keyboard_interrupts = handle_keyboard_interrupts
 
     def __enter__(self):
@@ -44,10 +57,10 @@ class RichToolkit:
         return None
 
     def print_title(self, title: str, **metadata: Any) -> None:
-        self.console.print(self.theme.style.decorate(title, title=True, **metadata))
+        self.console.print(self.style.decorate(title, title=True, **metadata))
 
     def print(self, *renderables: RenderableType, **metadata: Any) -> None:
-        self.console.print(self.theme.style.decorate(*renderables, **metadata))
+        self.console.print(self.style.decorate(*renderables, **metadata))
 
     def print_as_string(self, *renderables: RenderableType, **metadata: Any) -> str:
         with self.console.capture() as capture:
@@ -56,7 +69,7 @@ class RichToolkit:
         return capture.get().rstrip()
 
     def print_line(self) -> None:
-        self.console.print(self.theme.style.empty_line())
+        self.console.print(self.style.empty_line())
 
     def confirm(self, title: str, **metadata: Any) -> bool:
         return self.ask(
@@ -81,7 +94,7 @@ class RichToolkit:
             title=title,
             options=options,
             console=self.console,
-            style=self.theme.style,
+            style=self.style,
             inline=inline,
             allow_filtering=allow_filtering,
             **metadata,
@@ -101,7 +114,7 @@ class RichToolkit:
             default=default,
             password=password,
             inline=inline,
-            style=self.theme.style,
+            style=self.style,
             **metadata,
         ).ask()
 
@@ -116,7 +129,7 @@ class RichToolkit:
         return Progress(
             title=title,
             console=self.console,
-            style=self.theme.style,
+            style=self.style,
             transient=transient,
             transient_on_error=transient_on_error,
             inline_logs=inline_logs,

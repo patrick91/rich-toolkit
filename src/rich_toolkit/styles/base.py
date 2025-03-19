@@ -5,6 +5,7 @@ from typing_extensions import Literal
 
 from rich.color import Color
 from rich.console import ConsoleRenderable, RenderableType
+from rich.theme import Theme
 from rich.text import Text
 from rich.console import Console
 from rich_toolkit.element import CursorOffset, Element
@@ -21,11 +22,19 @@ ConsoleRenderableClass = TypeVar(
 
 
 class BaseStyle(ABC):
-    def __init__(self, background_color: str = "#000000", text_color: str = "#FFFFFF"):
+    brightness_multiplier = 0.1
+
+    def __init__(
+        self,
+        theme: dict[str, str] | None = None,
+        background_color: str = "#000000",
+        text_color: str = "#FFFFFF",
+    ):
         self.background_color = get_terminal_background_color(background_color)
         self.text_color = get_terminal_text_color(text_color)
         self.animation_counter = 0
-        self.console = Console()
+        self.theme = Theme(theme) if theme else Theme()
+        self.console = Console(theme=self.theme)
 
     def empty_line(self) -> RenderableType:
         return ""
@@ -34,28 +43,31 @@ class BaseStyle(ABC):
         self,
         steps: int = 5,
         breathe: bool = False,
-        animation_status: Literal["started", "error"] = "started",
+        animation_status: Literal["started", "stopped", "error"] = "started",
         **metadata: Any,
     ) -> list[Color]:
         animated = animation_status == "started"
 
-        # if animation_status == "error":
-        #     base_color = self.console.get_style("error").color
+        if animation_status == "error":
+            base_color = self.console.get_style("error").color
 
-        #     if base_color is None:
-        #         base_color = Color.parse("red")
+            if base_color is None:
+                base_color = Color.parse("red")
 
-        # else:
-        #     base_color = self.console.get_style("progress").bgcolor
+        else:
+            base_color = self.console.get_style("progress").bgcolor
 
-        # if not base_color:
-        base_color = Color.from_rgb(255, 0, 0)
+        if not base_color:
+            base_color = Color.from_rgb(255, 255, 255)
 
         if breathe:
             steps = steps // 2
 
         if animated and base_color.triplet is not None:
-            colors = [lighten(base_color, 0.1 * i) for i in range(0, steps)]
+            colors = [
+                lighten(base_color, self.brightness_multiplier * i)
+                for i in range(0, steps)
+            ]
 
         else:
             colors = [base_color] * steps

@@ -22,8 +22,8 @@ class Container(Element):
         self.active_element_index = 0
         self.previous_element_index = 0
         self._live_render = LiveRender("")
-        self.console = Console()
         self.style = style
+        self.console = style.console
 
     def _refresh(self, done: bool = False):
         self._live_render.set_renderable(self.render(done=done))

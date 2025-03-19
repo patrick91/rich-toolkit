@@ -3,7 +3,7 @@ from typing import Any
 from rich import box
 from rich.console import Group, RenderableType
 from rich.text import Text
-
+from rich.style import Style
 from rich_toolkit.element import CursorOffset, Element
 from rich_toolkit.input import Input
 from rich_toolkit.menu import Menu
@@ -71,6 +71,11 @@ class BorderedStyle(BaseStyle):
                 total_lines=metadata.get("total_lines", -1),
             )
 
+        color = self._get_animation_colors(
+            steps=5,
+            animation_status=metadata.get("animation_status", "started"),
+        )[self.animation_counter % 5]
+
         content = Group(
             Panel(
                 rendered,
@@ -79,9 +84,12 @@ class BorderedStyle(BaseStyle):
                 highlight=is_active,
                 width=50,
                 box=self.box,
+                border_style=Style(color=color),
             ),
             *validation_message,
         )
+
+        self.animation_counter += 1
 
         return content
 

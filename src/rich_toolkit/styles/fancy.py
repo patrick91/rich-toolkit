@@ -36,13 +36,12 @@ class FancyPanel:
 
     def _get_decoration(self, suffix: str = "") -> Segment:
         char = "┌" if self.metadata.get("title") else "◆"
-        # char = str(self.counter)
 
-        color = self.style._get_animation_colors(steps=14, breathe=True)[
-            self.counter % 14
-        ]
+        if self.is_animated and self.style is not None:
+            color = self.style._get_animation_colors(
+                steps=14, breathe=True, animation_status="started"
+            )[self.counter % 14]
 
-        if self.is_animated:
             return Segment(char + suffix, style=Style.from_color(color))
         else:
             return Segment(char + suffix, style=Style(color="green"))

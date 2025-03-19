@@ -1,5 +1,6 @@
 import re
 from typing import Any
+from typing_extensions import Literal
 
 from rich.console import Console, Group, RenderableType
 from rich.segment import Segment
@@ -7,8 +8,8 @@ from rich.table import Column, Table
 from rich.theme import Theme
 
 from rich_toolkit.element import CursorOffset, Element
-from rich_toolkit.progress import ProgressLine
-
+from rich_toolkit.progress import Progress, ProgressLine
+from rich.style import Style
 from .base import BaseStyle
 
 
@@ -17,20 +18,21 @@ def has_emoji(tag: str) -> bool:
 
 
 class TaggedStyle(BaseStyle):
-    theme = {
-        "tag.title": "black on #A7E3A2",
-        "tag": "white on #893AE3",
-    }
+    block = "█"
+    block_length = 5
 
-    def __init__(self, tag_width: int = 12):
+    def __init__(self, tag_width: int = 12, theme: dict[str, str] | None = None):
         self.tag_width = tag_width
 
-        super().__init__()
+        super().__init__(theme=theme)
 
-    def _tag_element(self, child: RenderableType, **metadata: Any) -> RenderableType:
-        console = Console()
-        console.push_theme(Theme(self.theme))
-
+    def _tag_element(
+        self,
+        child: RenderableType,
+        is_animated: bool = False,
+        animation_status: Literal["started", "stopped", "error"] = "started",
+        **metadata: Any,
+    ) -> RenderableType:
         table = Table.grid(
             Column(width=self.tag_width),
             padding=(0, 0, 0, 0),
@@ -40,26 +42,43 @@ class TaggedStyle(BaseStyle):
 
         style_name = "tag.title" if metadata.get("title", False) else "tag"
 
-        style = console.get_style(style_name)
+        style = self.console.get_style(style_name)
 
         tag = metadata.get("tag", "")
+
+        right_padding = 2
+
+        # TODO: this is a hack to make the tag width consistent with the emoji width
+        # probably won't work with all emojis and if there's more than one emoji
+        if has_emoji(tag):
+            right_padding = 3
 
         if tag:
             tag = f" {tag} "
 
-        right_padding = 2
-
-        if has_emoji(tag):
-            right_padding = 3
+        if is_animated:
+            tag = " " * self.block_length
+            colors = self._get_animation_colors(
+                steps=self.block_length, animation_status=animation_status
+            )
+            tag_segments = [
+                Segment(
+                    self.block,
+                    style=Style(
+                        color=colors[(self.animation_counter + i) % len(colors)]
+                    ),
+                )
+                for i in range(self.block_length)
+            ]
+        else:
+            tag_segments = [Segment(tag, style=style)]
 
         left_padding = self.tag_width - len(tag) - right_padding
         left_padding = max(0, left_padding)
 
-        left = [Segment(" " * left_padding), Segment(tag, style=style)]
+        left = [Segment(" " * left_padding), *tag_segments]
 
         table.add_row(Group(*left), Group(child))
-
-        console.pop_theme()
 
         return table
 
@@ -80,6 +99,11 @@ class TaggedStyle(BaseStyle):
         else:
             rendered = renderable
 
+        is_animated = False
+
+        if isinstance(renderable, Progress):
+            is_animated = True
+
         if isinstance(renderable, ProgressLine):
             return self.render_progress_log_line(
                 rendered,
@@ -88,7 +112,13 @@ class TaggedStyle(BaseStyle):
                 total_lines=metadata.get("total_lines", -1),
             )
 
-        return self._tag_element(rendered, **metadata)
+        self.animation_counter += 1
+
+        return self._tag_element(
+            rendered,
+            is_animated=is_animated,
+            **metadata,
+        )
 
     def get_cursor_offset_for_element(self, element: Element) -> CursorOffset:
         return CursorOffset(

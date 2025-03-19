@@ -142,10 +142,12 @@ class Input(Element, TextInputHandler):
     def on_validate(self):
         if not self.required:
             self.valid = True
-        elif self.text.strip():
-            self.valid = True
-        else:
-            self.valid = bool(self.default)
+
+        return bool(self.value.strip())
+
+    @property
+    def value(self) -> str:
+        return self.text or self.default or ""
 
     def render_input(self) -> RenderableType:
         text = self.text
@@ -170,4 +172,4 @@ class Input(Element, TextInputHandler):
 
         container.run()
 
-        return self.text
+        return self.value
