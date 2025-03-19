@@ -37,7 +37,7 @@ class BaseStyle(ABC):
         self.console = Console(theme=self.theme)
 
     def empty_line(self) -> RenderableType:
-        return ""
+        return " "
 
     def _get_animation_colors(
         self,

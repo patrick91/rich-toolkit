@@ -65,7 +65,7 @@ def test_can_print_renderables(capsys: CaptureFixture[str]) -> None:
 
     assert captured.out == snapshot(
         """\
-       root
+       root     
        └── child
 """
     )
@@ -83,7 +83,7 @@ def test_can_print_multiple_renderables(capsys: CaptureFixture[str]) -> None:
 
     assert captured.out == snapshot(
         """\
-       root
+       root     
        └── child
        Hello, World!
 """

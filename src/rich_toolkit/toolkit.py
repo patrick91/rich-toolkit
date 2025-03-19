@@ -60,7 +60,9 @@ class RichToolkit:
         self.console.print(self.style.decorate(title, title=True, **metadata))
 
     def print(self, *renderables: RenderableType, **metadata: Any) -> None:
-        self.console.print(self.style.decorate(*renderables, **metadata))
+        self.console.print(
+            *[self.style.decorate(renderable, **metadata) for renderable in renderables]
+        )
 
     def print_as_string(self, *renderables: RenderableType, **metadata: Any) -> str:
         with self.console.capture() as capture:

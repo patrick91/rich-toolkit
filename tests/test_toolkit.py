@@ -32,9 +32,7 @@ def test_can_print_strings(capsys: CaptureFixture[str]) -> None:
     captured = capsys.readouterr()
 
     assert captured.out == snapshot(
-        """\
-◆ Hello, World!
-"""
+        "◆ Hello, World!                                                                 "
     )
 
 
@@ -50,8 +48,8 @@ def test_can_print_renderables(capsys: CaptureFixture[str]) -> None:
 
     assert captured.out == snapshot(
         """\
-◆ root
-└ └── child
+◆ root                                                                          
+└ └── child                                                                     \
 """
     )
 
@@ -68,9 +66,8 @@ def test_can_print_multiple_renderables(capsys: CaptureFixture[str]) -> None:
 
     assert captured.out == snapshot(
         """\
-◆ root
-└ └── child
-◆ Hello, World!
+◆ root                                                                          
+└ └── child                                                                     \
 """
     )
 

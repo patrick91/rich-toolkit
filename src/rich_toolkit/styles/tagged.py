@@ -2,10 +2,9 @@ import re
 from typing import Any
 from typing_extensions import Literal
 
-from rich.console import Console, Group, RenderableType
+from rich.console import Group, RenderableType
 from rich.segment import Segment
 from rich.table import Column, Table
-from rich.theme import Theme
 
 from rich_toolkit.element import CursorOffset, Element
 from rich_toolkit.progress import Progress, ProgressLine
@@ -34,7 +33,8 @@ class TaggedStyle(BaseStyle):
         **metadata: Any,
     ) -> RenderableType:
         table = Table.grid(
-            Column(width=self.tag_width),
+            # TODO: why do we add 2? :D we probably did this in the previous version
+            Column(width=self.tag_width + 2),
             padding=(0, 0, 0, 0),
             collapse_padding=True,
             pad_edge=False,
