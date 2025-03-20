@@ -20,7 +20,12 @@ class Button(Element):
 
         super().__init__(**metadata)
 
-    def render(self, is_active: bool = False) -> RenderableType:
+    def render(
+        self,
+        is_active: bool = False,
+        done: bool = False,
+        parent: Optional[Element] = None,
+    ) -> RenderableType:
         style = "black on blue" if is_active else "white on black"
         return Text(f" {self.label} ", style=style)
 

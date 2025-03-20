@@ -144,11 +144,6 @@ class Container(Element):
             "\n" if not done else "",
         )
 
-    def stream(self):
-        from .streaming_container import StreamingContainer
-
-        return StreamingContainer(self)
-
     def handle_enter_key(self) -> bool:
         active_element = self.elements[self.active_element_index]
 

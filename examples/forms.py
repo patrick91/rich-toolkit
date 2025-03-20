@@ -1,9 +1,7 @@
-import time
 from typing import Any
 
 import rich
 
-from rich_toolkit.container import Container
 from rich_toolkit.form import Form
 from rich_toolkit.input import Input
 from rich_toolkit.styles.border import BorderedStyle
@@ -48,16 +46,6 @@ def run_form(style: Any):
     print()
 
 
-def run_logs(style: Any):
-    container = Container(style=style)
-
-    with container.stream() as stream:
-        for x in range(5):
-            stream.log(f"Hello {x}")
-            stream.footer(f"Footer {x}")
-            time.sleep(0.5)
-
-
 for style in [TaggedStyle(tag_width=12), BorderedStyle()]:
     print(f"Running with {style.__class__.__name__}")
 
@@ -66,7 +54,3 @@ for style in [TaggedStyle(tag_width=12), BorderedStyle()]:
     print()
 
     run_form(style)
-
-    print()
-
-    run_logs(style)
