@@ -38,7 +38,7 @@ def get_options() -> List[Option]:
     ]
 
 
-for style in [TaggedStyle(tag_width=12), FancyStyle()]:
+for style in [TaggedStyle(tag_width=8), FancyStyle()]:
     theme = RichToolkitTheme(
         style=style,
         theme={

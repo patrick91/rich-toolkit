@@ -62,9 +62,10 @@ class BorderedStyle(BaseStyle):
             title = renderable.title
 
             border_color = self._get_animation_colors(
-                steps=5,
+                steps=10,
+                breathe=True,
                 animation_status=metadata.get("animation_status", "started"),
-            )[self.animation_counter % 5]
+            )[self.animation_counter % 10]
 
         if isinstance(renderable, Element):
             rendered = renderable.render(
