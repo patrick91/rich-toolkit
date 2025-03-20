@@ -128,5 +128,5 @@ class TaggedStyle(BaseStyle):
     def get_cursor_offset_for_element(self, element: Element) -> CursorOffset:
         return CursorOffset(
             top=element.cursor_offset.top,
-            left=self.tag_width + element.cursor_offset.left,
+            left=self.tag_width + element.cursor_offset.left + 2,
         )

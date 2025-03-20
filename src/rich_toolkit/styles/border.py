@@ -3,6 +3,7 @@ from typing import Any, Union, Optional
 from rich import box
 from rich.console import Group, RenderableType
 from rich.text import Text
+from rich.color import Color
 from rich.style import Style
 from rich_toolkit.element import CursorOffset, Element
 
@@ -31,6 +32,9 @@ class BorderedStyle(BaseStyle):
         title: Optional[str] = None
         validation_message: tuple[str, ...] = ()
 
+        # TOOD: from theme
+        color = Color.parse("white")
+
         if isinstance(renderable, Input):
             if renderable.valid is False:
                 validation_message = (Text("This field is required", style="error"),)
@@ -54,6 +58,11 @@ class BorderedStyle(BaseStyle):
         if isinstance(renderable, Progress):
             title = renderable.title
 
+            color = self._get_animation_colors(
+                steps=5,
+                animation_status=metadata.get("animation_status", "started"),
+            )[self.animation_counter % 5]
+
         if isinstance(renderable, Element):
             rendered = renderable.render(
                 is_active=is_active,
@@ -71,11 +80,6 @@ class BorderedStyle(BaseStyle):
                 max_lines=metadata.get("max_lines", -1),
                 total_lines=metadata.get("total_lines", -1),
             )
-
-        color = self._get_animation_colors(
-            steps=5,
-            animation_status=metadata.get("animation_status", "started"),
-        )[self.animation_counter % 5]
 
         content = Group(
             Panel(

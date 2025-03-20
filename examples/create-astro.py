@@ -11,7 +11,7 @@ def random_name_generator() -> str:
     return f"{random.choice(['fancy', 'cool', 'awesome'])}-{random.choice(['banana', 'apple', 'strawberry'])}"
 
 
-for style in [FancyStyle(), TaggedStyle(tag_width=12), BorderedStyle()]:
+for style in [TaggedStyle(tag_width=10), FancyStyle(), BorderedStyle()]:
     theme = RichToolkitTheme(
         style=style,
         theme={
