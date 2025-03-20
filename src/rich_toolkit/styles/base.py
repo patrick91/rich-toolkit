@@ -24,6 +24,17 @@ ConsoleRenderableClass = TypeVar(
 class BaseStyle(ABC):
     brightness_multiplier = 0.1
 
+    base_theme = {
+        "tag.title": "bold",
+        "tag": "bold",
+        "placeholder": "grey85",
+        "text": "white",
+        "selected": "green",
+        "result": "grey85",
+        "progress": "on #893AE3",
+        "error": "red",
+    }
+
     def __init__(
         self,
         theme: Optional[Dict[str, str]] = None,
@@ -33,8 +44,12 @@ class BaseStyle(ABC):
         self.background_color = get_terminal_background_color(background_color)
         self.text_color = get_terminal_text_color(text_color)
         self.animation_counter = 0
-        self.theme = Theme(theme) if theme else Theme()
-        self.console = Console(theme=self.theme)
+
+        base_theme = Theme(self.base_theme)
+        self.console = Console(theme=base_theme)
+
+        if theme:
+            self.console.push_theme(Theme(theme))
 
     def empty_line(self) -> RenderableType:
         return " "
@@ -127,4 +142,4 @@ class BaseStyle(ABC):
         pass
 
     def get_cursor_offset_for_element(self, element: Element) -> CursorOffset:
-        return CursorOffset(top=0, left=0)
+        return element.cursor_offset

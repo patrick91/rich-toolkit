@@ -1,4 +1,4 @@
-from typing import Any, List, Tuple, Optional
+from typing import List, Tuple, Optional
 
 import click
 from rich.console import (
@@ -13,16 +13,17 @@ from ._input_handler import TextInputHandler
 from .element import Element
 from .input import Input
 from .menu import Menu
+from .styles import MinimalStyle, BaseStyle
 
 
 class Container(Element):
-    def __init__(self, style: Any):
+    def __init__(self, style: Optional[BaseStyle] = None):
         self.elements: List[Element] = []
         self.active_element_index = 0
         self.previous_element_index = 0
         self._live_render = LiveRender("")
-        self.style = style
-        self.console = style.console
+        self.style = style or MinimalStyle()
+        self.console = self.style.console
 
     def _refresh(self, done: bool = False):
         self._live_render.set_renderable(self.render(done=done))

@@ -5,10 +5,6 @@ from rich.console import Group, RenderableType
 from rich.text import Text
 from rich.style import Style
 from rich_toolkit.element import CursorOffset, Element
-from rich_toolkit.input import Input
-from rich_toolkit.menu import Menu
-from rich_toolkit.panel import Panel
-from rich_toolkit.progress import Progress, ProgressLine
 
 from .base import BaseStyle
 
@@ -27,12 +23,17 @@ class BorderedStyle(BaseStyle):
         parent: Optional[Element] = None,
         **metadata: Any,
     ) -> RenderableType:
+        from rich_toolkit.input import Input
+        from rich_toolkit.menu import Menu
+        from rich_toolkit.panel import Panel
+        from rich_toolkit.progress import Progress, ProgressLine
+
         title: Optional[str] = None
         validation_message: tuple[str, ...] = ()
 
         if isinstance(renderable, Input):
             if renderable.valid is False:
-                validation_message = (Text("This field is required", style="bold red"),)
+                validation_message = (Text("This field is required", style="error"),)
             else:
                 validation_message = ()
 
@@ -94,6 +95,8 @@ class BorderedStyle(BaseStyle):
         return content
 
     def get_cursor_offset_for_element(self, element: Element) -> CursorOffset:
+        from rich_toolkit.input import Input
+
         top_offset = element.cursor_offset.top
         left_offset = element.cursor_offset.left + 2
 

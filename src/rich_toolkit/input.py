@@ -143,7 +143,7 @@ class Input(Element, TextInputHandler):
         if not self.required:
             self.valid = True
 
-        return bool(self.value.strip())
+        self.valid = bool(self.value.strip())
 
     @property
     def value(self) -> str:

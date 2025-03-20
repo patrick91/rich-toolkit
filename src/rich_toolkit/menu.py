@@ -3,10 +3,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Generic, List, Optional, TypeVar
 
 import click
-from rich import get_console
-from rich.console import Console, Group, RenderableType
+from rich.console import Group, RenderableType
 from rich.text import Text
 from typing_extensions import Any, Literal, TypedDict
+
+from rich_toolkit.styles.minimal import MinimalStyle
 
 from ._input_handler import TextInputHandler
 from .element import CursorOffset, Element
@@ -43,12 +44,9 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
         allow_filtering: bool = False,
         *,
         style: Optional[BaseStyle] = None,
-        console: Optional[Console] = None,
         cursor_offset: int = 0,
         **metadata: Any,
     ):
-        self.console = console or get_console()
-
         self.title = Text.from_markup(title)
         self.inline = inline
         self.allow_filtering = allow_filtering
@@ -56,7 +54,8 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
         self.selected = 0
 
         self.metadata = metadata
-        self.style = style
+        self.style = style or MinimalStyle()
+        self.console = self.style.console
 
         self._options = options
 
@@ -192,7 +191,7 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
         if self.validation_message:
             content.append(Text(""))
 
-            content.append(Text(self.validation_message))
+            content.append(Text(self.validation_message, style="error"))
 
         return Group(*content)
 
@@ -232,10 +231,10 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
         elif self.is_prev_key(key):
             self._update_selection("prev")
         else:
-            super().handle_key(key)
+            if self.options:
+                current_selection = self.options[self.selected]["name"]
 
-        if self.options:
-            current_selection = self.options[self.selected]["name"]
+            super().handle_key(key)
 
         if current_selection:
             matching_index = next(

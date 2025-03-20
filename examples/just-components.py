@@ -1,32 +1,20 @@
 import time
-from rich.theme import Theme
 from rich_toolkit.input import Input
 
-from rich.console import Console
 
 from rich_toolkit.menu import Menu, Option
 from rich_toolkit.progress import Progress
 
 
-theme = Theme(
-    {
-        "tag.title": "black on #A7E3A2",
-        "tag": "white on #893AE3",
-        "placeholder": "grey85",
-        "text": "white",
-        "selected": "green",
-        "result": "grey85",
-        "progress": "on #893AE3",
-    }
-)
-console = Console(theme=theme)
+value = Input("Enter your name:", name="name", default="John").ask()
 
-value = Input(console=console, title="Enter your name:", name="name").ask()
+print(f"Hello, {value}!")
+
+value = Input("Enter your name (inline):", inline=True, required=True).ask()
 
 print(f"Hello, {value}!")
 
 value_from_menu = Menu(
-    console=console,
     title="Select your favorite color:",
     options=[
         Option({"value": "black", "name": "Black"}),
@@ -39,7 +27,7 @@ value_from_menu = Menu(
 print(f"Your favorite color is {value_from_menu}!")
 
 
-with Progress(console=console, title="Downloading...") as progress:
+with Progress(title="Downloading...") as progress:
     for i in range(11):
         progress.log(f"Downloaded {i * 10}%")
         time.sleep(0.1)

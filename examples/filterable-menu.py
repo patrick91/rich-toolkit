@@ -1,8 +1,8 @@
 import random
 from typing import List
 from rich_toolkit import RichToolkit, RichToolkitTheme
-from rich_toolkit.styles import FancyStyle, TaggedStyle
 from rich_toolkit.menu import Option
+from rich_toolkit.styles import FancyStyle, TaggedStyle
 
 
 words = [

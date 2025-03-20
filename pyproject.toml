@@ -33,9 +33,9 @@ dev = [
 lint = ["mypy>=1.11.2"]
 
 [tool.ruff]
-select = ["E", "W", "F", "B"]
-ignore = ["E501"]
 fix = true
 
 [tool.ruff.lint]
+ignore = ["E501"]
+select = ["E", "W", "F", "B"]
 extend-select = ["E", "W", "F", "B"]

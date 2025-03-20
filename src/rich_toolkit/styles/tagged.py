@@ -23,6 +23,11 @@ class TaggedStyle(BaseStyle):
     def __init__(self, tag_width: int = 12, theme: Optional[Dict[str, str]] = None):
         self.tag_width = tag_width
 
+        theme = theme or {
+            "tag.title": "bold",
+            "tag": "bold",
+        }
+
         super().__init__(theme=theme)
 
     def _tag_element(
