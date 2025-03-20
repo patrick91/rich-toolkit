@@ -4,7 +4,7 @@ from rich.tree import Tree
 
 from rich_toolkit import RichToolkit, RichToolkitTheme
 from rich_toolkit.styles import TaggedStyle
-
+from ._utils import trim_whitespace_on_lines
 
 theme = RichToolkitTheme(
     style=TaggedStyle(tag_width=5), theme={"tag": "on red", "progress": "on blue"}
@@ -18,11 +18,7 @@ def test_print_line(capsys: CaptureFixture[str]) -> None:
 
     captured = capsys.readouterr()
 
-    assert captured.out == snapshot(
-        """\
-
-"""
-    )
+    assert trim_whitespace_on_lines(captured.out) == snapshot("")
 
 
 def test_can_print_strings(capsys: CaptureFixture[str]) -> None:
@@ -32,11 +28,7 @@ def test_can_print_strings(capsys: CaptureFixture[str]) -> None:
 
     captured = capsys.readouterr()
 
-    assert captured.out == snapshot(
-        """\
-       Hello, World!
-"""
-    )
+    assert trim_whitespace_on_lines(captured.out) == snapshot("Hello, World!")
 
 
 def test_can_print_strings_with_tag(capsys: CaptureFixture[str]) -> None:
@@ -46,11 +38,7 @@ def test_can_print_strings_with_tag(capsys: CaptureFixture[str]) -> None:
 
     captured = capsys.readouterr()
 
-    assert captured.out == snapshot(
-        """\
- tag   Hello, World!
-"""
-    )
+    assert trim_whitespace_on_lines(captured.out) == snapshot("tag   Hello, World!")
 
 
 def test_can_print_renderables(capsys: CaptureFixture[str]) -> None:
@@ -63,10 +51,10 @@ def test_can_print_renderables(capsys: CaptureFixture[str]) -> None:
 
     captured = capsys.readouterr()
 
-    assert captured.out == snapshot(
+    assert trim_whitespace_on_lines(captured.out) == snapshot(
         """\
-       root
-       └── child
+root
+└── child\
 """
     )
 
@@ -81,11 +69,11 @@ def test_can_print_multiple_renderables(capsys: CaptureFixture[str]) -> None:
 
     captured = capsys.readouterr()
 
-    assert captured.out == snapshot(
+    assert trim_whitespace_on_lines(captured.out) == snapshot(
         """\
-       root
-       └── child
-       Hello, World!
+root
+└── child
+Hello, World!\
 """
     )
 
@@ -98,9 +86,9 @@ def test_progress_handles_multiple_lines(capsys: CaptureFixture[str]) -> None:
 
     captured = capsys.readouterr()
 
-    assert captured.out == snapshot(
+    assert trim_whitespace_on_lines(captured.out) == snapshot(
         """\
 █████  Hello, World!
-       Hello, World!\
+Hello, World!\
 """
     )

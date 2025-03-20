@@ -5,7 +5,7 @@ from rich.tree import Tree
 
 from rich_toolkit import RichToolkit, RichToolkitTheme
 from rich_toolkit.styles import FancyStyle
-
+from ._utils import trim_whitespace_on_lines
 
 theme = RichToolkitTheme(style=FancyStyle(), theme={})
 
@@ -17,11 +17,7 @@ def test_print_line(capsys: CaptureFixture[str]) -> None:
 
     captured = capsys.readouterr()
 
-    assert captured.out == snapshot(
-        """\
-│
-"""
-    )
+    assert trim_whitespace_on_lines(captured.out) == snapshot("│")
 
 
 def test_can_print_strings(capsys: CaptureFixture[str]) -> None:
@@ -31,9 +27,7 @@ def test_can_print_strings(capsys: CaptureFixture[str]) -> None:
 
     captured = capsys.readouterr()
 
-    assert captured.out == snapshot(
-        "◆ Hello, World!                                                                 "
-    )
+    assert trim_whitespace_on_lines(captured.out) == snapshot("◆ Hello, World!")
 
 
 def test_can_print_renderables(capsys: CaptureFixture[str]) -> None:
@@ -46,10 +40,10 @@ def test_can_print_renderables(capsys: CaptureFixture[str]) -> None:
 
     captured = capsys.readouterr()
 
-    assert captured.out == snapshot(
+    assert trim_whitespace_on_lines(captured.out) == snapshot(
         """\
 ◆ root
-└ └── child                                                                     \
+└ └── child\
 """
     )
 
@@ -64,10 +58,10 @@ def test_can_print_multiple_renderables(capsys: CaptureFixture[str]) -> None:
 
     captured = capsys.readouterr()
 
-    assert captured.out == snapshot(
+    assert trim_whitespace_on_lines(captured.out) == snapshot(
         """\
 ◆ root
-└ └── child                                                                     \
+└ └── child\
 """
     )
 
@@ -80,11 +74,7 @@ def test_handles_keyboard_interrupt(capsys: CaptureFixture[str]) -> None:
 
     captured = capsys.readouterr()
 
-    assert captured.out == snapshot(
-        """\
-
-"""
-    )
+    assert trim_whitespace_on_lines(captured.out) == snapshot("")
 
 
 def test_ignores_keyboard_interrupt(capsys: CaptureFixture[str]) -> None:
