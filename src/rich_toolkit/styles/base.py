@@ -27,10 +27,10 @@ class BaseStyle(ABC):
     base_theme = {
         "tag.title": "bold",
         "tag": "bold",
-        "placeholder": "grey85",
-        "text": "white",
+        "placeholder": "grey62",
+        "text": "#ffffff",
         "selected": "green",
-        "result": "grey85",
+        "result": "white",
         "progress": "on #893AE3",
         "error": "red",
     }

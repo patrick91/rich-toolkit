@@ -24,6 +24,7 @@ class Input(Element, TextInputHandler):
         default: Optional[str] = None,
         default_as_placeholder: bool = True,
         required: bool = True,
+        required_message: Optional[str] = None,
         password: bool = False,
         inline: bool = False,
         name: Optional[str] = None,
@@ -43,6 +44,7 @@ class Input(Element, TextInputHandler):
 
         self.text = ""
         self.valid = None
+        self.required_message = required_message
 
         super().__init__(**metadata)
 
@@ -117,7 +119,7 @@ class Input(Element, TextInputHandler):
     @property
     def validation_message(self) -> Optional[str]:
         if self.valid is False:
-            return "This field is required"
+            return self.required_message or "This field is required"
 
         return None
 

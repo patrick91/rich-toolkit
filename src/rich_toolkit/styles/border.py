@@ -33,11 +33,14 @@ class BorderedStyle(BaseStyle):
         validation_message: tuple[str, ...] = ()
 
         # TOOD: from theme
-        color = Color.parse("white")
+        border_color = Color.parse("white")
 
         if isinstance(renderable, Input):
             if renderable.valid is False:
-                validation_message = (Text("This field is required", style="error"),)
+                validation_message = (
+                    Text(renderable.validation_message, style="error"),
+                )
+                border_color = self.console.get_style("error").color
             else:
                 validation_message = ()
 
@@ -58,7 +61,7 @@ class BorderedStyle(BaseStyle):
         if isinstance(renderable, Progress):
             title = renderable.title
 
-            color = self._get_animation_colors(
+            border_color = self._get_animation_colors(
                 steps=5,
                 animation_status=metadata.get("animation_status", "started"),
             )[self.animation_counter % 5]
@@ -81,18 +84,21 @@ class BorderedStyle(BaseStyle):
                 total_lines=metadata.get("total_lines", -1),
             )
 
-        content = Group(
-            Panel(
-                rendered,
-                title=title,
-                title_align="left",
-                highlight=is_active,
-                width=50,
-                box=self.box,
-                border_style=Style(color=color),
-            ),
-            *validation_message,
-        )
+        if metadata.get("title", False):
+            content = rendered
+        else:
+            content = Group(
+                Panel(
+                    rendered,
+                    title=title,
+                    title_align="left",
+                    highlight=is_active,
+                    width=50,
+                    box=self.box,
+                    border_style=Style(color=border_color),
+                ),
+                *validation_message,
+            )
 
         self.animation_counter += 1
 
