@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from .styles.base import BaseStyle
 
 
-class Input(Element, TextInputHandler):
+class Input(TextInputHandler, Element):
     label: Optional[str] = None
 
     _should_show_label: bool = True
@@ -69,15 +69,19 @@ class Input(Element, TextInputHandler):
 
             if isinstance(parent, Form):
                 if is_active:
-                    label = f"[bold green]{label}[/bold green]"
+                    # TODO: from theme
+                    label = f"[bold green]{label}[/]"
                 elif not self.valid:
-                    label = f"[bold red]{label}[/bold red]"
+                    label = f"[error]{label}[/]"
 
         return label
 
     def render_validation_message(self) -> Optional[str]:
+        if self._cancelled:
+            return "[cancelled]Cancelled.[/]"
+
         if self.valid is False:
-            return f"[bold red]{self.validation_message}[/bold red]"
+            return f"[error]{self.validation_message}[/]"
 
         return None
 
@@ -161,7 +165,13 @@ class Input(Element, TextInputHandler):
         # and, most importantly, in the right place
         placeholder = self.placeholder or " "
 
-        text = f"[text]{text}[/]" if self.text else f"[placeholder]{placeholder}[/]"
+        if self.text:
+            text = f"[text]{text}[/]"
+        else:
+            if self._cancelled:
+                text = f"[placeholder.cancelled]{placeholder}[/]"
+            else:
+                text = f"[placeholder]{placeholder}[/]"
 
         return text
 

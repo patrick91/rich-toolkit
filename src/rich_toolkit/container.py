@@ -180,9 +180,7 @@ class Container(Element):
                         self.active_element_index = 0
 
                 active_element = self.elements[self.active_element_index]
-
-                if hasattr(active_element, "handle_key"):
-                    active_element.handle_key(key)
+                active_element.handle_key(key)
 
                 if key == TextInputHandler.ENTER_KEY:
                     if self.handle_enter_key():
@@ -191,7 +189,9 @@ class Container(Element):
                 self._refresh()
 
             except KeyboardInterrupt:
-                # TODO: send a message to all elements that the user cancelled
+                for element in self.elements:
+                    element.on_cancel()
+
                 self._refresh(done=True)
                 exit()
 

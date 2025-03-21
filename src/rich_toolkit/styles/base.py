@@ -27,12 +27,16 @@ class BaseStyle(ABC):
     base_theme = {
         "tag.title": "bold",
         "tag": "bold",
-        "placeholder": "grey62",
         "text": "#ffffff",
         "selected": "green",
         "result": "white",
         "progress": "on #893AE3",
         "error": "red",
+        "cancelled": "red",
+        "title.error": "white",
+        "title.cancelled": "white",
+        "placeholder": "grey62",
+        "placeholder.cancelled": "grey62 strike",
     }
 
     def __init__(

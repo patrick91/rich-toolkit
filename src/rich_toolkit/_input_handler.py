@@ -16,6 +16,8 @@ class TextInputHandler:
         self.text = ""
         self.cursor_left = 0
 
+        super().__init__()
+
     def _move_cursor_left(self) -> None:
         self.cursor_left = max(0, self.cursor_left - 1)
 

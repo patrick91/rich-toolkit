@@ -2,7 +2,6 @@ from typing import Any, Union, Optional
 
 from rich import box
 from rich.console import Group, RenderableType
-from rich.text import Text
 from rich.color import Color
 from rich.style import Style
 from rich_toolkit.element import CursorOffset, Element
@@ -36,13 +35,13 @@ class BorderedStyle(BaseStyle):
         border_color = Color.parse("white")
 
         if isinstance(renderable, Input):
+            if message := renderable.render_validation_message():
+                validation_message = (message,)
+
             if renderable.valid is False:
-                validation_message = (
-                    Text(renderable.validation_message, style="error"),
+                border_color = self.console.get_style("error").color or Color.parse(
+                    "red"
                 )
-                border_color = self.console.get_style("error").color
-            else:
-                validation_message = ()
 
             renderable._should_show_label = False
             renderable._should_show_validation = False
@@ -73,6 +72,15 @@ class BorderedStyle(BaseStyle):
                 done=done,
                 parent=parent,
             )
+
+            if renderable._cancelled:
+                border_color = self.console.get_style("cancelled").color or Color.parse(
+                    "red"
+                )
+
+                if title:
+                    title = f"[title.cancelled]{title}[/]"
+
         else:
             rendered = renderable
 

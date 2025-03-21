@@ -17,6 +17,8 @@ class Element(ABC):
     def __init__(self, **metadata: Any):
         self.metadata = metadata
 
+        self._cancelled = False
+
         super().__init__()
 
     @property
@@ -26,6 +28,12 @@ class Element(ABC):
     @property
     def should_show_cursor(self) -> bool:
         return False
+
+    def handle_key(self, key: str) -> None:  # noqa: B027
+        pass
+
+    def on_cancel(self) -> None:  # noqa: B027
+        self._cancelled = True
 
     @abstractmethod
     def render(
