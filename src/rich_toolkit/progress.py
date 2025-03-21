@@ -52,12 +52,6 @@ class Progress(Live, Element):
 
         super().__init__(console=console, refresh_per_second=8, transient=transient)
 
-    # TODO: remove this once rich uses "Self"
-    def __enter__(self) -> "Progress":
-        self.start(refresh=self._renderable is not None)
-
-        return self
-
     def render(
         self,
         is_active: bool = False,

@@ -70,7 +70,7 @@ class Input(TextInputHandler, Element):
             if isinstance(parent, Form):
                 if is_active:
                     # TODO: from theme
-                    label = f"[bold green]{label}[/]"
+                    label = f"[active]{label}[/]"
                 elif not self.valid:
                     label = f"[error]{label}[/]"
 

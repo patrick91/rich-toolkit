@@ -33,6 +33,9 @@ class BaseStyle(ABC):
         "progress": "on #893AE3",
         "error": "red",
         "cancelled": "red",
+        # is there a way to make nested styles?
+        # like label.active uses active style if not set?
+        "active": "green",
         "title.error": "white",
         "title.cancelled": "white",
         "placeholder": "grey62",
