@@ -131,7 +131,7 @@ class Container(Element):
 
         for i, element in enumerate(self.elements):
             self._content.append(
-                self.style.decorate(
+                self.style.render(
                     element,
                     is_active=i == self.active_element_index,
                     done=done,

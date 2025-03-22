@@ -86,7 +86,7 @@ class FancyStyle(BorderedStyle):
         self.cursor_offset = 2
         self.decoration_size = 2
 
-    def decorate(
+    def render(
         self,
         renderable: Union[Element, str],
         is_active: bool = False,
@@ -107,7 +107,6 @@ class FancyStyle(BorderedStyle):
             is_animated = True
 
         if isinstance(renderable, ProgressLine):
-            # TODO: call this decorate? or do decorate -> render
             return self.render_progress_log_line(
                 rendered,
                 index=metadata.get("index", 0),

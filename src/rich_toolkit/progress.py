@@ -71,7 +71,7 @@ class Progress(Live, Element):
 
             content = Group(
                 *[
-                    self.style.decorate(
+                    self.style.render(
                         line,
                         index=index,
                         max_lines=self.lines_to_show,
@@ -94,7 +94,7 @@ class Progress(Live, Element):
         if self.style is None:
             return self.render()
 
-        return self.style.decorate(
+        return self.style.render(
             self,
             animation_status=animation_status,
             started=self._started,

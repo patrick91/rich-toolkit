@@ -8,7 +8,7 @@ from .base import BaseStyle
 
 
 class MinimalStyle(BaseStyle):
-    def decorate(
+    def render(
         self,
         renderable: Union[Element, str],
         is_active: bool = False,

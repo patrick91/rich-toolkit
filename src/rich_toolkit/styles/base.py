@@ -138,7 +138,7 @@ class BaseStyle(ABC):
         )
 
     @abstractmethod
-    def decorate(
+    def render(
         self,
         renderable: Union[Element, str],
         is_active: bool = False,

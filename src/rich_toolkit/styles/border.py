@@ -16,7 +16,7 @@ class BorderedStyle(BaseStyle):
     def empty_line(self) -> RenderableType:
         return ""
 
-    def decorate(
+    def render(
         self,
         renderable: Union[Element, str],
         is_active: bool = False,
@@ -85,7 +85,6 @@ class BorderedStyle(BaseStyle):
             rendered = renderable
 
         if isinstance(renderable, ProgressLine):
-            # TODO: call this decorate? or do decorate -> render
             return self.render_progress_log_line(
                 rendered,
                 index=metadata.get("index", 0),
