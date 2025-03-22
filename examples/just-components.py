@@ -31,3 +31,8 @@ with Progress(title="Downloading...") as progress:
     for i in range(11):
         progress.log(f"Downloaded {i * 10}%")
         time.sleep(0.1)
+
+with Progress(title="Downloading (inline logs)...", inline_logs=True) as progress:
+    for i in range(11):
+        progress.log(f"Downloaded {i * 10}%")
+        time.sleep(0.1)

@@ -9,6 +9,8 @@ from typing_extensions import Literal
 
 from .element import Element
 
+from .styles.minimal import MinimalStyle
+
 if TYPE_CHECKING:
     from .styles.base import BaseStyle
 
@@ -42,7 +44,7 @@ class Progress(Live, Element):
     ) -> None:
         self.title = title
         self.current_message = title
-        self.style = style
+        self.style = style or MinimalStyle()
         self.is_error = False
         self._transient_on_error = transient_on_error
         self._inline_logs = inline_logs
@@ -59,10 +61,6 @@ class Progress(Live, Element):
         parent: Optional[Element] = None,
     ) -> RenderableType:
         content: str | Group | Text = self.current_message
-
-        # TODO: support for inline logs when no style is provided
-        if self.style is None:
-            return content
 
         if self.logs and self._inline_logs:
             lines_to_show = (
