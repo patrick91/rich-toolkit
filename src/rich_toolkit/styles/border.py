@@ -26,6 +26,7 @@ class BorderedStyle(BaseStyle):
     ) -> RenderableType:
         from rich_toolkit.input import Input
         from rich_toolkit.menu import Menu
+        from rich_toolkit.form import Form
         from rich_toolkit.progress import Progress, ProgressLine
 
         title: Optional[str] = None
@@ -33,6 +34,9 @@ class BorderedStyle(BaseStyle):
 
         # TOOD: from theme
         border_color = Color.parse("white")
+
+        if isinstance(parent, Form) and isinstance(renderable, Element):
+            return renderable.render(is_active=is_active, done=done, parent=parent)
 
         if isinstance(renderable, Input):
             if message := renderable.render_validation_message():

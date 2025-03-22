@@ -20,6 +20,13 @@ ConsoleRenderableClass = TypeVar(
     "ConsoleRenderableClass", bound=Type[ConsoleRenderable]
 )
 
+# TODO: I think base style needs to know how to render other components
+# I was thinking that each component could know how to render itself
+# but it's probably a mess, having both styles and components knowing
+# how to render things (styles could override each component, which
+# is good, but the fact that there's two places/things that know how
+# to render stuff is not great)
+
 
 class BaseStyle(ABC):
     brightness_multiplier = 0.1

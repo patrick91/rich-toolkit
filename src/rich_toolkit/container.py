@@ -1,10 +1,7 @@
 from typing import List, Tuple, Optional
 
 import click
-from rich.console import (
-    Group,
-    RenderableType,
-)
+from rich.console import Group, RenderableType
 from rich.control import Control, ControlType
 from rich.live_render import LiveRender
 from rich.segment import Segment

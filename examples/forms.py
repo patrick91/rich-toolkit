@@ -1,42 +1,27 @@
-from typing import Any
-
 import rich
 
 from rich_toolkit.form import Form
-from rich_toolkit.input import Input
 from rich_toolkit.styles.border import BorderedStyle
 from rich_toolkit.styles.tagged import TaggedStyle
 
 
-def run_input(style: Any):
-    input = Input(
-        name="name", label="Enter your name", placeholder="Patrick", style=style
-    )
-
-    print(input.ask())
-
-
-def run_form(style: Any):
-    # Example with multiple inputs and a button
+for style in [BorderedStyle(), TaggedStyle(tag_width=12)]:
     form = Form(title="Enter your login details", style=style)
 
-    form.add_button(name="AI", label="AI", tag="form")
+    form.add_button(name="ai", label="Fill with AI ✨", tag="form")  # TODO: callback?
 
-    form.add_input(name="name", label="Name", placeholder="Enter your name")
+    form.add_input(
+        name="name", label="Name", placeholder="Enter your name", required=True
+    )
     form.add_input(
         name="password",
         label="Password",
         placeholder="Enter your password",
         password=True,
+        required=True,
     )
 
-    # Add a submit button
     form.add_button(name="submit", label="Submit")
-    form.add_input(
-        name="email", label="Email", placeholder="Enter your email", inline=True
-    )
-
-    # Add a cancel button
     form.add_button(name="cancel", label="Cancel")
 
     results = form.run()
@@ -44,13 +29,3 @@ def run_form(style: Any):
     print()
     rich.print(results)
     print()
-
-
-for style in [TaggedStyle(tag_width=12), BorderedStyle()]:
-    print(f"Running with {style.__class__.__name__}")
-
-    run_input(style)
-
-    print()
-
-    run_form(style)
