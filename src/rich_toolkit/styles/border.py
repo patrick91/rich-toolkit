@@ -5,6 +5,7 @@ from rich.console import Group, RenderableType
 from rich.color import Color
 from rich.style import Style
 from rich_toolkit.element import CursorOffset, Element
+from rich_toolkit._rich_components import Panel
 
 from .base import BaseStyle
 
@@ -25,7 +26,6 @@ class BorderedStyle(BaseStyle):
     ) -> RenderableType:
         from rich_toolkit.input import Input
         from rich_toolkit.menu import Menu
-        from rich_toolkit.panel import Panel
         from rich_toolkit.progress import Progress, ProgressLine
 
         title: Optional[str] = None

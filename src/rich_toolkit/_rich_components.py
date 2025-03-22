@@ -6,7 +6,8 @@ from rich.segment import Segment
 from rich.text import Text
 
 
-# TODO: this is not an ELEMENT, so move it to _rich_components or something
+# this is a custom version of Rich's panel, where we override
+# the __rich_console__ magic method to just render a basic panel
 class Panel(RichPanel):
     def __rich_console__(
         self, console: "Console", options: "ConsoleOptions"
@@ -113,10 +114,10 @@ class Panel(RichPanel):
                 box.top,
                 border_style,
             )
-            # changed from box.top_left + box.top to box.top_left
+            # changed from `box.top_left + box.top` to just `box.top_left``
             yield Segment(box.top_left, border_style)
             yield from console.render(title_text, child_options.update_width(width - 4))
-            # changed from box.top + box.top_right to box.top * 2 + box.top_right
+            # changed from `box.top + box.top_right` to `box.top * 2 + box.top_right``
             yield Segment(box.top * 2 + box.top_right, border_style)
 
         yield new_line
