@@ -57,11 +57,14 @@ class RichToolkit:
         return None
 
     def print_title(self, title: str, **metadata: Any) -> None:
-        self.console.print(self.style.render(title, title=True, **metadata))
+        self.console.print(self.style.render_element(title, title=True, **metadata))
 
     def print(self, *renderables: RenderableType, **metadata: Any) -> None:
         self.console.print(
-            *[self.style.render(renderable, **metadata) for renderable in renderables]
+            *[
+                self.style.render_element(renderable, **metadata)
+                for renderable in renderables
+            ]
         )
 
     def print_as_string(self, *renderables: RenderableType, **metadata: Any) -> str:
@@ -86,14 +89,14 @@ class RichToolkit:
 
     def ask(
         self,
-        title: str,
+        label: str,
         options: List[Option[ReturnValue]],
         inline: bool = False,
         allow_filtering: bool = False,
         **metadata: Any,
     ) -> ReturnValue:
         return Menu(
-            title=title,
+            label=label,
             options=options,
             console=self.console,
             style=self.style,

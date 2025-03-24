@@ -1,10 +1,9 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
 from typing import Any, Type, TypeVar, Union, Optional, Dict
 from typing_extensions import Literal
 
 from rich.color import Color
-from rich.console import ConsoleRenderable, RenderableType
+from rich.console import ConsoleRenderable, RenderableType, Group
 from rich.theme import Theme
 from rich.text import Text
 from rich.console import Console
@@ -15,6 +14,11 @@ from rich_toolkit.utils.colors import (
     get_terminal_background_color,
     get_terminal_text_color,
 )
+from rich_toolkit.button import Button
+from rich_toolkit.container import Container
+from rich_toolkit.input import Input
+from rich_toolkit.progress import ProgressLine
+from rich_toolkit.menu import Menu
 
 ConsoleRenderableClass = TypeVar(
     "ConsoleRenderableClass", bound=Type[ConsoleRenderable]
@@ -28,7 +32,7 @@ ConsoleRenderableClass = TypeVar(
 # to render stuff is not great)
 
 
-class BaseStyle(ABC):
+class BaseStyle:
     brightness_multiplier = 0.1
 
     base_theme = {
@@ -106,6 +110,254 @@ class BaseStyle(ABC):
 
         return colors
 
+    def get_cursor_offset_for_element(self, element: Element) -> CursorOffset:
+        return element.cursor_offset
+
+    def render_element(
+        self,
+        element: Any,
+        is_active: bool = False,
+        done: bool = False,
+        parent: Optional[Element] = None,
+        **metadata: Any,
+    ) -> RenderableType:
+        self.animation_counter += 1
+
+        if isinstance(element, str):
+            return self.render_string(element, is_active, done, parent, **metadata)
+        elif isinstance(element, Button):
+            return self.render_button(element, is_active, done, parent)
+        elif isinstance(element, Container):
+            return self.render_container(element, is_active, done, parent)
+        elif isinstance(element, Input):
+            return self.render_input(element, is_active, done, parent)
+        elif isinstance(element, Menu):
+            return self.render_menu(element, is_active, done, parent)
+        elif isinstance(element, ProgressLine):
+            return self.render_progress_log_line(
+                element.text,
+                index=metadata.get("index", 0),
+                max_lines=metadata.get("max_lines", -1),
+                total_lines=metadata.get("total_lines", -1),
+            )
+
+        raise ValueError(f"Unknown element type: {type(element)}")
+
+    def render_string(
+        self,
+        string: str,
+        is_active: bool = False,
+        done: bool = False,
+        parent: Optional[Element] = None,
+        **metadata: Any,
+    ) -> RenderableType:
+        return string
+
+    def render_button(
+        self,
+        element: Button,
+        is_active: bool = False,
+        done: bool = False,
+        parent: Optional[Element] = None,
+    ) -> RenderableType:
+        style = "black on blue" if is_active else "white on black"
+        return Text(f" {element.label} ", style=style)
+
+    def render_container(
+        self,
+        container: Container,
+        is_active: bool = False,
+        done: bool = False,
+        parent: Optional[Element] = None,
+    ) -> RenderableType:
+        # TODO: is there a better way for this?
+        container._content = []
+
+        for i, element in enumerate(container.elements):
+            container._content.append(
+                self.render_element(
+                    element,
+                    is_active=i == container.active_element_index,
+                    done=done,
+                    # TODO?
+                    **element.metadata,
+                )
+            )
+
+        return Group(
+            *[wrapper for wrapper in container._content],
+            "\n" if not done else "",
+        )
+
+    def render_input(
+        self,
+        element: Input,
+        is_active: bool = False,
+        done: bool = False,
+        parent: Optional[Element] = None,
+    ) -> RenderableType:
+        label = self.render_input_label(element, is_active, parent)
+        text = self.render_input_value(element, is_active, parent)
+
+        contents = []
+
+        if element.inline or done:
+            if done and element.password:
+                text = "*" * len(element.text)
+            if label:
+                text = f"{label} {text}"
+
+            contents.append(text)
+        else:
+            if label:
+                contents.append(label)
+
+            contents.append(text)
+
+        if element._should_show_validation and (
+            validation_message := self.render_validation_message(element)
+        ):
+            contents.append(validation_message)
+
+        # TODO: do we need this?
+        element._height = len(contents)
+
+        return Group(*contents)
+
+    def render_validation_message(self, element: Union[Input, Menu]) -> Optional[str]:
+        if element._cancelled:
+            return "[cancelled]Cancelled.[/]"
+
+        if element.valid is False:
+            return f"[error]{element.validation_message}[/]"
+
+        return None
+
+    # TODO: maybe don't reuse this for menus
+    def render_input_value(
+        self,
+        input: Union[Menu, Input],
+        is_active: bool = False,
+        parent: Optional[Element] = None,
+    ) -> RenderableType:
+        text = input.text
+
+        if isinstance(input, Input) and input.password:
+            text = "*" * len(input.text)
+
+            # if there's no default value, add a space to keep the cursor visible
+            # and, most importantly, in the right place
+            placeholder = input.placeholder or " "
+        else:
+            placeholder = " "
+
+        if input.text:
+            text = f"[text]{text}[/]"
+        else:
+            if input._cancelled:
+                text = f"[placeholder.cancelled]{placeholder}[/]"
+            else:
+                text = f"[placeholder]{placeholder}[/]"
+
+        return text
+
+    def render_input_label(
+        self,
+        input: Union[Input, Menu],
+        is_active: bool = False,
+        parent: Optional[Element] = None,
+    ) -> Union[str, Text, None]:
+        from rich_toolkit.form import Form
+
+        label: Union[str, Text, None] = None
+
+        if input.label:
+            label = input.label
+
+            if isinstance(parent, Form):
+                if is_active:
+                    label = f"[active]{label}[/]"
+                elif not input.valid:
+                    label = f"[error]{label}[/]"
+
+        return label
+
+    def render_menu(
+        self,
+        element: Menu,
+        is_active: bool = False,
+        done: bool = False,
+        parent: Optional[Element] = None,
+    ) -> RenderableType:
+        menu = Text(justify="left")
+
+        selected_prefix = Text(element.current_selection_char + " ")
+        not_selected_prefix = Text(element.selection_char + " ")
+
+        separator = Text("\t" if element.inline else "\n")
+
+        if done:
+            result_content = Text()
+
+            result_content.append(
+                self.render_input_label(element, is_active=is_active, parent=parent)
+            )
+            result_content.append(" ")
+
+            result_content.append(
+                element.options[element.selected]["name"],
+                style=self.console.get_style("result"),
+            )
+
+            return result_content
+
+        for id_, option in enumerate(element.options):
+            if id_ == element.selected:
+                prefix = selected_prefix
+                style = self.console.get_style("selected")
+            else:
+                prefix = not_selected_prefix
+                style = self.console.get_style("text")
+
+            is_last = id_ == len(element.options) - 1
+
+            menu.append(
+                Text.assemble(
+                    prefix,
+                    option["name"],
+                    separator if not is_last else "",
+                    style=style,
+                )
+            )
+
+        if not element.options:
+            menu = Text("No results found", style=self.console.get_style("text"))
+
+        filter = (
+            [
+                Text.assemble(
+                    (element.filter_prompt, self.console.get_style("text")),
+                    (element.text, self.console.get_style("text")),
+                    "\n",
+                )
+            ]
+            if element.allow_filtering
+            else []
+        )
+
+        content: list[RenderableType] = []
+
+        content.append(self.render_input_label(element))
+
+        content.extend(filter)
+        content.append(menu)
+
+        if message := self.render_validation_message(element):
+            content.append(Text(""))
+            content.append(message)
+
+        return Group(*content)
+
     def render_progress_log_line(
         self,
         line: str | Text,
@@ -143,17 +395,3 @@ class BaseStyle(ABC):
             background_color=self.background_color,
             brightness_multiplier=brightness_multiplier,
         )
-
-    @abstractmethod
-    def render(
-        self,
-        renderable: Union[Element, str],
-        is_active: bool = False,
-        done: bool = False,
-        parent: Optional[Element] = None,
-        **metadata: Any,
-    ) -> RenderableType:
-        pass
-
-    def get_cursor_offset_for_element(self, element: Element) -> CursorOffset:
-        return element.cursor_offset

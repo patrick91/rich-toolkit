@@ -3,11 +3,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Generic, List, Optional, TypeVar
 
 import click
-from rich.console import Group, RenderableType
+from rich.console import RenderableType
 from rich.text import Text
 from typing_extensions import Any, Literal, TypedDict
 
-from rich_toolkit.styles.minimal import MinimalStyle
 
 from ._input_handler import TextInputHandler
 from .element import CursorOffset, Element
@@ -23,7 +22,7 @@ class Option(TypedDict, Generic[ReturnValue]):
     value: ReturnValue
 
 
-class Menu(Generic[ReturnValue], Element, TextInputHandler):
+class Menu(Generic[ReturnValue], TextInputHandler, Element):
     DOWN_KEYS = [TextInputHandler.DOWN_KEY, "j"]
     UP_KEYS = [TextInputHandler.UP_KEY, "k"]
     LEFT_KEYS = [TextInputHandler.LEFT_KEY, "h"]
@@ -38,7 +37,7 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
 
     def __init__(
         self,
-        title: str,
+        label: str,
         options: List[Option[ReturnValue]],
         inline: bool = False,
         allow_filtering: bool = False,
@@ -47,15 +46,13 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
         cursor_offset: int = 0,
         **metadata: Any,
     ):
-        self.title = Text.from_markup(title)
+        self.label = Text.from_markup(label)
         self.inline = inline
         self.allow_filtering = allow_filtering
 
         self.selected = 0
 
         self.metadata = metadata
-        self.style = style or MinimalStyle()
-        self.console = self.style.console
 
         self._options = options
 
@@ -65,6 +62,9 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
         cursor_offset = cursor_offset + len(self.filter_prompt)
 
         super().__init__()
+
+        self._style = style
+        self.console = self.style.console
 
     def get_key(self) -> Optional[str]:
         char = click.getchar()
@@ -116,89 +116,10 @@ class Menu(Generic[ReturnValue], Element, TextInputHandler):
         if self.selected >= len(self.options):
             self.selected = 0
 
-    def render_label(self) -> str:
-        return self.title
-
-    def render(
-        self,
-        is_active: bool = False,
-        done: bool = False,
-        parent: Optional[Element] = None,
-    ) -> RenderableType:
-        menu = Text(justify="left")
-
-        selected_prefix = Text(self.current_selection_char + " ")
-        not_selected_prefix = Text(self.selection_char + " ")
-
-        separator = Text("\t" if self.inline else "\n")
-
-        if done:
-            result_content = Text()
-
-            if self._should_show_label:
-                result_content.append(self.render_label())
-                result_content.append(" ")
-
-            result_content.append(
-                self.options[self.selected]["name"],
-                style=self.console.get_style("result"),
-            )
-
-            return result_content
-
-        for id_, option in enumerate(self.options):
-            if id_ == self.selected:
-                prefix = selected_prefix
-                style = self.console.get_style("selected")
-            else:
-                prefix = not_selected_prefix
-                style = self.console.get_style("text")
-
-            is_last = id_ == len(self.options) - 1
-
-            menu.append(
-                Text.assemble(
-                    prefix,
-                    option["name"],
-                    separator if not is_last else "",
-                    style=style,
-                )
-            )
-
-        if not self.options:
-            menu = Text("No results found", style=self.console.get_style("text"))
-
-        filter = (
-            [
-                Text.assemble(
-                    (self.filter_prompt, self.console.get_style("text")),
-                    (self.text, self.console.get_style("text")),
-                    "\n",
-                )
-            ]
-            if self.allow_filtering
-            else []
-        )
-
-        content: list[RenderableType] = []
-
-        if self._should_show_label:
-            content.append(self.render_label())
-
-        content.extend(filter)
-        content.append(menu)
-
-        if self.validation_message:
-            content.append(Text(""))
-
-            content.append(Text(self.validation_message, style="error"))
-
-        return Group(*content)
-
     def render_result(self) -> RenderableType:
         result_text = Text()
 
-        result_text.append(self.title)
+        result_text.append(self.label)
         result_text.append(" ")
         result_text.append(
             self.options[self.selected]["name"],

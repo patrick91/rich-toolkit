@@ -15,7 +15,7 @@ value = Input("Enter your name (inline):", inline=True, required=True).ask()
 print(f"Hello, {value}!")
 
 value_from_menu = Menu(
-    title="Select your favorite color:",
+    label="Select your favorite color:",
     options=[
         Option({"value": "black", "name": "Black"}),
         Option({"value": "red", "name": "Red"}),

@@ -1,6 +1,6 @@
 import random
 from typing import List
-from rich_toolkit import RichToolkit, RichToolkitTheme
+from rich_toolkit import RichToolkit
 from rich_toolkit.styles.border import BorderedStyle
 from rich_toolkit.styles.tagged import TaggedStyle
 from rich_toolkit.menu import Option
@@ -39,21 +39,20 @@ def get_options() -> List[Option]:
     ]
 
 
-for style in [TaggedStyle(tag_width=12), BorderedStyle()]:
-    theme = RichToolkitTheme(
-        style=style,
-        theme={
-            "tag.title": "black on #A7E3A2",
-            "tag": "white on #893AE3",
-            "placeholder": "grey85",
-            "text": "white",
-            "selected": "green",
-            "result": "grey85",
-            "progress": "on #893AE3",
-        },
-    )
+theme = {
+    "tag.title": "black on #A7E3A2",
+    "tag": "white on #893AE3",
+    "placeholder": "grey85",
+    "text": "white",
+    "selected": "green",
+    "result": "grey85",
+    "progress": "on #893AE3",
+}
 
-    with RichToolkit(theme=theme) as app:
+for style in [TaggedStyle(tag_width=12, theme=theme), BorderedStyle(theme=theme)]:
+    print("Style: ", style)
+    print()
+    with RichToolkit(style=style) as app:
         app.print_title("Launch sequence initiated.", tag="astro")
         app.print_line()
 

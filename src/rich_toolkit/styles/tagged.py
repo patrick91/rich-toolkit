@@ -1,5 +1,5 @@
 import re
-from typing import Any, Union, Optional, Dict
+from typing import Any, Optional, Dict
 from typing_extensions import Literal
 
 from rich.console import Group, RenderableType
@@ -8,6 +8,7 @@ from rich.table import Column, Table
 
 from rich_toolkit.element import CursorOffset, Element
 from rich_toolkit.progress import Progress, ProgressLine
+from rich_toolkit.container import Container
 from rich.style import Style
 from .base import BaseStyle
 
@@ -87,43 +88,29 @@ class TaggedStyle(BaseStyle):
 
         return table
 
-    def render(
+    def render_element(
         self,
-        renderable: Union[Element, str],
+        element: Any,
         is_active: bool = False,
         done: bool = False,
         parent: Optional[Element] = None,
         **metadata: Any,
     ) -> RenderableType:
-        if isinstance(renderable, Element):
-            rendered = renderable.render(
-                is_active=is_active,
-                done=done,
-                parent=parent,
-            )
-        else:
-            rendered = renderable
+        is_animated = isinstance(element, Progress)
+        should_tag = not isinstance(element, (Container, ProgressLine))
 
-        is_animated = False
-
-        if isinstance(renderable, Progress):
-            is_animated = True
-
-        if isinstance(renderable, ProgressLine):
-            return self.render_progress_log_line(
-                rendered,
-                index=metadata.get("index", 0),
-                max_lines=metadata.get("max_lines", -1),
-                total_lines=metadata.get("total_lines", -1),
-            )
-
-        self.animation_counter += 1
-
-        return self._tag_element(
-            rendered,
-            is_animated=is_animated,
-            **metadata,
+        rendered = super().render_element(
+            element=element, is_active=is_active, done=done, parent=parent, **metadata
         )
+
+        if should_tag:
+            rendered = self._tag_element(
+                rendered,
+                is_animated=is_animated,
+                **metadata,
+            )
+
+        return rendered
 
     def get_cursor_offset_for_element(self, element: Element) -> CursorOffset:
         return CursorOffset(

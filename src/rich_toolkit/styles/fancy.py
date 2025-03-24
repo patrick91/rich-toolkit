@@ -1,4 +1,4 @@
-from typing import Any, Union, Optional
+from typing import Any, Optional
 
 from rich._loop import loop_first_last
 from rich.console import Console, ConsoleOptions, RenderableType, RenderResult
@@ -8,6 +8,7 @@ from rich.style import Style
 from typing import Dict
 from rich_toolkit.element import CursorOffset, Element
 from rich_toolkit.progress import Progress, ProgressLine
+from rich_toolkit.container import Container
 from rich_toolkit.styles.base import BaseStyle
 
 from .border import BorderedStyle
@@ -86,47 +87,38 @@ class FancyStyle(BorderedStyle):
         self.cursor_offset = 2
         self.decoration_size = 2
 
-    def render(
+    def render_element(
         self,
-        renderable: Union[Element, str],
+        element: Any,
         is_active: bool = False,
         done: bool = False,
         parent: Optional[Element] = None,
         **metadata: Any,
     ) -> RenderableType:
         title: Optional[str] = None
-        is_animated: Optional[bool] = None
 
-        if isinstance(renderable, Element):
-            rendered = renderable.render(is_active=is_active, done=done, parent=parent)
-        else:
-            rendered = renderable
+        is_animated = False
+        should_tag = not isinstance(element, (Container, ProgressLine))
 
-        if isinstance(renderable, Progress):
-            title = renderable.title
+        if isinstance(element, Progress):
+            title = element.title
             is_animated = True
 
-        if isinstance(renderable, ProgressLine):
-            return self.render_progress_log_line(
-                rendered,
-                index=metadata.get("index", 0),
-                max_lines=metadata.get("max_lines", -1),
-                total_lines=metadata.get("total_lines", -1),
-            )
-
-        content = FancyPanel(
-            rendered,
-            title=title,
-            metadata=metadata,
-            is_animated=is_animated,
-            animation_counter=self.animation_counter,
-            style=self,
+        rendered = super().render_element(
+            element=element, is_active=is_active, done=done, parent=parent, **metadata
         )
 
-        # TODO: maybe this should be based on the renderable?
-        self.animation_counter += 1
+        if should_tag:
+            rendered = FancyPanel(
+                rendered,
+                title=title,
+                metadata=metadata,
+                is_animated=is_animated,
+                animation_counter=self.animation_counter,
+                style=self,
+            )
 
-        return content
+        return rendered
 
     def empty_line(self) -> Text:
         """Return an empty line with decoration.

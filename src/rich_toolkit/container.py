@@ -1,16 +1,18 @@
-from typing import List, Tuple, Optional
+from __future__ import annotations
+
+from typing import List, Tuple, Optional, TYPE_CHECKING
 
 import click
-from rich.console import Group, RenderableType
+from rich.console import RenderableType
 from rich.control import Control, ControlType
 from rich.live_render import LiveRender
 from rich.segment import Segment
 
 from ._input_handler import TextInputHandler
 from .element import Element
-from .input import Input
-from .menu import Menu
-from .styles import MinimalStyle, BaseStyle
+
+if TYPE_CHECKING:
+    from .styles import BaseStyle
 
 
 class Container(Element):
@@ -19,11 +21,11 @@ class Container(Element):
         self.active_element_index = 0
         self.previous_element_index = 0
         self._live_render = LiveRender("")
-        self.style = style or MinimalStyle()
+        self._style = style
         self.console = self.style.console
 
     def _refresh(self, done: bool = False):
-        self._live_render.set_renderable(self.render(done=done))
+        self._live_render.set_renderable(self.style.render_element(self, done=done))
 
         active_element = self.elements[self.active_element_index]
 
@@ -118,30 +120,10 @@ class Container(Element):
             *original,
         )
 
-    def render(
-        self,
-        done: bool = False,
-        is_active: bool = False,
-        parent: Optional[Element] = None,
-    ) -> RenderableType:
-        self._content = []
-
-        for i, element in enumerate(self.elements):
-            self._content.append(
-                self.style.render(
-                    element,
-                    is_active=i == self.active_element_index,
-                    done=done,
-                    **element.metadata,
-                )
-            )
-
-        return Group(
-            *[wrapper for wrapper in self._content],
-            "\n" if not done else "",
-        )
-
     def handle_enter_key(self) -> bool:
+        from .input import Input
+        from .menu import Menu
+
         active_element = self.elements[self.active_element_index]
 
         if isinstance(active_element, (Input, Menu)):

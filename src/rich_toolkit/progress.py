@@ -9,7 +9,6 @@ from typing_extensions import Literal
 
 from .element import Element
 
-from .styles.minimal import MinimalStyle
 
 if TYPE_CHECKING:
     from .styles.base import BaseStyle
@@ -19,14 +18,6 @@ class ProgressLine(Element):
     def __init__(self, text: str | Text, parent: Progress):
         self.text = text
         self.parent = parent
-
-    def render(
-        self,
-        is_active: bool = False,
-        done: bool = False,
-        parent: Optional[Element] = None,
-    ) -> RenderableType:
-        return self.text
 
 
 class Progress(Live, Element):
@@ -44,10 +35,10 @@ class Progress(Live, Element):
     ) -> None:
         self.title = title
         self.current_message = title
-        self.style = style or MinimalStyle()
         self.is_error = False
         self._transient_on_error = transient_on_error
         self._inline_logs = inline_logs
+        self._style = style
         self.lines_to_show = lines_to_show
 
         self.logs: List[ProgressLine] = []
@@ -71,7 +62,7 @@ class Progress(Live, Element):
 
             content = Group(
                 *[
-                    self.style.render(
+                    self.style.render_element(
                         line,
                         index=index,
                         max_lines=self.lines_to_show,

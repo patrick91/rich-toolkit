@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Optional
 
-from rich.console import Group, RenderableType
 
 from ._input_handler import TextInputHandler
 from .element import CursorOffset, Element
@@ -39,14 +38,18 @@ class Input(TextInputHandler, Element):
         self.required = required
         self.password = password
         self.inline = inline
-        self.style = style
+        self._style = style
         self.metadata = metadata
 
         self.text = ""
         self.valid = None
         self.required_message = required_message
 
-        super().__init__(**metadata)
+        # TODO
+        self.metadata = metadata
+        self._cancelled = True
+
+        super().__init__()
 
     @property
     def placeholder(self) -> Optional[str]:
@@ -54,70 +57,6 @@ class Input(TextInputHandler, Element):
             return self.default
 
         return self._placeholder
-
-    def render_label(
-        self,
-        is_active: bool = False,
-        parent: Optional[Element] = None,
-    ) -> Optional[str]:
-        from .form import Form
-
-        label: Optional[str] = None
-
-        if self.label:
-            label = self.label
-
-            if isinstance(parent, Form):
-                if is_active:
-                    label = f"[active]{label}[/]"
-                elif not self.valid:
-                    label = f"[error]{label}[/]"
-
-        return label
-
-    def render_validation_message(self) -> Optional[str]:
-        if self._cancelled:
-            return "[cancelled]Cancelled.[/]"
-
-        if self.valid is False:
-            return f"[error]{self.validation_message}[/]"
-
-        return None
-
-    def render(
-        self,
-        is_active: bool = False,
-        done: bool = False,
-        parent: Optional[Element] = None,
-    ) -> RenderableType:
-        label = (
-            self.render_label(is_active, parent) if self._should_show_label else None
-        )
-        text = self.render_input()
-
-        contents = []
-
-        if self.inline or done:
-            if done and self.password:
-                text = "*" * len(self.text)
-            if label:
-                text = f"{label} {text}"
-
-            contents.append(text)
-        else:
-            if label:
-                contents.append(label)
-
-            contents.append(text)
-
-        if self._should_show_validation and (
-            validation_message := self.render_validation_message()
-        ):
-            contents.append(validation_message)
-
-        self._height = len(contents)
-
-        return Group(*contents)
 
     @property
     def validation_message(self) -> Optional[str]:
@@ -153,26 +92,6 @@ class Input(TextInputHandler, Element):
     @property
     def value(self) -> str:
         return self.text or self.default or ""
-
-    def render_input(self) -> RenderableType:
-        text = self.text
-
-        if self.password:
-            text = "*" * len(self.text)
-
-        # if there's no default value, add a space to keep the cursor visible
-        # and, most importantly, in the right place
-        placeholder = self.placeholder or " "
-
-        if self.text:
-            text = f"[text]{text}[/]"
-        else:
-            if self._cancelled:
-                text = f"[placeholder.cancelled]{placeholder}[/]"
-            else:
-                text = f"[placeholder]{placeholder}[/]"
-
-        return text
 
     def ask(self) -> str:
         from .container import Container

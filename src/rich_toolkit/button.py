@@ -1,7 +1,5 @@
 from typing import Any, Callable, Optional
 
-from rich.console import RenderableType
-from rich.text import Text
 
 from .element import Element
 
@@ -19,15 +17,6 @@ class Button(Element):
         self.callback = callback
 
         super().__init__(**metadata)
-
-    def render(
-        self,
-        is_active: bool = False,
-        done: bool = False,
-        parent: Optional[Element] = None,
-    ) -> RenderableType:
-        style = "black on blue" if is_active else "white on black"
-        return Text(f" {self.label} ", style=style)
 
     def activate(self) -> Any:
         if self.callback:
