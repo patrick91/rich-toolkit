@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-
-from typing import Any, NamedTuple, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, NamedTuple, Union
 
 if TYPE_CHECKING:
     from .styles import BaseStyle
@@ -13,7 +12,7 @@ class CursorOffset(NamedTuple):
 
 
 class Element:
-    metadata: dict = {}
+    metadata: Dict[Any, Any] = {}
 
     def __init__(self, **metadata: Any):
         self.metadata = metadata

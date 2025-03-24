@@ -95,20 +95,20 @@ class TaggedStyle(BaseStyle):
         is_active: bool = False,
         done: bool = False,
         parent: Optional[Element] = None,
-        **metadata: Any,
+        **kwargs: Any,
     ) -> RenderableType:
         is_animated = isinstance(element, Progress)
         should_tag = not isinstance(element, (ProgressLine, Container))
 
         rendered = super().render_element(
-            element=element, is_active=is_active, done=done, parent=parent, **metadata
+            element=element, is_active=is_active, done=done, parent=parent, **kwargs
         )
 
         if should_tag:
             rendered = self._tag_element(
                 rendered,
                 is_animated=is_animated,
-                **metadata,
+                **element.metadata,
             )
 
         return rendered

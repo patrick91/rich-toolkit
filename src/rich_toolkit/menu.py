@@ -7,7 +7,6 @@ from rich.console import RenderableType
 from rich.text import Text
 from typing_extensions import Any, Literal, TypedDict
 
-
 from ._input_handler import TextInputHandler
 from .element import CursorOffset, Element
 
@@ -65,6 +64,7 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
 
         self._style = style
         self.console = self.style.console
+        self.metadata = metadata
 
     def get_key(self) -> Optional[str]:
         char = click.getchar()
@@ -195,7 +195,7 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
     def ask(self) -> ReturnValue:
         from .container import Container
 
-        container = Container(style=self.style)
+        container = Container(style=self.style, metadata=self.metadata)
 
         container.elements = [self]
 

@@ -120,12 +120,12 @@ class BaseStyle:
         is_active: bool = False,
         done: bool = False,
         parent: Optional[Element] = None,
-        **metadata: Any,
+        **kwargs: Any,
     ) -> RenderableType:
         self.animation_counter += 1
 
         if isinstance(element, str):
-            return self.render_string(element, is_active, done, parent, **metadata)
+            return self.render_string(element, is_active, done, parent)
         elif isinstance(element, Button):
             return self.render_button(element, is_active, done, parent)
         elif isinstance(element, Container):
@@ -139,9 +139,9 @@ class BaseStyle:
         elif isinstance(element, ProgressLine):
             return self.render_progress_log_line(
                 element.text,
-                index=metadata.get("index", 0),
-                max_lines=metadata.get("max_lines", -1),
-                total_lines=metadata.get("total_lines", -1),
+                index=kwargs.get("index", 0),
+                max_lines=kwargs.get("max_lines", -1),
+                total_lines=kwargs.get("total_lines", -1),
             )
 
         raise ValueError(f"Unknown element type: {type(element)}")
@@ -152,7 +152,6 @@ class BaseStyle:
         is_active: bool = False,
         done: bool = False,
         parent: Optional[Element] = None,
-        **metadata: Any,
     ) -> RenderableType:
         return string
 
@@ -182,8 +181,6 @@ class BaseStyle:
                     element,
                     is_active=i == container.active_element_index,
                     done=done,
-                    # TODO?
-                    **element.metadata,
                 )
             )
 

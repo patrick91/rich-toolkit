@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Tuple, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 import click
 from rich.console import RenderableType
@@ -16,13 +16,18 @@ if TYPE_CHECKING:
 
 
 class Container(Element):
-    def __init__(self, style: Optional[BaseStyle] = None):
+    def __init__(
+        self,
+        style: Optional[BaseStyle] = None,
+        metadata: Optional[Dict[Any, Any]] = None,
+    ):
         self.elements: List[Element] = []
         self.active_element_index = 0
         self.previous_element_index = 0
         self._live_render = LiveRender("")
         self._style = style
         self.console = self.style.console
+        self.metadata = metadata
 
     def _refresh(self, done: bool = False):
         self._live_render.set_renderable(self.style.render_element(self, done=done))
