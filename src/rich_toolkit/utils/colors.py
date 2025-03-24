@@ -1,9 +1,10 @@
+import io
+
 from rich.color import Color
 from rich.color_triplet import ColorTriplet
 from rich.style import Style
 from rich.text import Text
 from typing_extensions import Literal
-import io
 
 
 def lighten(color: Color, amount: float) -> Color:
@@ -182,6 +183,8 @@ def _get_terminal_color(
     finally:
         # Restore terminal settings
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+        sys.stdout.flush()
+        print()
 
 
 def get_terminal_text_color(default_color: str = "#FFFFFF") -> str:

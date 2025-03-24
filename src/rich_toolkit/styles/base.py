@@ -61,7 +61,7 @@ class BaseStyle:
         text_color: str = "#FFFFFF",
     ):
         self.background_color = get_terminal_background_color(background_color)
-        self.text_color = get_terminal_text_color(text_color)
+        # self.text_color = get_terminal_text_color(text_color)
         self.animation_counter = 0
 
         base_theme = Theme(self.base_theme)

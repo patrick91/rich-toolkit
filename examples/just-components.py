@@ -4,6 +4,16 @@ from rich_toolkit.input import Input
 from rich_toolkit.menu import Menu, Option
 from rich_toolkit.progress import Progress
 
+with Progress(title="Downloading...") as progress:
+    for i in range(11):
+        progress.log(f"Downloaded {i * 10}%")
+        time.sleep(0.1)
+
+with Progress(title="Downloading (inline logs)...", inline_logs=True) as progress:
+    for i in range(11):
+        progress.log(f"Downloaded {i * 10}%")
+        time.sleep(0.1)
+
 value = Input("Enter your name:", name="name", default="John").ask()
 
 print(f"Hello, {value}!")
@@ -23,14 +33,3 @@ value_from_menu = Menu(
 ).ask()
 
 print(f"Your favorite color is {value_from_menu}!")
-
-
-with Progress(title="Downloading...") as progress:
-    for i in range(11):
-        progress.log(f"Downloaded {i * 10}%")
-        time.sleep(0.1)
-
-with Progress(title="Downloading (inline logs)...", inline_logs=True) as progress:
-    for i in range(11):
-        progress.log(f"Downloaded {i * 10}%")
-        time.sleep(0.1)

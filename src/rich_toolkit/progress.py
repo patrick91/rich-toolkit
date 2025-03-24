@@ -38,15 +38,21 @@ class Progress(Live, Element):
         self.is_error = False
         self._transient_on_error = transient_on_error
         self._inline_logs = inline_logs
-        self._style = style
         self.lines_to_show = lines_to_show
 
         self.logs: List[ProgressLine] = []
 
-        super().__init__(console=console, refresh_per_second=8, transient=transient)
         self.metadata = metadata
-
+        self._style = style
         self._cancelled = False
+
+        super().__init__(console=console, refresh_per_second=8, transient=transient)
+
+    # TODO: remove this once rich uses "Self"
+    def __enter__(self) -> "Progress":
+        self.start(refresh=self._renderable is not None)
+
+        return self
 
     def get_renderable(self) -> RenderableType:
         return self.style.render_element(self)
@@ -57,11 +63,7 @@ class Progress(Live, Element):
         else:
             self.current_message = text
 
-        self.refresh()
-
     def set_error(self, text: str) -> None:
         self.current_message = text
         self.is_error = True
         self.transient = self._transient_on_error
-
-        self.refresh()
