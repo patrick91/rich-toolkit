@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
-from rich.console import Console, Group
-from rich.live import Live, RenderableType
+from rich.console import Console, RenderableType
+from rich.live import Live
 from rich.text import Text
 from typing_extensions import Literal
 
@@ -31,6 +31,7 @@ class Progress(Live, Element):
         transient_on_error: bool = False,
         inline_logs: bool = False,
         lines_to_show: int = -1,
+        **metadata: Dict[Any, Any],
     ) -> None:
         self.title = title
         self.current_message = title
@@ -43,52 +44,12 @@ class Progress(Live, Element):
         self.logs: List[ProgressLine] = []
 
         super().__init__(console=console, refresh_per_second=8, transient=transient)
+        self.metadata = metadata
 
-    def render(
-        self,
-        is_active: bool = False,
-        done: bool = False,
-        parent: Optional[Element] = None,
-    ) -> RenderableType:
-        content: str | Group | Text = self.current_message
-
-        if self.logs and self._inline_logs:
-            lines_to_show = (
-                self.logs[-self.lines_to_show :]
-                if self.lines_to_show > 0
-                else self.logs
-            )
-
-            content = Group(
-                *[
-                    self.style.render_element(
-                        line,
-                        index=index,
-                        max_lines=self.lines_to_show,
-                        total_lines=len(self.logs),
-                    )
-                    for index, line in enumerate(lines_to_show)
-                ]
-            )
-
-        return content
+        self._cancelled = False
 
     def get_renderable(self) -> RenderableType:
-        animation_status: Literal["started", "stopped", "error"] = (
-            "started" if self._started else "stopped"
-        )
-
-        if self.is_error:
-            animation_status = "error"
-
-        if self.style is None:
-            return self.render()
-
-        return self.style.render_element(
-            self,
-            animation_status=animation_status,
-            started=self._started,
-        )
+        return self.style.render_element(self)
 
     def log(self, text: str | Text) -> None:
         if self._inline_logs:
@@ -96,7 +57,11 @@ class Progress(Live, Element):
         else:
             self.current_message = text
 
+        self.refresh()
+
     def set_error(self, text: str) -> None:
         self.current_message = text
         self.is_error = True
         self.transient = self._transient_on_error
+
+        self.refresh()

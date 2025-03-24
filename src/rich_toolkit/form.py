@@ -1,14 +1,14 @@
 from typing import Any, Callable, Optional
 
+from rich.console import Group, RenderableType
+
+from rich_toolkit._rich_components import Panel
+from rich_toolkit.element import Element
+from rich_toolkit.styles import BaseStyle
+
 from .button import Button
 from .container import Container
 from .input import Input
-
-from rich.console import RenderableType, Group
-from rich_toolkit._rich_components import Panel
-
-from rich_toolkit.styles import BaseStyle
-from rich_toolkit.element import Element
 
 
 class Form(Container):
@@ -88,7 +88,6 @@ class Form(Container):
                     is_active=i == self.active_element_index,
                     done=done,
                     parent=self,
-                    **element.metadata,
                 )
             )
 

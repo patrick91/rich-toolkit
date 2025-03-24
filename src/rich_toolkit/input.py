@@ -12,9 +12,6 @@ if TYPE_CHECKING:
 class Input(TextInputHandler, Element):
     label: Optional[str] = None
 
-    _should_show_label: bool = True
-    _should_show_validation: bool = True
-
     def __init__(
         self,
         label: Optional[str] = None,
@@ -70,7 +67,7 @@ class Input(TextInputHandler, Element):
 
         left_offset = 0
 
-        if self.inline and self.label and self._should_show_label:
+        if self.inline and self.label:
             left_offset = len(self.label) + 1
 
         return CursorOffset(top=top, left=self.cursor_left + left_offset)

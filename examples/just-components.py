@@ -1,10 +1,8 @@
 import time
+
 from rich_toolkit.input import Input
-
-
 from rich_toolkit.menu import Menu, Option
 from rich_toolkit.progress import Progress
-
 
 value = Input("Enter your name:", name="name", default="John").ask()
 

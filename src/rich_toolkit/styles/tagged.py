@@ -104,11 +104,15 @@ class TaggedStyle(BaseStyle):
             element=element, is_active=is_active, done=done, parent=parent, **kwargs
         )
 
+        metadata = kwargs
+        if isinstance(element, Element) and element.metadata:
+            metadata = {**element.metadata, **metadata}
+
         if should_tag:
             rendered = self._tag_element(
                 rendered,
                 is_animated=is_animated,
-                **element.metadata,
+                **metadata,
             )
 
         return rendered

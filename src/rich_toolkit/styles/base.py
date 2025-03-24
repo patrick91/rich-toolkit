@@ -214,9 +214,7 @@ class BaseStyle:
 
             contents.append(text)
 
-        if element._should_show_validation and (
-            validation_message := self.render_validation_message(element)
-        ):
+        if validation_message := self.render_validation_message(element):
             contents.append(validation_message)
 
         # TODO: do we need this?

@@ -204,5 +204,7 @@ class BorderedStyle(BaseStyle):
         if isinstance(element, Input) and element.inline:
             # we don't support inline inputs yet in border style
             top_offset += 1
+            inline_left_offset = (len(element.label) - 1) if element.label else 0
+            left_offset = element.cursor_offset.left - inline_left_offset
 
         return CursorOffset(top=top_offset, left=left_offset)

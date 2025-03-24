@@ -63,4 +63,3 @@ for style in [TaggedStyle(tag_width=8, theme=theme), FancyStyle(theme=theme)]:
             options=get_options(),
             allow_filtering=True,
         )
-        app.print_line()
