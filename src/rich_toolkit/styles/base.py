@@ -245,14 +245,12 @@ class BaseStyle:
     ) -> RenderableType:
         text = input.text
 
-        if isinstance(input, Input) and input.password:
-            text = "*" * len(input.text)
+        placeholder = ""
+        if isinstance(input, Input):
+            if input.password:
+                text = "*" * len(input.text)
 
-            # if there's no default value, add a space to keep the cursor visible
-            # and, most importantly, in the right place
-            placeholder = input.placeholder or " "
-        else:
-            placeholder = " "
+            placeholder = input.placeholder
 
         if input.text:
             text = f"[text]{text}[/]"

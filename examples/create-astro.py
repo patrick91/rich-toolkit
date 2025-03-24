@@ -11,21 +11,22 @@ def random_name_generator() -> str:
     return f"{random.choice(['fancy', 'cool', 'awesome'])}-{random.choice(['banana', 'apple', 'strawberry'])}"
 
 
-for style in [TaggedStyle(tag_width=10), FancyStyle(), BorderedStyle()]:
-    theme = RichToolkitTheme(
-        style=style,
-        theme={
-            "tag.title": "black on #A7E3A2",
-            "tag": "white on #893AE3",
-            "placeholder": "grey85",
-            "text": "white",
-            "selected": "green",
-            "result": "grey85",
-            "progress": "on #893AE3",
-        },
-    )
+theme = {
+    "tag.title": "black on #A7E3A2",
+    "tag": "white on #893AE3",
+    "placeholder": "grey85",
+    "text": "white",
+    "selected": "green",
+    "result": "grey85",
+    "progress": "on #893AE3",
+}
 
-    with RichToolkit(theme=theme) as app:
+for style in [
+    TaggedStyle(tag_width=10, theme=theme),
+    FancyStyle(theme=theme),
+    BorderedStyle(theme=theme),
+]:
+    with RichToolkit(style=style) as app:
         app.print_title("Launch sequence initiated.", tag="astro")
 
         app.print_line()

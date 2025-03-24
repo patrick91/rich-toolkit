@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Union, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from rich.console import Console, RenderableType
 from rich.theme import Theme
@@ -76,9 +76,9 @@ class RichToolkit:
     def print_line(self) -> None:
         self.console.print(self.style.empty_line())
 
-    def confirm(self, title: str, **metadata: Any) -> bool:
+    def confirm(self, label: str, **metadata: Any) -> bool:
         return self.ask(
-            title=title,
+            label=label,
             options=[
                 Option({"value": True, "name": "Yes"}),
                 Option({"value": False, "name": "No"}),

@@ -1,17 +1,15 @@
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 from rich._loop import loop_first_last
 from rich.console import Console, ConsoleOptions, RenderableType, RenderResult
 from rich.segment import Segment
-from rich.text import Text
 from rich.style import Style
-from typing import Dict
+from rich.text import Text
+
+from rich_toolkit.container import Container
 from rich_toolkit.element import CursorOffset, Element
 from rich_toolkit.progress import Progress, ProgressLine
-from rich_toolkit.container import Container
 from rich_toolkit.styles.base import BaseStyle
-
-from .border import BorderedStyle
 
 
 class FancyPanel:
@@ -80,7 +78,7 @@ class FancyPanel:
                 yield new_line
 
 
-class FancyStyle(BorderedStyle):
+class FancyStyle(BaseStyle):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 

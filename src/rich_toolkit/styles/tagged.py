@@ -1,15 +1,16 @@
 import re
-from typing import Any, Optional, Dict
-from typing_extensions import Literal
+from typing import Any, Dict, Optional
 
 from rich.console import Group, RenderableType
 from rich.segment import Segment
+from rich.style import Style
 from rich.table import Column, Table
+from typing_extensions import Literal
 
+from rich_toolkit.container import Container
 from rich_toolkit.element import CursorOffset, Element
 from rich_toolkit.progress import Progress, ProgressLine
-from rich_toolkit.container import Container
-from rich.style import Style
+
 from .base import BaseStyle
 
 
@@ -97,7 +98,7 @@ class TaggedStyle(BaseStyle):
         **metadata: Any,
     ) -> RenderableType:
         is_animated = isinstance(element, Progress)
-        should_tag = not isinstance(element, (Container, ProgressLine))
+        should_tag = not isinstance(element, (ProgressLine, Container))
 
         rendered = super().render_element(
             element=element, is_active=is_active, done=done, parent=parent, **metadata

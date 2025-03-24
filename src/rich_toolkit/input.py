@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Optional
 
-
 from ._input_handler import TextInputHandler
 from .element import CursorOffset, Element
 
@@ -38,25 +37,25 @@ class Input(TextInputHandler, Element):
         self.required = required
         self.password = password
         self.inline = inline
-        self._style = style
         self.metadata = metadata
 
         self.text = ""
         self.valid = None
         self.required_message = required_message
 
-        # TODO
-        self.metadata = metadata
-        self._cancelled = True
-
         super().__init__()
 
+        # TODO (super?)
+        self.metadata = metadata
+        self._cancelled = False
+        self._style = style
+
     @property
-    def placeholder(self) -> Optional[str]:
+    def placeholder(self) -> str:
         if self.default_as_placeholder and self.default:
             return self.default
 
-        return self._placeholder
+        return self._placeholder or ""
 
     @property
     def validation_message(self) -> Optional[str]:
