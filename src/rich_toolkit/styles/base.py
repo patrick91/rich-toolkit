@@ -1,24 +1,25 @@
 from __future__ import annotations
-from typing import Any, Type, TypeVar, Union, Optional, Dict
-from typing_extensions import Literal
+
+from typing import Any, Dict, Optional, Type, TypeVar, Union
 
 from rich.color import Color
-from rich.console import ConsoleRenderable, RenderableType, Group
-from rich.theme import Theme
+from rich.console import Console, ConsoleRenderable, Group, RenderableType
 from rich.text import Text
-from rich.console import Console
+from rich.theme import Theme
+from typing_extensions import Literal
+
+from rich_toolkit.button import Button
+from rich_toolkit.container import Container
 from rich_toolkit.element import CursorOffset, Element
+from rich_toolkit.input import Input
+from rich_toolkit.menu import Menu
+from rich_toolkit.progress import Progress, ProgressLine
 from rich_toolkit.utils.colors import (
-    lighten,
     fade_text,
     get_terminal_background_color,
     get_terminal_text_color,
+    lighten,
 )
-from rich_toolkit.button import Button
-from rich_toolkit.container import Container
-from rich_toolkit.input import Input
-from rich_toolkit.progress import ProgressLine
-from rich_toolkit.menu import Menu
 
 ConsoleRenderableClass = TypeVar(
     "ConsoleRenderableClass", bound=Type[ConsoleRenderable]
@@ -133,6 +134,8 @@ class BaseStyle:
             return self.render_input(element, is_active, done, parent)
         elif isinstance(element, Menu):
             return self.render_menu(element, is_active, done, parent)
+        elif isinstance(element, Progress):
+            return self.render_progress(element, is_active, done, parent)
         elif isinstance(element, ProgressLine):
             return self.render_progress_log_line(
                 element.text,
@@ -357,6 +360,36 @@ class BaseStyle:
             content.append(message)
 
         return Group(*content)
+
+    def render_progress(
+        self,
+        element: Progress,
+        is_active: bool = False,
+        done: bool = False,
+        parent: Optional[Element] = None,
+    ) -> RenderableType:
+        content: str | Group | Text = element.current_message
+
+        if element.logs and element._inline_logs:
+            lines_to_show = (
+                element.logs[-element.lines_to_show :]
+                if element.lines_to_show > 0
+                else element.logs
+            )
+
+            content = Group(
+                *[
+                    self.render_element(
+                        line,
+                        index=index,
+                        max_lines=element.lines_to_show,
+                        total_lines=len(element.logs),
+                    )
+                    for index, line in enumerate(lines_to_show)
+                ]
+            )
+
+        return content
 
     def render_progress_log_line(
         self,

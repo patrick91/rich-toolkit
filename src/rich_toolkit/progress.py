@@ -9,7 +9,6 @@ from typing_extensions import Literal
 
 from .element import Element
 
-
 if TYPE_CHECKING:
     from .styles.base import BaseStyle
 
@@ -85,7 +84,7 @@ class Progress(Live, Element):
         if self.style is None:
             return self.render()
 
-        return self.style.render(
+        return self.style.render_element(
             self,
             animation_status=animation_status,
             started=self._started,
