@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, NamedTuple, Union
+from typing import TYPE_CHECKING, Any, Dict, NamedTuple, Optional
 
 if TYPE_CHECKING:
     from .styles import BaseStyle
@@ -13,14 +13,18 @@ class CursorOffset(NamedTuple):
 
 class Element:
     metadata: Dict[Any, Any] = {}
+    style: BaseStyle
 
-    def __init__(self, **metadata: Any):
-        self.metadata = metadata
+    def __init__(
+        self,
+        style: Optional[BaseStyle] = None,
+        metadata: Optional[Dict[Any, Any]] = None,
+    ):
+        from .styles import MinimalStyle
 
         self._cancelled = False
-        self._style: Union[BaseStyle, None] = None
-
-        super().__init__()
+        self.metadata = metadata or {}
+        self.style = style or MinimalStyle()
 
     @property
     def cursor_offset(self) -> CursorOffset:
@@ -29,12 +33,6 @@ class Element:
     @property
     def should_show_cursor(self) -> bool:
         return False
-
-    @property
-    def style(self) -> BaseStyle:
-        from .styles import MinimalStyle
-
-        return self._style or MinimalStyle()
 
     def handle_key(self, key: str) -> None:  # noqa: B027
         pass

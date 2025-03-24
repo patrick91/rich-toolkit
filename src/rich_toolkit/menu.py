@@ -31,9 +31,6 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
     selection_char = "○"
     filter_prompt = "Filter: "
 
-    _should_show_label = True
-    _should_show_validation = False
-
     def __init__(
         self,
         label: str,
@@ -60,11 +57,8 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
 
         cursor_offset = cursor_offset + len(self.filter_prompt)
 
+        Element.__init__(self, style=style, metadata=metadata)
         super().__init__()
-
-        self._style = style
-        self.console = self.style.console
-        self.metadata = metadata
 
     def get_key(self) -> Optional[str]:
         char = click.getchar()

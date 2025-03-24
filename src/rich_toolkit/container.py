@@ -25,9 +25,10 @@ class Container(Element):
         self.active_element_index = 0
         self.previous_element_index = 0
         self._live_render = LiveRender("")
-        self._style = style
+
+        super().__init__(style=style, metadata=metadata)
+
         self.console = self.style.console
-        self.metadata = metadata
 
     def _refresh(self, done: bool = False):
         self._live_render.set_renderable(self.style.render_element(self, done=done))

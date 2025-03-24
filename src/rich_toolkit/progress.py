@@ -43,9 +43,9 @@ class Progress(Live, Element):
         self.logs: List[ProgressLine] = []
 
         self.metadata = metadata
-        self._style = style
         self._cancelled = False
 
+        Element.__init__(self, style=style)
         super().__init__(console=console, refresh_per_second=8, transient=transient)
 
     # TODO: remove this once rich uses "Self"

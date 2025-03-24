@@ -34,18 +34,13 @@ class Input(TextInputHandler, Element):
         self.required = required
         self.password = password
         self.inline = inline
-        self.metadata = metadata
 
         self.text = ""
         self.valid = None
         self.required_message = required_message
 
+        Element.__init__(self, style=style, metadata=metadata)
         super().__init__()
-
-        # TODO (super?)
-        self.metadata = metadata
-        self._cancelled = False
-        self._style = style
 
     @property
     def placeholder(self) -> str:
