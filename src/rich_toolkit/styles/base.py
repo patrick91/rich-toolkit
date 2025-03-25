@@ -132,6 +132,7 @@ class BaseStyle:
         elif isinstance(element, ProgressLine):
             return self.render_progress_log_line(
                 element.text,
+                parent=parent,
                 index=kwargs.get("index", 0),
                 max_lines=kwargs.get("max_lines", -1),
                 total_lines=kwargs.get("total_lines", -1),
@@ -371,6 +372,7 @@ class BaseStyle:
                         index=index,
                         max_lines=element.lines_to_show,
                         total_lines=len(element.logs),
+                        parent=element,
                     )
                     for index, line in enumerate(lines_to_show)
                 ]
@@ -384,6 +386,7 @@ class BaseStyle:
         index: int,
         max_lines: int = -1,
         total_lines: int = -1,
+        parent: Optional[Element] = None,
     ) -> Text:
         line = Text.from_markup(line) if isinstance(line, str) else line
         if max_lines == -1:

@@ -62,4 +62,14 @@ for style in [
                 time.sleep(random.uniform(0.05, 0.35))
                 progress.log(f"Step {x + 1} completed")
 
+        app.print_line()
+
+        with app.progress(
+            "Progress with inline logs",
+            inline_logs=True,
+        ) as progress:
+            for x in range(5):
+                time.sleep(1)
+                progress.log(f"Step {x + 1} completed")
+
     print("----------------------------------------")
