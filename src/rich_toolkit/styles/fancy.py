@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from rich._loop import loop_first_last
 from rich.console import Console, ConsoleOptions, RenderableType, RenderResult
@@ -44,12 +44,23 @@ class FancyPanel:
         else:
             return Segment(char + suffix, style=Style(color="green"))
 
+    def _strip_trailing_newlines(
+        self, lines: List[List[Segment]]
+    ) -> List[List[Segment]]:
+        # remove all empty lines from the end of the list
+
+        while lines and all(segment.text.strip() == "" for segment in lines[-1]):
+            lines.pop()
+
+        return lines
+
     def __rich_console__(
         self, console: "Console", options: "ConsoleOptions"
     ) -> "RenderResult":
         renderable = self.renderable
 
         lines = console.render_lines(renderable)
+        lines = self._strip_trailing_newlines(lines)
 
         line_start = self._get_decoration()
 
