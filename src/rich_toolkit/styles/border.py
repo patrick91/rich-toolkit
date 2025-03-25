@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union
+from typing import Any, Optional, Tuple, Union
 
 from rich import box
 from rich.color import Color
@@ -29,7 +29,7 @@ class BorderedStyle(BaseStyle):
         title: Union[str, Text, None],
         is_active: bool,
         border_color: Color,
-        after: tuple[str, ...] = (),
+        after: Tuple[str, ...] = (),
     ) -> RenderableType:
         return Group(
             Panel(
@@ -66,7 +66,7 @@ class BorderedStyle(BaseStyle):
         parent: Optional[Element] = None,
         **metadata: Any,
     ) -> RenderableType:
-        validation_message: tuple[str, ...] = ()
+        validation_message: Tuple[str, ...] = ()
 
         if isinstance(parent, Form):
             return super().render_input(element, is_active, done, parent, **metadata)
@@ -101,7 +101,7 @@ class BorderedStyle(BaseStyle):
         parent: Optional[Element] = None,
         **metadata: Any,
     ) -> RenderableType:
-        validation_message: tuple[str, ...] = ()
+        validation_message: Tuple[str, ...] = ()
 
         menu = Text(justify="left")
 

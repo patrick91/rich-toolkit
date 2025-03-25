@@ -56,7 +56,7 @@ class Container(Element):
     def _active_element(self) -> Element:
         return self.elements[self.active_element_index]
 
-    def _get_size(self, renderable: RenderableType) -> tuple[int, int]:
+    def _get_size(self, renderable: RenderableType) -> Tuple[int, int]:
         lines = self.console.render_lines(renderable, self.console.options, pad=False)
 
         return Segment.get_shape(lines)
