@@ -7,7 +7,9 @@ from rich.style import Style
 from rich.text import Text
 
 from rich_toolkit._rich_components import Panel
+from rich_toolkit.container import Container
 from rich_toolkit.element import CursorOffset, Element
+from rich_toolkit.form import Form
 from rich_toolkit.input import Input
 from rich_toolkit.menu import Menu
 from rich_toolkit.progress import Progress
@@ -42,6 +44,20 @@ class BorderedStyle(BaseStyle):
             *after,
         )
 
+    def render_container(
+        self,
+        element: Container,
+        is_active: bool = False,
+        done: bool = False,
+        parent: Optional[Element] = None,
+    ) -> RenderableType:
+        content = super().render_container(element, is_active, done, parent)
+
+        if isinstance(element, Form):
+            return self._box(content, element.title, is_active, Color.parse("white"))
+
+        return content
+
     def render_input(
         self,
         element: Input,
@@ -51,6 +67,9 @@ class BorderedStyle(BaseStyle):
         **metadata: Any,
     ) -> RenderableType:
         validation_message: tuple[str, ...] = ()
+
+        if isinstance(parent, Form):
+            return super().render_input(element, is_active, done, parent, **metadata)
 
         if message := self.render_validation_message(element):
             validation_message = (message,)
@@ -194,9 +213,9 @@ class BorderedStyle(BaseStyle):
 
         return self._box(content, title, is_active, border_color=border_color)
 
-    def get_cursor_offset_for_element(self, element: Element) -> CursorOffset:
-        from rich_toolkit.input import Input
-
+    def get_cursor_offset_for_element(
+        self, element: Element, parent: Optional[Element] = None
+    ) -> CursorOffset:
         top_offset = element.cursor_offset.top
         left_offset = element.cursor_offset.left + 2
 
@@ -205,5 +224,8 @@ class BorderedStyle(BaseStyle):
             top_offset += 1
             inline_left_offset = (len(element.label) - 1) if element.label else 0
             left_offset = element.cursor_offset.left - inline_left_offset
+
+        if isinstance(parent, Form):
+            top_offset += 1
 
         return CursorOffset(top=top_offset, left=left_offset)

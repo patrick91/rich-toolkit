@@ -129,7 +129,9 @@ class FancyStyle(BaseStyle):
         """
         return Text("│", style="fancy.normal")
 
-    def get_cursor_offset_for_element(self, element: Element) -> CursorOffset:
+    def get_cursor_offset_for_element(
+        self, element: Element, parent: Optional[Element] = None
+    ) -> CursorOffset:
         """Get the cursor offset for an element.
 
         Args:

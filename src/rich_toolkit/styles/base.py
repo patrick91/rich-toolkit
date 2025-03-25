@@ -104,7 +104,9 @@ class BaseStyle:
 
         return colors
 
-    def get_cursor_offset_for_element(self, element: Element) -> CursorOffset:
+    def get_cursor_offset_for_element(
+        self, element: Element, parent: Optional[Element] = None
+    ) -> CursorOffset:
         return element.cursor_offset
 
     def render_element(
@@ -179,8 +181,7 @@ class BaseStyle:
             )
 
         return Group(
-            *[wrapper for wrapper in container._content],
-            "\n" if not done else "",
+            *container._content,
         )
 
     def render_input(

@@ -69,7 +69,7 @@ class Container(Element):
 
             if i == element_index:
                 position += self.style.get_cursor_offset_for_element(
-                    self.elements[i]
+                    self.elements[i], parent=self
                 ).top
             else:
                 size = self._get_size(current_element)
@@ -102,7 +102,7 @@ class Container(Element):
         )
 
         cursor_left = self.style.get_cursor_offset_for_element(
-            self._active_element
+            self._active_element, parent=self
         ).left
 
         return (Control.move_to_column(cursor_left), *move_cursor)
