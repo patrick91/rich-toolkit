@@ -25,13 +25,6 @@ ConsoleRenderableClass = TypeVar(
     "ConsoleRenderableClass", bound=Type[ConsoleRenderable]
 )
 
-# TODO: I think base style needs to know how to render other components
-# I was thinking that each component could know how to render itself
-# but it's probably a mess, having both styles and components knowing
-# how to render things (styles could override each component, which
-# is good, but the fact that there's two places/things that know how
-# to render stuff is not great)
-
 
 class BaseStyle:
     brightness_multiplier = 0.1
@@ -61,7 +54,7 @@ class BaseStyle:
         text_color: str = "#FFFFFF",
     ):
         self.background_color = get_terminal_background_color(background_color)
-        # self.text_color = get_terminal_text_color(text_color)
+        self.text_color = get_terminal_text_color(text_color)
         self.animation_counter = 0
 
         base_theme = Theme(self.base_theme)
@@ -181,6 +174,7 @@ class BaseStyle:
                     element,
                     is_active=i == container.active_element_index,
                     done=done,
+                    parent=container,
                 )
             )
 

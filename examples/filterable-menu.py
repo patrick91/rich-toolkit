@@ -1,9 +1,9 @@
 import random
 from typing import List
 
-from rich_toolkit import RichToolkit, RichToolkitTheme
+from rich_toolkit import RichToolkit
 from rich_toolkit.menu import Option
-from rich_toolkit.styles import FancyStyle, TaggedStyle
+from rich_toolkit.styles import BorderedStyle, FancyStyle, TaggedStyle
 
 words = [
     "sparkle",
@@ -48,7 +48,11 @@ theme = {
     "progress": "on #893AE3",
 }
 
-for style in [TaggedStyle(tag_width=8, theme=theme), FancyStyle(theme=theme)]:
+for style in [
+    TaggedStyle(tag_width=8, theme=theme),
+    FancyStyle(theme=theme),
+    BorderedStyle(),
+]:
     with RichToolkit(style=style) as app:
         app.ask(
             "Where should we create your new project? (Type to search)",

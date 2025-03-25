@@ -1,11 +1,14 @@
 import rich
 
 from rich_toolkit.form import Form
-from rich_toolkit.styles.border import BorderedStyle
-from rich_toolkit.styles.tagged import TaggedStyle
+from rich_toolkit.styles import BorderedStyle, FancyStyle, MinimalStyle, TaggedStyle
 
-
-for style in [BorderedStyle(), TaggedStyle(tag_width=12)]:
+for style in [
+    FancyStyle(),
+    MinimalStyle(),
+    BorderedStyle(),
+    TaggedStyle(tag_width=12),
+]:
     form = Form(title="Enter your login details", style=style)
 
     form.add_button(name="ai", label="Fill with AI ✨", tag="form")  # TODO: callback?

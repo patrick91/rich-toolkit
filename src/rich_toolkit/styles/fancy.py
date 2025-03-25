@@ -8,7 +8,8 @@ from rich.text import Text
 
 from rich_toolkit.container import Container
 from rich_toolkit.element import CursorOffset, Element
-from rich_toolkit.progress import Progress, ProgressLine
+from rich_toolkit.form import Form
+from rich_toolkit.progress import Progress
 from rich_toolkit.styles.base import BaseStyle
 
 
@@ -85,6 +86,9 @@ class FancyStyle(BaseStyle):
         self.cursor_offset = 2
         self.decoration_size = 2
 
+    def _should_decorate(self, element: Any, parent: Optional[Element] = None) -> bool:
+        return not isinstance(parent, (Progress, Container))
+
     def render_element(
         self,
         element: Any,
@@ -96,7 +100,6 @@ class FancyStyle(BaseStyle):
         title: Optional[str] = None
 
         is_animated = False
-        should_tag = not isinstance(element, (Container, ProgressLine))
 
         if isinstance(element, Progress):
             title = element.title
@@ -106,7 +109,7 @@ class FancyStyle(BaseStyle):
             element=element, is_active=is_active, done=done, parent=parent, **metadata
         )
 
-        if should_tag:
+        if self._should_decorate(element, parent):
             rendered = FancyPanel(
                 rendered,
                 title=title,
@@ -135,7 +138,11 @@ class FancyStyle(BaseStyle):
         Returns:
             The cursor offset
         """
-        return CursorOffset(
-            top=element.cursor_offset.top,
-            left=self.decoration_size + element.cursor_offset.left,
-        )
+
+        if isinstance(element, Form):
+            return element.cursor_offset
+        else:
+            return CursorOffset(
+                top=element.cursor_offset.top,
+                left=self.decoration_size + element.cursor_offset.left,
+            )

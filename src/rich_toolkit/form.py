@@ -1,9 +1,5 @@
 from typing import Any, Callable, Optional
 
-from rich.console import Group, RenderableType
-
-from rich_toolkit._rich_components import Panel
-from rich_toolkit.element import Element
 from rich_toolkit.styles import BaseStyle
 
 from .button import Button
@@ -72,31 +68,3 @@ class Form(Container):
             for input in self.elements
             if isinstance(input, Input)
         }
-
-    def render(
-        self,
-        done: bool = False,
-        is_active: bool = False,
-        parent: Optional[Element] = None,
-    ) -> RenderableType:
-        self._content = []
-
-        for i, element in enumerate(self.elements):
-            self._content.append(
-                self.style.render(
-                    element,
-                    is_active=i == self.active_element_index,
-                    done=done,
-                    parent=self,
-                )
-            )
-
-        return Panel(
-            Group(
-                *[wrapper for wrapper in self._content],
-                "\n" if not done else "",
-            ),
-            title=self.title,
-            title_align="left",
-            width=50,
-        )

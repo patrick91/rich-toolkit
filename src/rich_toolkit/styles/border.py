@@ -162,10 +162,9 @@ class BorderedStyle(BaseStyle):
         content: str | Group | Text = element.current_message
         title: Union[str, Text, None] = None
 
-        if element.logs and element._inline_logs:
-            # TODO: this seems empty
-            title = element.title
+        title = element.title
 
+        if element.logs and element._inline_logs:
             lines_to_show = (
                 element.logs[-element.lines_to_show :]
                 if element.lines_to_show > 0
