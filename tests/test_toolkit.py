@@ -3,15 +3,15 @@ from _pytest.capture import CaptureFixture
 from inline_snapshot import snapshot
 from rich.tree import Tree
 
-from rich_toolkit import RichToolkit, RichToolkitTheme
+from rich_toolkit import RichToolkit
 from rich_toolkit.styles import FancyStyle
 from ._utils import trim_whitespace_on_lines
 
-theme = RichToolkitTheme(style=FancyStyle(), theme={})
+style = FancyStyle(theme={})
 
 
 def test_print_line(capsys: CaptureFixture[str]) -> None:
-    app = RichToolkit(theme=theme)
+    app = RichToolkit(style=style)
 
     app.print_line()
 
@@ -21,7 +21,7 @@ def test_print_line(capsys: CaptureFixture[str]) -> None:
 
 
 def test_can_print_strings(capsys: CaptureFixture[str]) -> None:
-    app = RichToolkit(theme=theme)
+    app = RichToolkit(style=style)
 
     app.print("Hello, World!")
 
@@ -31,7 +31,7 @@ def test_can_print_strings(capsys: CaptureFixture[str]) -> None:
 
 
 def test_can_print_renderables(capsys: CaptureFixture[str]) -> None:
-    app = RichToolkit(theme=theme)
+    app = RichToolkit(style=style)
 
     tree = Tree("root")
     tree.add("child")
@@ -49,7 +49,7 @@ def test_can_print_renderables(capsys: CaptureFixture[str]) -> None:
 
 
 def test_can_print_multiple_renderables(capsys: CaptureFixture[str]) -> None:
-    app = RichToolkit(theme=theme)
+    app = RichToolkit(style=style)
 
     tree = Tree("root")
     tree.add("child")
@@ -67,7 +67,7 @@ def test_can_print_multiple_renderables(capsys: CaptureFixture[str]) -> None:
 
 
 def test_handles_keyboard_interrupt(capsys: CaptureFixture[str]) -> None:
-    app = RichToolkit(theme=theme)
+    app = RichToolkit(style=style)
 
     with app:
         raise KeyboardInterrupt()
@@ -78,7 +78,7 @@ def test_handles_keyboard_interrupt(capsys: CaptureFixture[str]) -> None:
 
 
 def test_ignores_keyboard_interrupt(capsys: CaptureFixture[str]) -> None:
-    app = RichToolkit(theme=theme, handle_keyboard_interrupts=False)
+    app = RichToolkit(style=style, handle_keyboard_interrupts=False)
 
     with pytest.raises(KeyboardInterrupt):
         with app:
