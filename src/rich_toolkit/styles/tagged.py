@@ -1,5 +1,5 @@
 import re
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from rich.console import Group, RenderableType
 from rich.segment import Segment
@@ -32,36 +32,18 @@ class TaggedStyle(BaseStyle):
 
         super().__init__(theme=theme)
 
-    def _tag_element(
+    def _get_tag_segments(
         self,
-        child: RenderableType,
+        metadata: Dict[str, Any],
         is_animated: bool = False,
         done: bool = False,
-        **metadata: Any,
-    ) -> RenderableType:
-        table = Table.grid(
-            # TODO: why do we add 2? :D we probably did this in the previous version
-            Column(width=self.tag_width + 2),
-            padding=(0, 0, 0, 0),
-            collapse_padding=True,
-            pad_edge=False,
-        )
+    ) -> Tuple[List[Segment], int]:
+        if tag := metadata.get("tag", ""):
+            tag = f" {tag} "
 
         style_name = "tag.title" if metadata.get("title", False) else "tag"
 
         style = self.console.get_style(style_name)
-
-        tag = metadata.get("tag", "")
-
-        right_padding = 0
-
-        # TODO: this is a hack to make the tag width consistent with the emoji width
-        # probably won't work with all emojis and if there's more than one emoji
-        if has_emoji(tag):
-            right_padding = 1
-
-        if tag:
-            tag = f" {tag} "
 
         if is_animated:
             animation_status: Literal["started", "stopped", "error"] = (
@@ -88,12 +70,39 @@ class TaggedStyle(BaseStyle):
         else:
             tag_segments = [Segment(tag, style=style)]
 
-        left_padding = self.tag_width - len(tag) - right_padding
+        left_padding = self.tag_width - len(tag)
         left_padding = max(0, left_padding)
+
+        return tag_segments, left_padding
+
+    def _get_tag(
+        self,
+        metadata: Dict[str, Any],
+        is_animated: bool = False,
+        done: bool = False,
+    ) -> Group:
+        tag_segments, left_padding = self._get_tag_segments(metadata, is_animated, done)
 
         left = [Segment(" " * left_padding), *tag_segments]
 
-        table.add_row(Group(*left), Group(child))
+        return Group(*left)
+
+    def _tag_element(
+        self,
+        child: RenderableType,
+        is_animated: bool = False,
+        done: bool = False,
+        **metadata: Dict[str, Any],
+    ) -> RenderableType:
+        table = Table.grid(
+            # TODO: why do we add 2? :D we probably did this in the previous version
+            Column(width=self.tag_width + 2),
+            padding=(0, 0, 0, 0),
+            collapse_padding=True,
+            pad_edge=False,
+        )
+
+        table.add_row(self._get_tag(metadata, is_animated, done), Group(child))
 
         return table
 
