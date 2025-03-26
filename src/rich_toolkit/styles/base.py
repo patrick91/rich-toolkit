@@ -137,6 +137,8 @@ class BaseStyle:
                 max_lines=kwargs.get("max_lines", -1),
                 total_lines=kwargs.get("total_lines", -1),
             )
+        elif isinstance(element, ConsoleRenderable):
+            return element
 
         raise ValueError(f"Unknown element type: {type(element)}")
 
