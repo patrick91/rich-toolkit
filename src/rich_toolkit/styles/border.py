@@ -176,7 +176,7 @@ class BorderedStyle(BaseStyle):
         element: Progress,
         is_active: bool = False,
         done: bool = False,
-        parent: Element | None = None,
+        parent: Optional[Element] = None,
     ) -> RenderableType:
         content: str | Group | Text = element.current_message
         title: Union[str, Text, None] = None
