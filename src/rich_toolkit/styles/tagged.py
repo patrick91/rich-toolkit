@@ -36,7 +36,7 @@ class TaggedStyle(BaseStyle):
         self,
         child: RenderableType,
         is_animated: bool = False,
-        animation_status: Literal["started", "stopped", "error"] = "started",
+        done: bool = False,
         **metadata: Any,
     ) -> RenderableType:
         table = Table.grid(
@@ -64,10 +64,18 @@ class TaggedStyle(BaseStyle):
             tag = f" {tag} "
 
         if is_animated:
+            animation_status: Literal["started", "stopped", "error"] = (
+                "started" if not done else "stopped"
+            )
+
             tag = " " * self.block_length
             colors = self._get_animation_colors(
                 steps=self.block_length, animation_status=animation_status
             )
+
+            if done:
+                colors = [colors[-1]]
+
             tag_segments = [
                 Segment(
                     self.block,
@@ -112,6 +120,7 @@ class TaggedStyle(BaseStyle):
             rendered = self._tag_element(
                 rendered,
                 is_animated=is_animated,
+                done=done,
                 **metadata,
             )
 

@@ -5,6 +5,7 @@ from rich.console import Console, ConsoleOptions, RenderableType, RenderResult
 from rich.segment import Segment
 from rich.style import Style
 from rich.text import Text
+from typing_extensions import Literal
 
 from rich_toolkit.container import Container
 from rich_toolkit.element import CursorOffset, Element
@@ -17,11 +18,12 @@ class FancyPanel:
     def __init__(
         self,
         renderable: RenderableType,
+        style: BaseStyle,
         title: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
         is_animated: Optional[bool] = None,
         animation_counter: Optional[int] = None,
-        style: Optional[BaseStyle] = None,
+        done: bool = False,
     ) -> None:
         self.renderable = renderable
         self._title = title
@@ -31,18 +33,22 @@ class FancyPanel:
         self.is_animated = is_animated
         self.counter = animation_counter or 0
         self.style = style
+        self.done = done
 
     def _get_decoration(self, suffix: str = "") -> Segment:
         char = "┌" if self.metadata.get("title") else "◆"
 
-        if self.is_animated and self.style is not None:
-            color = self.style._get_animation_colors(
-                steps=14, breathe=True, animation_status="started"
-            )[self.counter % 14]
+        animated = not self.done and self.is_animated
 
-            return Segment(char + suffix, style=Style.from_color(color))
-        else:
-            return Segment(char + suffix, style=Style(color="green"))
+        animation_status: Literal["started", "stopped", "error"] = (
+            "started" if animated else "stopped"
+        )
+
+        color = self.style._get_animation_colors(
+            steps=14, breathe=True, animation_status=animation_status
+        )[self.counter % 14]
+
+        return Segment(char + suffix, style=Style.from_color(color))
 
     def _strip_trailing_newlines(
         self, lines: List[List[Segment]]
@@ -126,6 +132,7 @@ class FancyStyle(BaseStyle):
                 title=title,
                 metadata=metadata,
                 is_animated=is_animated,
+                done=done,
                 animation_counter=self.animation_counter,
                 style=self,
             )

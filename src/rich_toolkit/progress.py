@@ -55,7 +55,7 @@ class Progress(Live, Element):
         return self
 
     def get_renderable(self) -> RenderableType:
-        return self.style.render_element(self)
+        return self.style.render_element(self, done=not self._started)
 
     def log(self, text: str | Text) -> None:
         if self._inline_logs:
