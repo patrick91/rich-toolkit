@@ -1,192 +1,96 @@
-import string
-from typing import Any, Optional, Tuple
-from abc import ABC, abstractmethod
+from __future__ import annotations
 
-import click
-from rich.console import Console, Group, RenderableType
-from rich.control import Control
-from rich.live_render import LiveRender
+from typing import TYPE_CHECKING, Any, Optional
 
-from rich_toolkit.styles.base import BaseStyle
+from ._input_handler import TextInputHandler
+from .element import CursorOffset, Element
 
-
-class TextInputHandler:
-    DOWN_KEY = "\x1b[B"
-    UP_KEY = "\x1b[A"
-    LEFT_KEY = "\x1b[D"
-    RIGHT_KEY = "\x1b[C"
-    BACKSPACE_KEY = "\x7f"
-    DELETE_KEY = "\x1b[3~"
-
-    def __init__(self, cursor_offset: int = 0):
-        self.text = ""
-        self.cursor_position = 0
-        self._cursor_offset = cursor_offset
-
-    def _move_cursor_left(self) -> None:
-        self.cursor_position = max(0, self.cursor_position - 1)
-
-    def _move_cursor_right(self) -> None:
-        self.cursor_position = min(len(self.text), self.cursor_position + 1)
-
-    def _insert_char(self, char: str) -> None:
-        self.text = (
-            self.text[: self.cursor_position] + char + self.text[self.cursor_position :]
-        )
-        self._move_cursor_right()
-
-    def _delete_char(self) -> None:
-        if self.cursor_position == 0:
-            return
-
-        self.text = (
-            self.text[: self.cursor_position - 1] + self.text[self.cursor_position :]
-        )
-        self._move_cursor_left()
-
-    def _delete_forward(self) -> None:
-        if self.cursor_position == len(self.text):
-            return
-
-        self.text = (
-            self.text[: self.cursor_position] + self.text[self.cursor_position + 1 :]
-        )
-
-    def update_text(self, text: str) -> None:
-        if text == self.BACKSPACE_KEY:
-            self._delete_char()
-        elif text == self.DELETE_KEY:
-            self._delete_forward()
-        elif text == self.LEFT_KEY:
-            self._move_cursor_left()
-        elif text == self.RIGHT_KEY:
-            self.cursor_position = min(len(self.text), self.cursor_position + 1)
-        elif text in (self.UP_KEY, self.DOWN_KEY):
-            pass
-        else:
-            for char in text:
-                if char in string.printable:
-                    self._insert_char(char)
-
-    def fix_cursor(self) -> Tuple[Control, ...]:
-        return (Control.move_to_column(self._cursor_offset + self.cursor_position),)
+if TYPE_CHECKING:
+    from .styles.base import BaseStyle
 
 
-class LiveInput(ABC, TextInputHandler):
+class Input(TextInputHandler, Element):
+    label: Optional[str] = None
+
     def __init__(
         self,
-        console: Console,
+        label: Optional[str] = None,
+        placeholder: Optional[str] = None,
+        default: Optional[str] = None,
+        default_as_placeholder: bool = True,
+        required: bool = True,
+        required_message: Optional[str] = None,
+        password: bool = False,
+        inline: bool = False,
+        name: Optional[str] = None,
         style: Optional[BaseStyle] = None,
-        cursor_offset: int = 0,
         **metadata: Any,
     ):
-        self.console = console
-        self._live_render = LiveRender("")
+        self.name = name
+        self.label = label
+        self._placeholder = placeholder
+        self.default = default
+        self.default_as_placeholder = default_as_placeholder
+        self.required = required
+        self.password = password
+        self.inline = inline
 
-        if style is None:
-            self._live_render = LiveRender("")
-        else:
-            self._live_render = style.decorate_class(LiveRender, **metadata)("")
+        self.text = ""
+        self.valid = None
+        self.required_message = required_message
 
-        self._padding_bottom = 1
+        Element.__init__(self, style=style, metadata=metadata)
+        super().__init__()
 
-        super().__init__(cursor_offset=cursor_offset)
+    @property
+    def placeholder(self) -> str:
+        if self.default_as_placeholder and self.default:
+            return self.default
 
-    @abstractmethod
-    def render_result(self) -> RenderableType:
-        raise NotImplementedError
+        return self._placeholder or ""
 
-    @abstractmethod
-    def render_input(self) -> RenderableType:
-        raise NotImplementedError
+    @property
+    def validation_message(self) -> Optional[str]:
+        if self.valid is False:
+            return self.required_message or "This field is required"
+
+        return None
+
+    @property
+    def cursor_offset(self) -> CursorOffset:
+        top = 1 if self.inline else 2
+
+        left_offset = 0
+
+        if self.inline and self.label:
+            left_offset = len(self.label) + 1
+
+        return CursorOffset(top=top, left=self.cursor_left + left_offset)
 
     @property
     def should_show_cursor(self) -> bool:
         return True
 
-    def position_cursor(self) -> Tuple[Control, ...]:
-        return (self._live_render.position_cursor(),)
+    def on_blur(self):
+        self.on_validate()
 
-    def _refresh(self, show_result: bool = False) -> None:
-        renderable = self.render_result() if show_result else self.render_input()
+    def on_validate(self):
+        if not self.required:
+            self.valid = True
 
-        self._live_render.set_renderable(renderable)
+        self.valid = bool(self.value.strip())
 
-        self._render(show_result)
-
-    def _render(self, show_result: bool = False) -> None:
-        after = self.fix_cursor() if not show_result else ()
-
-        self.console.print(
-            Control.show_cursor(self.should_show_cursor),
-            *self.position_cursor(),
-            self._live_render,
-            *after,
-        )
-
-
-class Input(LiveInput):
-    def __init__(
-        self,
-        console: Console,
-        title: str,
-        style: Optional[BaseStyle] = None,
-        default: str = "",
-        cursor_offset: int = 0,
-        password: bool = False,
-        **metadata: Any,
-    ):
-        self.title = title
-        self.default = default
-        self.password = password
-
-        self.console = console
-        self.style = style
-
-        super().__init__(
-            console=console, style=style, cursor_offset=cursor_offset, **metadata
-        )
-
-    def render_result(self) -> RenderableType:
-        if self.password:
-            return self.title
-
-        return self.title + " [result]" + (self.text or self.default)
-
-    def render_input(self) -> Group:
-        text = self.text
-
-        if self.password:
-            text = "*" * len(self.text)
-
-        # if there's no default value, add a space to keep the cursor visible
-        # and, most importantly, in the right place
-        default = self.default or " "
-
-        text = f"[text]{text}[/]" if self.text else f"[placeholder]{default }[/]"
-
-        return Group(self.title, text)
+    @property
+    def value(self) -> str:
+        return self.text or self.default or ""
 
     def ask(self) -> str:
-        self._refresh()
+        from .container import Container
 
-        while True:
-            try:
-                key = click.getchar()
+        container = Container(style=self.style)
 
-                if key == "\r":
-                    break
+        container.elements = [self]
 
-                self.update_text(key)
+        container.run()
 
-            except KeyboardInterrupt:
-                exit()
-
-            self._refresh()
-
-        self._refresh(show_result=True)
-
-        for _ in range(self._padding_bottom):
-            self.console.print()
-
-        return self.text or self.default
+        return self.value

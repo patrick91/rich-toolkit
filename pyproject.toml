@@ -29,5 +29,14 @@ dev = [
     "inline-snapshot>=0.12.1",
     "uvicorn>=0.30.6",
     "fastapi[standard]>=0.112.2",
+    "httpx>=0.28.1",
 ]
 lint = ["mypy>=1.11.2"]
+
+[tool.ruff]
+fix = true
+
+[tool.ruff.lint]
+ignore = ["E501"]
+select = ["E", "W", "F", "B"]
+extend-select = ["E", "W", "F", "B"]

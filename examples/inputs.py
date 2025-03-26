@@ -1,8 +1,9 @@
 from rich_toolkit import RichToolkit, RichToolkitTheme
-from rich_toolkit.styles import FancyStyle, TaggedStyle
+from rich_toolkit.styles.border import BorderedStyle
+from rich_toolkit.styles.fancy import FancyStyle
+from rich_toolkit.styles.tagged import TaggedStyle
 
-
-for style in [TaggedStyle(tag_width=12), FancyStyle()]:
+for style in [TaggedStyle(tag_width=12), BorderedStyle(), FancyStyle()]:
     theme = RichToolkitTheme(
         style=style,
         theme={
@@ -34,4 +35,6 @@ for style in [TaggedStyle(tag_width=12), FancyStyle()]:
         app.input("What's your password?", tag="password", password=True)
         app.print_line()
 
+        app.input("Inline input:", tag="inline", inline=True)
+        app.print_line()
         app.print("Done")

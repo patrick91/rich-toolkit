@@ -1,10 +1,9 @@
 import random
-import time
-import string
+
 import rich
 
 from rich_toolkit import RichToolkit, RichToolkitTheme
-from rich_toolkit.styles import FancyStyle, TaggedStyle, MinimalStyle
+from rich_toolkit.styles import FancyStyle, TaggedStyle
 
 
 def random_name_generator() -> str:
@@ -15,8 +14,6 @@ SIMPLE_EXAMPLE = "This is a simple example of long text without any decoration. 
 MARKUP_EXAMPLE = "This is a simple example of long text with [bold]bold[/bold] and [italic]italic[/italic]."
 
 for style in [TaggedStyle(tag_width=7), FancyStyle()]:
-    print(style)
-
     theme = RichToolkitTheme(
         style=style,
         theme={

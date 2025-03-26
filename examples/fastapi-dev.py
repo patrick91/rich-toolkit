@@ -1,12 +1,11 @@
 import uvicorn
+from uvicorn.logging import DefaultFormatter
 
 from rich_toolkit import RichToolkit, RichToolkitTheme
 from rich_toolkit.styles import TaggedStyle
-from uvicorn.logging import DefaultFormatter
-
 
 theme = RichToolkitTheme(
-    style=TaggedStyle(tag_width=9),
+    style=TaggedStyle(tag_width=12),
     theme={
         "tag.title": "black on #A7E3A2",
         "tag": "white on #893AE3",
@@ -53,7 +52,20 @@ with RichToolkit(theme=theme) as app:
 
     class CustomFormatter(DefaultFormatter):
         def formatMessage(self, record):
-            return app.print_as_string(record.message, tag=record.levelname)
+            # print ansi code to remove previous line
+            content = [
+                "\033[A\033[K",
+                "\033[A\033[K",
+                app.print_as_string(record.message, tag=record.levelname),
+                "\n",
+                app.print_as_string("—" * 50),
+                "\n",
+                app.print_as_string(
+                    "FastAPI running at http://localhost:8000. Press O to open in browser.",
+                    tag="🌎",
+                ),
+            ]
+            return "".join(content)
 
     log_config = {
         "version": 1,

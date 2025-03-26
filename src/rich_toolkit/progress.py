@@ -1,13 +1,27 @@
-from typing import List, Optional
+from __future__ import annotations
 
-from rich.console import Console
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
+
+from rich.console import Console, RenderableType
 from rich.live import Live
-from typing_extensions import Any, Literal
+from rich.text import Text
+from typing_extensions import Literal
 
-from .styles.base import BaseStyle
+from .element import Element
+
+if TYPE_CHECKING:
+    from .styles.base import BaseStyle
 
 
-class Progress(Live):
+class ProgressLine(Element):
+    def __init__(self, text: str | Text, parent: Progress):
+        self.text = text
+        self.parent = parent
+
+
+class Progress(Live, Element):
+    current_message: str | Text
+
     def __init__(
         self,
         title: str,
@@ -17,16 +31,21 @@ class Progress(Live):
         transient_on_error: bool = False,
         inline_logs: bool = False,
         lines_to_show: int = -1,
+        **metadata: Dict[Any, Any],
     ) -> None:
+        self.title = title
         self.current_message = title
-        self.style = style
         self.is_error = False
         self._transient_on_error = transient_on_error
         self._inline_logs = inline_logs
-        self._lines_to_show = lines_to_show
+        self.lines_to_show = lines_to_show
 
-        self.logs: List[str] = []
+        self.logs: List[ProgressLine] = []
 
+        self.metadata = metadata
+        self._cancelled = False
+
+        Element.__init__(self, style=style)
         super().__init__(console=console, refresh_per_second=8, transient=transient)
 
     # TODO: remove this once rich uses "Self"
@@ -35,48 +54,12 @@ class Progress(Live):
 
         return self
 
-    def get_renderable(self) -> Any:
-        current_message = self.current_message
+    def get_renderable(self) -> RenderableType:
+        return self.style.render_element(self, done=not self._started)
 
-        if not self.style:
-            return current_message
-
-        animation_status: Literal["started", "stopped", "error"] = (
-            "started" if self._started else "stopped"
-        )
-
-        if self.is_error:
-            animation_status = "error"
-
-        content = current_message
-
+    def log(self, text: str | Text) -> None:
         if self._inline_logs:
-            lines_to_show = (
-                self.logs[-self._lines_to_show :]
-                if self._lines_to_show > 0
-                else self.logs
-            )
-
-            content = "\n".join(
-                [
-                    self.style.decorate_progress_log_line(
-                        line,
-                        index=index,
-                        max_lines=self._lines_to_show,
-                        total_lines=len(lines_to_show),
-                    )
-                    for index, line in enumerate(lines_to_show)
-                ]
-            )
-
-        return self.style.with_decoration(
-            content,
-            animation_status=animation_status,
-        )
-
-    def log(self, text: str) -> None:
-        if self._inline_logs:
-            self.logs.append(text)
+            self.logs.append(ProgressLine(text, self))
         else:
             self.current_message = text
 

@@ -1,100 +1,144 @@
-from typing import Any, Generator, Iterable, List
+import re
+from typing import Any, Dict, List, Optional, Tuple
 
-from rich._loop import loop_first_last
-from rich.console import Console
+from rich.console import Group, RenderableType
 from rich.segment import Segment
 from rich.style import Style
+from rich.table import Column, Table
+from typing_extensions import Literal
 
-from .base import ANIMATION_STATUS, BaseStyle
+from rich_toolkit.container import Container
+from rich_toolkit.element import CursorOffset, Element
+from rich_toolkit.progress import Progress, ProgressLine
+
+from .base import BaseStyle
+
+
+def has_emoji(tag: str) -> bool:
+    return bool(re.search(r"[\U0001F300-\U0001F9FF]", tag))
 
 
 class TaggedStyle(BaseStyle):
-    def __init__(self, *args, **kwargs) -> None:
-        self.tag_width = kwargs.pop("tag_width", 14)
+    block = "█"
+    block_length = 5
 
-        super().__init__(*args, **kwargs)
+    def __init__(self, tag_width: int = 12, theme: Optional[Dict[str, str]] = None):
+        self.tag_width = tag_width
 
-        self.padding = 2
-        self.cursor_offset = self.tag_width + self.padding
-        self.decoration_size = self.tag_width + self.padding
+        theme = theme or {
+            "tag.title": "bold",
+            "tag": "bold",
+        }
 
-    def _render_tag(
+        super().__init__(theme=theme)
+
+    def _get_tag_segments(
         self,
-        text: str,
-        console: Console,
-        **metadata: Any,
-    ) -> Generator[Segment, None, None]:
+        metadata: Dict[str, Any],
+        is_animated: bool = False,
+        done: bool = False,
+    ) -> Tuple[List[Segment], int]:
+        if tag := metadata.get("tag", ""):
+            tag = f" {tag} "
+
         style_name = "tag.title" if metadata.get("title", False) else "tag"
 
-        style = console.get_style(style_name)
+        style = self.console.get_style(style_name)
 
-        if text:
-            text = f" {text} "
+        if is_animated:
+            animation_status: Literal["started", "stopped", "error"] = (
+                "started" if not done else "stopped"
+            )
 
-        left_padding = self.tag_width - len(text)
+            tag = " " * self.block_length
+            colors = self._get_animation_colors(
+                steps=self.block_length, animation_status=animation_status
+            )
+
+            if done:
+                colors = [colors[-1]]
+
+            tag_segments = [
+                Segment(
+                    self.block,
+                    style=Style(
+                        color=colors[(self.animation_counter + i) % len(colors)]
+                    ),
+                )
+                for i in range(self.block_length)
+            ]
+        else:
+            tag_segments = [Segment(tag, style=style)]
+
+        left_padding = self.tag_width - len(tag)
         left_padding = max(0, left_padding)
 
-        yield Segment(" " * left_padding)
-        yield Segment(text, style=style)
-        yield Segment(" " * self.padding)
+        return tag_segments, left_padding
 
-    def decorate(
+    def _get_tag(
         self,
-        console: Console,
-        lines: Iterable[List[Segment]],
-        animation_status: ANIMATION_STATUS = "no_animation",
-        **metadata: Any,
-    ) -> Generator[Segment, None, None]:
-        if animation_status != "no_animation":
-            yield from self.decorate_with_animation(
-                lines=lines,
-                console=console,
-                animation_status=animation_status,
+        metadata: Dict[str, Any],
+        is_animated: bool = False,
+        done: bool = False,
+    ) -> Group:
+        tag_segments, left_padding = self._get_tag_segments(metadata, is_animated, done)
+
+        left = [Segment(" " * left_padding), *tag_segments]
+
+        return Group(*left)
+
+    def _tag_element(
+        self,
+        child: RenderableType,
+        is_animated: bool = False,
+        done: bool = False,
+        **metadata: Dict[str, Any],
+    ) -> RenderableType:
+        table = Table.grid(
+            # TODO: why do we add 2? :D we probably did this in the previous version
+            Column(width=self.tag_width + 2),
+            padding=(0, 0, 0, 0),
+            collapse_padding=True,
+            pad_edge=False,
+        )
+
+        table.add_row(self._get_tag(metadata, is_animated, done), Group(child))
+
+        return table
+
+    def render_element(
+        self,
+        element: Any,
+        is_active: bool = False,
+        done: bool = False,
+        parent: Optional[Element] = None,
+        **kwargs: Any,
+    ) -> RenderableType:
+        is_animated = isinstance(element, Progress)
+        should_tag = not isinstance(element, (ProgressLine, Container))
+
+        rendered = super().render_element(
+            element=element, is_active=is_active, done=done, parent=parent, **kwargs
+        )
+
+        metadata = kwargs
+        if isinstance(element, Element) and element.metadata:
+            metadata = {**element.metadata, **metadata}
+
+        if should_tag:
+            rendered = self._tag_element(
+                rendered,
+                is_animated=is_animated,
+                done=done,
                 **metadata,
             )
 
-            return
+        return rendered
 
-        tag = metadata.get("tag", "")
-
-        for first, last, line in loop_first_last(lines):
-            text = tag if first else ""
-            yield from self._render_tag(text, console=console, **metadata)
-            yield from line
-
-            if not last:
-                yield Segment.line()
-
-    def decorate_with_animation(
-        self,
-        console: Console,
-        lines: Iterable[List[Segment]],
-        animation_status: ANIMATION_STATUS = "no_animation",
-        **metadata: Any,
-    ) -> Generator[Segment, None, None]:
-        block = "█"
-        block_length = 5
-        colors = self._get_animation_colors(
-            console, steps=block_length, animation_status=animation_status, **metadata
+    def get_cursor_offset_for_element(
+        self, element: Element, parent: Optional[Element] = None
+    ) -> CursorOffset:
+        return CursorOffset(
+            top=element.cursor_offset.top,
+            left=self.tag_width + element.cursor_offset.left + 2,
         )
-
-        left_padding = self.tag_width - block_length
-        left_padding = max(0, left_padding)
-
-        self._animation_counter += 1
-
-        for first, _, line in loop_first_last(lines):
-            if first:
-                yield Segment(" " * left_padding)
-
-                for j in range(block_length):
-                    color_index = (j + self._animation_counter) % len(colors)
-                    yield Segment(block, style=Style(color=colors[color_index]))
-
-            else:
-                yield Segment(" " * self.tag_width)
-
-            yield Segment(" " * self.padding)
-
-            yield from line
-            yield Segment.line()

@@ -1,12 +1,14 @@
-from typing import Any, Dict, List, Union
+from __future__ import annotations
+
+from typing import Any, Dict, List, Optional, Union
 
 from rich.console import Console, RenderableType
 from rich.theme import Theme
 
-from .styles.base import BaseStyle
 from .input import Input
 from .menu import Menu, Option, ReturnValue
 from .progress import Progress
+from .styles.base import BaseStyle
 
 
 class RichToolkitTheme:
@@ -18,11 +20,24 @@ class RichToolkitTheme:
 class RichToolkit:
     def __init__(
         self,
-        theme: RichToolkitTheme,
+        style: Optional[BaseStyle] = None,
+        theme: Optional[RichToolkitTheme] = None,
         handle_keyboard_interrupts: bool = True,
     ) -> None:
-        self.console = Console(theme=theme.rich_theme)
+        # TODO: deprecate this
+
         self.theme = theme
+        if theme is not None:
+            self.style = theme.style
+            self.style.theme = theme.rich_theme
+            self.style.console = Console(theme=theme.rich_theme)
+        else:
+            assert style is not None
+
+            self.style = style
+
+        self.console = self.style.console
+
         self.handle_keyboard_interrupts = handle_keyboard_interrupts
 
     def __enter__(self):
@@ -39,13 +54,18 @@ class RichToolkit:
 
         self.console.print()
 
+        return None
+
     def print_title(self, title: str, **metadata: Any) -> None:
-        self.console.print(
-            self.theme.style.with_decoration(title, title=True, **metadata)
-        )
+        self.console.print(self.style.render_element(title, title=True, **metadata))
 
     def print(self, *renderables: RenderableType, **metadata: Any) -> None:
-        self.console.print(self.theme.style.with_decoration(*renderables, **metadata))
+        self.console.print(
+            *[
+                self.style.render_element(renderable, **metadata)
+                for renderable in renderables
+            ]
+        )
 
     def print_as_string(self, *renderables: RenderableType, **metadata: Any) -> str:
         with self.console.capture() as capture:
@@ -54,11 +74,11 @@ class RichToolkit:
         return capture.get().rstrip()
 
     def print_line(self) -> None:
-        self.console.print(self.theme.style.empty_line())
+        self.console.print(self.style.empty_line())
 
-    def confirm(self, title: str, **metadata: Any) -> bool:
+    def confirm(self, label: str, **metadata: Any) -> bool:
         return self.ask(
-            title=title,
+            label=label,
             options=[
                 Option({"value": True, "name": "Yes"}),
                 Option({"value": False, "name": "No"}),
@@ -69,33 +89,43 @@ class RichToolkit:
 
     def ask(
         self,
-        title: str,
+        label: str,
         options: List[Option[ReturnValue]],
         inline: bool = False,
         allow_filtering: bool = False,
         **metadata: Any,
     ) -> ReturnValue:
         return Menu(
-            title=title,
+            label=label,
             options=options,
             console=self.console,
-            style=self.theme.style,
+            style=self.style,
             inline=inline,
             allow_filtering=allow_filtering,
-            cursor_offset=self.theme.style.cursor_offset,
             **metadata,
         ).ask()
 
     def input(
-        self, title: str, default: str = "", password: bool = False, **metadata: Any
+        self,
+        title: str,
+        default: str = "",
+        placeholder: str = "",
+        password: bool = False,
+        required: bool = False,
+        required_message: str = "",
+        inline: bool = False,
+        **metadata: Any,
     ) -> str:
         return Input(
-            console=self.console,
-            style=self.theme.style,
-            title=title,
+            name=title,
+            label=title,
             default=default,
-            cursor_offset=self.theme.style.cursor_offset,
+            placeholder=placeholder,
             password=password,
+            required=required,
+            required_message=required_message,
+            inline=inline,
+            style=self.style,
             **metadata,
         ).ask()
 
@@ -110,7 +140,7 @@ class RichToolkit:
         return Progress(
             title=title,
             console=self.console,
-            style=self.theme.style,
+            style=self.style,
             transient=transient,
             transient_on_error=transient_on_error,
             inline_logs=inline_logs,

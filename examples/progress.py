@@ -1,9 +1,10 @@
 import time
 
 from rich_toolkit import RichToolkit, RichToolkitTheme
-from rich_toolkit.styles import FancyStyle, TaggedStyle
+from rich_toolkit.styles.border import BorderedStyle
+from rich_toolkit.styles.tagged import TaggedStyle
 
-for style in [TaggedStyle(tag_width=8), FancyStyle()]:
+for style in [TaggedStyle(tag_width=8), BorderedStyle()]:
     theme = RichToolkitTheme(
         style=style,
         theme={
