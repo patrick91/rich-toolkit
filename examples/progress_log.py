@@ -1,6 +1,8 @@
 import random
 import time
+from typing import Generator
 
+import httpx
 from rich.text import Text
 
 from rich_toolkit import RichToolkit
@@ -19,6 +21,18 @@ theme = {
     "error": "red",
 }
 
+
+def stream_data() -> Generator[str, None, None]:
+    url = "http://localhost:8000/stream/"
+    url = "https://httpbin.org/stream/100"
+
+    with httpx.Client() as client:
+        with client.stream("GET", url, timeout=60) as response:
+            response.raise_for_status()
+
+            yield from response.iter_lines()
+
+
 for style in [
     TaggedStyle(tag_width=10, theme=theme),
     FancyStyle(theme=theme),
@@ -26,6 +40,16 @@ for style in [
 ]:
     with RichToolkit(style=style) as app:
         app.print_title("Progress log examples", tag="demo")
+        app.print_line()
+
+        with app.progress(
+            "Progress with inline logs (http stream)",
+            inline_logs=True,
+            lines_to_show=4,
+        ) as progress:
+            for line in stream_data():
+                progress.log(line)
+
         app.print_line()
 
         with app.progress(

@@ -1,8 +1,12 @@
-from fastapi import FastAPI, HTTPException, Depends
-from pydantic import BaseModel
+import asyncio
+import json
 from typing import Any, List, Optional
-from typing_extensions import Annotated
+
 import uvicorn
+from fastapi import Depends, FastAPI, HTTPException
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
+from typing_extensions import Annotated
 
 app = FastAPI()
 
@@ -58,6 +62,17 @@ def update_book(updated_book: Book, book: BookDependency):
 def delete_book(book: BookDependency):
     db.remove(book)
     return book
+
+
+@app.get("/stream/")
+async def stream_data():
+    async def generate():
+        for i in range(10):
+            data = {"item": i + 1, "message": f"Streaming item {i + 1}"}
+            yield json.dumps(data) + "\n"
+            await asyncio.sleep(1)
+
+    return StreamingResponse(generate(), media_type="text/event-stream")
 
 
 if __name__ == "__main__":

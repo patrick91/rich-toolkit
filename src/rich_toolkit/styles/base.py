@@ -115,8 +115,6 @@ class BaseStyle:
         parent: Optional[Element] = None,
         **kwargs: Any,
     ) -> RenderableType:
-        self.animation_counter += 1
-
         if isinstance(element, str):
             return self.render_string(element, is_active, done, parent)
         elif isinstance(element, Button):
@@ -128,6 +126,8 @@ class BaseStyle:
         elif isinstance(element, Menu):
             return self.render_menu(element, is_active, done, parent)
         elif isinstance(element, Progress):
+            self.animation_counter += 1
+
             return self.render_progress(element, is_active, done, parent)
         elif isinstance(element, ProgressLine):
             return self.render_progress_log_line(
