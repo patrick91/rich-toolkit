@@ -160,14 +160,20 @@ def _get_terminal_color(
             # Read response
             response = ""
             while True:
-                char = sys.stdin.read(1)
+                try:
+                    char = sys.stdin.read(1)
+                except io.BlockingIOError:
+                    char = ""
+                except TypeError:
+                    char = ""
+                if char is None or char == "":  # No more response data available
+                    break
+
                 response += char
 
                 if char == "\\":  # End of OSC response
                     break
                 if len(response) > 50:  # Safety limit
-                    break
-                if char is None or char == "":  # No more response data available
                     break
 
             # Parse the response (format: \033]10;rgb:RRRR/GGGG/BBBB\033\\)
