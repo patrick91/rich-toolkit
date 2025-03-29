@@ -167,7 +167,10 @@ def _get_terminal_color(
                 except TypeError:
                     char = ""
                 if char is None or char == "":  # No more response data available
-                    break
+                    if select.select([sys.stdin], [], [], 1.0)[0]:
+                        continue
+                    else:
+                        break
 
                 response += char
 
