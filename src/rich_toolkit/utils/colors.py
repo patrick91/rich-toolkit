@@ -143,6 +143,7 @@ def _get_terminal_color(
 
     # Save terminal settings so we can restore them
     old_settings = termios.tcgetattr(sys.stdin)
+    old_blocking = os.get_blocking(sys.stdin.fileno())
 
     try:
         # Set terminal to raw mode
@@ -154,10 +155,23 @@ def _get_terminal_color(
 
         # Wait for response with timeout
         if select.select([sys.stdin], [], [], 1.0)[0]:
+            os.set_blocking(sys.stdin.fileno(), False)
+
             # Read response
             response = ""
             while True:
-                char = sys.stdin.read(1)
+                try:
+                    char = sys.stdin.read(1)
+                except io.BlockingIOError:
+                    char = ""
+                except TypeError:
+                    char = ""
+                if char is None or char == "":  # No more response data available
+                    if select.select([sys.stdin], [], [], 1.0)[0]:
+                        continue
+                    else:
+                        break
+
                 response += char
 
                 if char == "\\":  # End of OSC response
@@ -183,6 +197,7 @@ def _get_terminal_color(
     finally:
         # Restore terminal settings
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+        os.set_blocking(sys.stdin.fileno(), old_blocking)
 
 
 def get_terminal_text_color(default_color: str = "#FFFFFF") -> str:
