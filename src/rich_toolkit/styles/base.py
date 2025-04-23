@@ -106,7 +106,9 @@ class BaseStyle:
 
         return colors
 
-    def get_cursor_offset_for_element(self, element: Element) -> CursorOffset:
+    def get_cursor_offset_for_element(
+        self, element: Element, parent: Optional[Element] = None
+    ) -> CursorOffset:
         return element.cursor_offset
 
     def render_element(
