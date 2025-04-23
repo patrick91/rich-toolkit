@@ -97,6 +97,8 @@ class FancyPanel:
 
 
 class FancyStyle(BaseStyle):
+    _should_show_progress_title = False
+
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 

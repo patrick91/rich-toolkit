@@ -47,6 +47,8 @@ class BaseStyle:
         "placeholder.cancelled": "grey62 strike",
     }
 
+    _should_show_progress_title = True
+
     def __init__(
         self,
         theme: Optional[Dict[str, str]] = None,
@@ -367,7 +369,13 @@ class BaseStyle:
                 else element.logs
             )
 
+            start_content = [element.title, ""]
+
+            if not self._should_show_progress_title:
+                start_content = []
+
             content = Group(
+                *start_content,
                 *[
                     self.render_element(
                         line,
@@ -377,7 +385,7 @@ class BaseStyle:
                         parent=element,
                     )
                     for index, line in enumerate(lines_to_show)
-                ]
+                ],
             )
 
         return content

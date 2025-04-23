@@ -25,7 +25,7 @@ theme = {
 
 def stream_data() -> Generator[str, None, None]:
     url = "http://localhost:8000/stream/"
-    url = "https://httpbin.org/stream/100"
+    url = "https://httpbun.com/drip-lines"
 
     with httpx.Client() as client:
         with client.stream("GET", url, timeout=60) as response:
