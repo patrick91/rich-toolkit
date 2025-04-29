@@ -1,6 +1,6 @@
 [project]
 name = "rich-toolkit"
-version = "0.14.3"
+version = "0.14.4"
 description = "Rich toolkit for building command-line applications"
 readme = "README.md"
 license = "MIT"

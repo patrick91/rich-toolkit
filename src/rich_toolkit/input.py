@@ -18,7 +18,7 @@ class Input(TextInputHandler, Element):
         placeholder: Optional[str] = None,
         default: Optional[str] = None,
         default_as_placeholder: bool = True,
-        required: bool = True,
+        required: bool = False,
         required_message: Optional[str] = None,
         password: bool = False,
         inline: bool = False,
@@ -77,6 +77,8 @@ class Input(TextInputHandler, Element):
     def on_validate(self):
         if not self.required:
             self.valid = True
+
+            return
 
         self.valid = bool(self.value.strip())
 

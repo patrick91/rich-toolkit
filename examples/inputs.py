@@ -29,6 +29,13 @@ for style in [TaggedStyle(tag_width=12), BorderedStyle(), FancyStyle()]:
         )
         app.print_line()
 
+        app.input(
+            "Where should we create your new project? (not required)",
+            tag="dir",
+            required=False,
+        )
+        app.print_line()
+
         app.input("What is the name of your project?", tag="name")
         app.print_line()
 
