@@ -15,6 +15,8 @@ class Element:
     metadata: Dict[Any, Any] = {}
     style: BaseStyle
 
+    focusable: bool = True
+
     def __init__(
         self,
         style: Optional[BaseStyle] = None,

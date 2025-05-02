@@ -30,6 +30,7 @@ dev = [
     "uvicorn>=0.30.6",
     "fastapi[standard]>=0.112.2",
     "httpx>=0.28.1",
+    "pydantic>=2.10.6",
 ]
 lint = ["mypy>=1.11.2"]
 
