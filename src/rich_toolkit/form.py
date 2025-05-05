@@ -1,5 +1,7 @@
 from typing import Any, Callable, Optional
 
+from rich_toolkit.element import Element
+from rich_toolkit.spacer import Spacer
 from rich_toolkit.styles import BaseStyle
 
 from .button import Button
@@ -13,11 +15,17 @@ class Form(Container):
 
         self.title = title
 
+    def _append_element(self, element: Element):
+        if len(self.elements) > 0:
+            self.elements.append(Spacer())
+
+        self.elements.append(element)
+
     def add_input(
         self,
         name: str,
         label: str,
-        placeholder: str,
+        placeholder: Optional[str] = None,
         password: bool = False,
         inline: bool = False,
         required: bool = False,
@@ -33,7 +41,7 @@ class Form(Container):
             **metadata,
         )
 
-        self.elements.append(input)
+        self._append_element(input)
 
     def add_button(
         self,
@@ -43,7 +51,7 @@ class Form(Container):
         **metadata: Any,
     ):
         button = Button(name=name, label=label, callback=callback, **metadata)
-        self.elements.append(button)
+        self._append_element(button)
 
     def run(self):
         super().run()

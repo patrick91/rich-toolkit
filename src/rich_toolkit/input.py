@@ -6,6 +6,8 @@ from ._input_handler import TextInputHandler
 from .element import CursorOffset, Element
 
 if TYPE_CHECKING:
+    from pydantic import TypeAdapter
+
     from .styles.base import BaseStyle
 
 
@@ -24,6 +26,7 @@ class Input(TextInputHandler, Element):
         inline: bool = False,
         name: Optional[str] = None,
         style: Optional[BaseStyle] = None,
+        validator: Optional[TypeAdapter] = None,
         **metadata: Any,
     ):
         self.name = name
@@ -38,6 +41,8 @@ class Input(TextInputHandler, Element):
         self.text = ""
         self.valid = None
         self.required_message = required_message
+        self._validation_message: Optional[str] = None
+        self._validator: Optional[TypeAdapter] = validator
 
         Element.__init__(self, style=style, metadata=metadata)
         super().__init__()
@@ -51,8 +56,10 @@ class Input(TextInputHandler, Element):
 
     @property
     def validation_message(self) -> Optional[str]:
-        if self.valid is False:
-            return self.required_message or "This field is required"
+        if self._validation_message:
+            return self._validation_message
+
+        assert self.valid
 
         return None
 
@@ -75,12 +82,28 @@ class Input(TextInputHandler, Element):
         self.on_validate()
 
     def on_validate(self):
-        if not self.required:
-            self.valid = True
+        value = self.value.strip()
+
+        if not value and self.required:
+            self.valid = False
+            self._validation_message = self.required_message or "This field is required"
 
             return
 
-        self.valid = bool(self.value.strip())
+        if self._validator:
+            from pydantic import ValidationError
+
+            try:
+                self._validator.validate_python(value)
+            except ValidationError as e:
+                self.valid = False
+
+                self._validation_message = e.errors()[0]["ctx"]["reason"]
+
+                return
+
+        self._validation_message = None
+        self.valid = True
 
     @property
     def value(self) -> str:

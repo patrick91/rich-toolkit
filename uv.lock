@@ -902,7 +902,7 @@ wheels = [
 
 [[package]]
 name = "rich-toolkit"
-version = "0.14.4"
+version = "0.14.5"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
@@ -916,6 +916,7 @@ dev = [
     { name = "httpx" },
     { name = "inline-snapshot" },
     { name = "pdbpp" },
+    { name = "pydantic" },
     { name = "pytest" },
     { name = "uvicorn", version = "0.33.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
     { name = "uvicorn", version = "0.34.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
@@ -938,6 +939,7 @@ dev = [
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "inline-snapshot", specifier = ">=0.12.1" },
     { name = "pdbpp", specifier = ">=0.10.3" },
+    { name = "pydantic", specifier = ">=2.10.6" },
     { name = "pytest", specifier = ">=8.3.2" },
     { name = "uvicorn", specifier = ">=0.30.6" },
 ]

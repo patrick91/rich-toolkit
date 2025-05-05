@@ -31,7 +31,8 @@ class Container(Element):
         self.console = self.style.console
 
     def _refresh(self, done: bool = False):
-        self._live_render.set_renderable(self.style.render_element(self, done=done))
+        content = self.style.render_element(self, done=done)
+        self._live_render.set_renderable(content)
 
         active_element = self.elements[self.active_element_index]
 
@@ -56,7 +57,9 @@ class Container(Element):
     def _active_element(self) -> Element:
         return self.elements[self.active_element_index]
 
-    def _get_size(self, renderable: RenderableType) -> Tuple[int, int]:
+    def _get_size(self, element: Element) -> Tuple[int, int]:
+        renderable = self.style.render_element(element, done=False, parent=self)
+
         lines = self.console.render_lines(renderable, self.console.options, pad=False)
 
         return Segment.get_shape(lines)
@@ -65,11 +68,11 @@ class Container(Element):
         position = 0
 
         for i in range(element_index + 1):
-            current_element = self._content[i]
+            current_element = self.elements[i]
 
             if i == element_index:
                 position += self.style.get_cursor_offset_for_element(
-                    self.elements[i], parent=self
+                    current_element, parent=self
                 ).top
             else:
                 size = self._get_size(current_element)
@@ -140,6 +143,24 @@ class Container(Element):
 
         return True
 
+    def _focus_next(self) -> None:
+        self.active_element_index += 1
+
+        if self.active_element_index >= len(self.elements):
+            self.active_element_index = 0
+
+        if self._active_element.focusable is False:
+            self._focus_next()
+
+    def _focus_previous(self) -> None:
+        self.active_element_index -= 1
+
+        if self.active_element_index < 0:
+            self.active_element_index = len(self.elements) - 1
+
+        if self._active_element.focusable is False:
+            self._focus_previous()
+
     def run(self):
         self._refresh()
 
@@ -150,19 +171,13 @@ class Container(Element):
                 self.previous_element_index = self.active_element_index
 
                 if key in (TextInputHandler.SHIFT_TAB_KEY, TextInputHandler.TAB_KEY):
-                    if hasattr(self.elements[self.active_element_index], "on_blur"):
-                        self.elements[self.active_element_index].on_blur()
+                    if hasattr(self._active_element, "on_blur"):
+                        self._active_element.on_blur()
 
                     if key == TextInputHandler.SHIFT_TAB_KEY:
-                        self.active_element_index -= 1
+                        self._focus_previous()
                     else:
-                        self.active_element_index += 1
-
-                    if self.active_element_index < 0:
-                        self.active_element_index = len(self.elements) - 1
-
-                    elif self.active_element_index >= len(self.elements):
-                        self.active_element_index = 0
+                        self._focus_next()
 
                 active_element = self.elements[self.active_element_index]
                 active_element.handle_key(key)

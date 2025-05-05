@@ -14,6 +14,7 @@ from rich_toolkit.element import CursorOffset, Element
 from rich_toolkit.input import Input
 from rich_toolkit.menu import Menu
 from rich_toolkit.progress import Progress, ProgressLine
+from rich_toolkit.spacer import Spacer
 from rich_toolkit.utils.colors import (
     fade_text,
     get_terminal_background_color,
@@ -141,6 +142,8 @@ class BaseStyle:
                 max_lines=kwargs.get("max_lines", -1),
                 total_lines=kwargs.get("total_lines", -1),
             )
+        elif isinstance(element, Spacer):
+            return self.render_spacer()
         elif isinstance(element, ConsoleRenderable):
             return element
 
@@ -165,6 +168,9 @@ class BaseStyle:
         style = "black on blue" if is_active else "white on black"
         return Text(f" {element.label} ", style=style)
 
+    def render_spacer(self) -> RenderableType:
+        return ""
+
     def render_container(
         self,
         container: Container,
@@ -172,11 +178,10 @@ class BaseStyle:
         done: bool = False,
         parent: Optional[Element] = None,
     ) -> RenderableType:
-        # TODO: is there a better way for this?
-        container._content = []
+        content = []
 
         for i, element in enumerate(container.elements):
-            container._content.append(
+            content.append(
                 self.render_element(
                     element,
                     is_active=i == container.active_element_index,
@@ -185,10 +190,7 @@ class BaseStyle:
                 )
             )
 
-        return Group(
-            *[wrapper for wrapper in container._content],
-            "\n" if not done else "",
-        )
+        return Group(*content, "\n" if not done else "")
 
     def render_input(
         self,
@@ -274,7 +276,7 @@ class BaseStyle:
             if isinstance(parent, Form):
                 if is_active:
                     label = f"[active]{label}[/]"
-                elif not input.valid:
+                elif input.valid is False:
                     label = f"[error]{label}[/]"
 
         return label
