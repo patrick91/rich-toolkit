@@ -96,7 +96,8 @@ class TaggedStyle(BaseStyle):
     ) -> RenderableType:
         table = Table.grid(
             # TODO: why do we add 2? :D we probably did this in the previous version
-            Column(width=self.tag_width + 2),
+            Column(width=self.tag_width + 2, no_wrap=True),
+            Column(no_wrap=False, overflow="fold"),
             padding=(0, 0, 0, 0),
             collapse_padding=True,
             pad_edge=False,
