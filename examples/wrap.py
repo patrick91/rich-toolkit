@@ -12,6 +12,7 @@ def random_name_generator() -> str:
 
 SIMPLE_EXAMPLE = "This is a simple example of long text without any decoration. " * 5
 MARKUP_EXAMPLE = "This is a simple example of long text with [bold]bold[/bold] and [italic]italic[/italic]."
+LINK_EXAMPLE = "This is a [blue][link=https://supermegalonglink-actually-really-long-link-that-should-be-wrapped-but-very-long.com?random_param=1234567890&random_param2=1234567890]https://supermegalonglink-actually-really-long-link-that-should-be-wrapped-but-very-long.com?random_param=1234567890&random_param2=1234567890[/link][/blue]"
 
 for style in [TaggedStyle(tag_width=7), FancyStyle()]:
     theme = RichToolkitTheme(
@@ -37,6 +38,10 @@ for style in [TaggedStyle(tag_width=7), FancyStyle()]:
         app.print_line()
 
         app.print(MARKUP_EXAMPLE)
+
+        app.print_line()
+
+        app.print(LINK_EXAMPLE)
 
         app.print_line()
 
