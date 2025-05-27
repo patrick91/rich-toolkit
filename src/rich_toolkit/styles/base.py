@@ -199,8 +199,10 @@ class BaseStyle:
         done: bool = False,
         parent: Optional[Element] = None,
     ) -> RenderableType:
-        label = self.render_input_label(element, is_active, parent)
-        text = self.render_input_value(element, is_active, parent)
+        label = self.render_input_label(element, is_active=is_active, parent=parent)
+        text = self.render_input_value(
+            element, is_active=is_active, parent=parent, done=done
+        )
 
         contents = []
 
@@ -240,25 +242,28 @@ class BaseStyle:
         input: Union[Menu, Input],
         is_active: bool = False,
         parent: Optional[Element] = None,
+        done: bool = False,
     ) -> RenderableType:
         text = input.text
 
-        placeholder = ""
-        if isinstance(input, Input):
-            if input.password:
-                text = "*" * len(input.text)
+        if not text:
+            placeholder = ""
 
-            placeholder = input.placeholder
+            if isinstance(input, Input):
+                placeholder = input.placeholder
 
-        if input.text:
-            text = f"[text]{text}[/]"
-        else:
+                if input.password:
+                    text = "*" * len(input.text)
+                else:
+                    if input.default_as_placeholder and input.default:
+                        return f"[placeholder]{input.default}[/]"
+
             if input._cancelled:
-                text = f"[placeholder.cancelled]{placeholder}[/]"
-            else:
-                text = f"[placeholder]{placeholder}[/]"
+                return f"[placeholder.cancelled]{placeholder}[/]"
+            elif not done:
+                return f"[placeholder]{placeholder}[/]"
 
-        return text
+        return f"[text]{text}[/]"
 
     def render_input_label(
         self,
