@@ -1,4 +1,6 @@
+import atexit
 import io
+import signal
 
 from rich.color import Color
 from rich.color_triplet import ColorTriplet
@@ -145,6 +147,18 @@ def _get_terminal_color(
     old_settings = termios.tcgetattr(sys.stdin)
     old_blocking = os.get_blocking(sys.stdin.fileno())
 
+    def restore_terminal():
+        try:
+            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+            os.set_blocking(sys.stdin.fileno(), old_blocking)
+        except Exception:
+            pass
+
+    atexit.register(restore_terminal)
+    signal.signal(
+        signal.SIGTERM, lambda signum, frame: (restore_terminal(), sys.exit(0))
+    )
+
     try:
         # Set terminal to raw mode
         tty.setraw(sys.stdin)
@@ -196,8 +210,7 @@ def _get_terminal_color(
             return default_color
     finally:
         # Restore terminal settings
-        termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
-        os.set_blocking(sys.stdin.fileno(), old_blocking)
+        restore_terminal()
 
 
 def get_terminal_text_color(default_color: str = "#FFFFFF") -> str:
