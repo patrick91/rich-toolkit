@@ -1,3 +1,4 @@
+import sys
 import random
 from typing import List
 from rich_toolkit import RichToolkit
@@ -55,6 +56,10 @@ for style in [TaggedStyle(tag_width=12, theme=theme), BorderedStyle(theme=theme)
     with RichToolkit(style=style) as app:
         app.print_title("Launch sequence initiated.", tag="astro")
         app.print_line()
+
+        if not app.confirm("Do you want to continue?"):
+            app.print("Launch aborted.")
+            sys.exit(0)
 
         app.ask(
             "Where should we create your new project?",
