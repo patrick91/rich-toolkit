@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 import click
-from rich.console import RenderableType
 from rich.control import Control, ControlType
 from rich.live_render import LiveRender
 from rich.segment import Segment
@@ -41,6 +40,10 @@ class Container(Element):
             if hasattr(active_element, "should_show_cursor")
             else False
         )
+
+        # Always show cursor when done to restore terminal state
+        if done:
+            should_show_cursor = True
 
         self.console.print(
             Control.show_cursor(should_show_cursor),
