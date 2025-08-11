@@ -41,3 +41,7 @@ fix = true
 ignore = ["E501"]
 select = ["E", "W", "F", "B"]
 extend-select = ["E", "W", "F", "B"]
+
+
+[tool.autopub]
+plugins = ["autopub.plugins.github", "autopub.plugins.uv"]
