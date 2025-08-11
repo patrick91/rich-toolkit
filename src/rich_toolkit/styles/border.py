@@ -74,16 +74,23 @@ class BorderedStyle(BaseStyle):
         if message := self.render_validation_message(element):
             validation_message = (message,)
 
-        if element.valid is False:
-            border_color = self.console.get_style("error").color or Color.parse("red")
-
         title = self.render_input_label(
             element,
             is_active=is_active,
             parent=parent,
         )
 
-        border_color = Color.parse("white")
+        # Determine border color based on validation state
+        if element.valid is False:
+            try:
+                border_color = self.console.get_style("error").color or Color.parse(
+                    "red"
+                )
+            except Exception:
+                # Fallback if error style is not defined
+                border_color = Color.parse("red")
+        else:
+            border_color = Color.parse("white")
 
         return self._box(
             self.render_input_value(element, is_active=is_active, parent=parent),

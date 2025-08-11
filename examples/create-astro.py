@@ -1,7 +1,7 @@
 import random
 import time
 
-from rich_toolkit import RichToolkit, RichToolkitTheme
+from rich_toolkit import RichToolkit
 from rich_toolkit.styles.border import BorderedStyle
 from rich_toolkit.styles.fancy import FancyStyle
 from rich_toolkit.styles.tagged import TaggedStyle

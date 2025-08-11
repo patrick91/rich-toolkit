@@ -8,6 +8,7 @@ from rich.text import Text
 from typing_extensions import Any, Literal, TypedDict
 
 from ._input_handler import TextInputHandler
+
 from .element import CursorOffset, Element
 
 if TYPE_CHECKING:

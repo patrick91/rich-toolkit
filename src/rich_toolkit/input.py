@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Optional
 
 from ._input_handler import TextInputHandler
+
 from .element import CursorOffset, Element
 
 if TYPE_CHECKING:

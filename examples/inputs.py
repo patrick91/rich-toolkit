@@ -36,7 +36,7 @@ for style in [TaggedStyle(tag_width=12), BorderedStyle(), FancyStyle()]:
         )
         app.print_line()
 
-        app.input("What is the name of your project?", tag="name")
+        app.input("What is the name of your project?", tag="name", required=True)
         app.print_line()
 
         app.input("What's your password?", tag="password", password=True)

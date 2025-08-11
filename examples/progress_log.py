@@ -1,9 +1,8 @@
 import random
 import time
-from typing import Any, Dict, Generator, List, Tuple
+from typing import Generator
 
 import httpx
-from rich.segment import Segment
 from rich.text import Text
 
 from rich_toolkit import RichToolkit
