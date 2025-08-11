@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 from rich.console import Console, RenderableType
 from rich.live import Live
 from rich.text import Text
-from typing_extensions import Literal
 
 from .element import Element
 

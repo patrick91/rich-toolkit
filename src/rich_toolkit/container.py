@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
-import click
 from rich.control import Control, ControlType
 from rich.live_render import LiveRender
 from rich.segment import Segment
 
+from ._getchar import getchar
 from ._input_handler import TextInputHandler
+
 from .element import Element
 
 if TYPE_CHECKING:
@@ -169,7 +170,7 @@ class Container(Element):
 
         while True:
             try:
-                key = click.getchar()
+                key = getchar()
 
                 self.previous_element_index = self.active_element_index
 
