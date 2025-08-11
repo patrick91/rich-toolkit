@@ -1,6 +1,8 @@
----
-release type: minor
----
+CHANGELOG
+=========
+
+0.15.0 - 2025-08-11
+-------------------
 
 This release increases the paste buffer from 32 to 4096 characters, enabling users to paste longer text into input fields.
 
