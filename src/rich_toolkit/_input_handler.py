@@ -1,7 +1,7 @@
 """Unified input handler for all platforms."""
 
-import string
 import sys
+import unicodedata
 
 
 class TextInputHandler:
@@ -41,32 +41,62 @@ class TextInputHandler:
 
     def __init__(self):
         self.text = ""
-        self.cursor_left = 0
+        self._cursor_index = 0  # Character index in the text string
+
+    @property
+    def cursor_left(self) -> int:
+        """Visual cursor position in display columns."""
+        return self._get_text_width(self.text[: self._cursor_index])
+
+    @staticmethod
+    def _get_char_width(char: str) -> int:
+        """Get the display width of a character (1 for normal, 2 for CJK/fullwidth)."""
+        if not char:
+            return 0
+
+        # Check East Asian Width property
+        east_asian_width = unicodedata.east_asian_width(char)
+        # F (Fullwidth) and W (Wide) characters take 2 columns
+        if east_asian_width in ("F", "W"):
+            return 2
+        # A (Ambiguous) characters are typically 2 columns in CJK contexts
+        # but for simplicity we'll treat them as 1 (can be made configurable)
+        return 1
+
+    def _get_text_width(self, text: str) -> int:
+        """Get the total display width of a text string."""
+        return sum(self._get_char_width(char) for char in text)
 
     def _move_cursor_left(self) -> None:
-        self.cursor_left = max(0, self.cursor_left - 1)
+        self._cursor_index = max(0, self._cursor_index - 1)
 
     def _move_cursor_right(self) -> None:
-        self.cursor_left = min(len(self.text), self.cursor_left + 1)
+        self._cursor_index = min(len(self.text), self._cursor_index + 1)
 
     def _insert_char(self, char: str) -> None:
-        self.text = self.text[: self.cursor_left] + char + self.text[self.cursor_left :]
-        self._move_cursor_right()
+        self.text = (
+            self.text[: self._cursor_index] + char + self.text[self._cursor_index :]
+        )
+        self._cursor_index += 1
 
     def _delete_char(self) -> None:
         """Delete character before cursor (backspace)."""
-        if self.cursor_left == 0:
+        if self._cursor_index == 0:
             return
 
-        self.text = self.text[: self.cursor_left - 1] + self.text[self.cursor_left :]
-        self._move_cursor_left()
+        self.text = (
+            self.text[: self._cursor_index - 1] + self.text[self._cursor_index :]
+        )
+        self._cursor_index -= 1
 
     def _delete_forward(self) -> None:
         """Delete character at cursor (delete key)."""
-        if self.cursor_left == len(self.text):
+        if self._cursor_index >= len(self.text):
             return
 
-        self.text = self.text[: self.cursor_left] + self.text[self.cursor_left + 1 :]
+        self.text = (
+            self.text[: self._cursor_index] + self.text[self._cursor_index + 1 :]
+        )
 
     def handle_key(self, key: str) -> None:
         # Handle backspace (both possible codes)
@@ -99,5 +129,4 @@ class TextInputHandler:
             # Even if we call this handle_key, in some cases we might receive
             # multiple keys at once (e.g., during paste operations)
             for char in key:
-                if char in string.printable:
-                    self._insert_char(char)
+                self._insert_char(char)
