@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+0.15.1 - 2025-09-04
+-------------------
+
+This release add proper support for CJK characters
+
 0.15.0 - 2025-08-11
 -------------------
 
