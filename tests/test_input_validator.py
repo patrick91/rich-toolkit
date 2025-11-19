@@ -1,11 +1,7 @@
-"""Tests for Input component validator functionality."""
-
 from typing import Any
 
 from rich_toolkit.input import Input
 
-
-# Detect Pydantic version and create appropriate validator
 try:
     from pydantic import TypeAdapter
 
