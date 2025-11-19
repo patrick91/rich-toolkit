@@ -9,11 +9,18 @@ on:
 
 jobs:
   uv-example-linux:
-    name: python-linux
+    name: python-${{ matrix.python-version }}-pydantic-${{ matrix.pydantic-version }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        pydantic-version: ["v1", "v2"]
+        exclude:
+          # Pydantic v1 doesn't support Python 3.13+
+          - python-version: "3.13"
+            pydantic-version: "v1"
+          - python-version: "3.14"
+            pydantic-version: "v1"
     env:
       UV_PYTHON: ${{ matrix.python-version }}
     steps:
@@ -24,6 +31,14 @@ jobs:
 
       - name: Install dependencies
         run: uv sync --all-extras --dev
+
+      - name: Install Pydantic v1
+        if: matrix.pydantic-version == 'v1'
+        run: uv pip install "pydantic<2"
+
+      - name: Install Pydantic v2
+        if: matrix.pydantic-version == 'v2'
+        run: uv pip install "pydantic>=2"
 
       - name: Run tests
         run: uv run pytest

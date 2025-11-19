@@ -1,15 +1,48 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any, Optional, Protocol
 
 from ._input_handler import TextInputHandler
 
 from .element import CursorOffset, Element
 
 if TYPE_CHECKING:
-    from pydantic import TypeAdapter
-
     from .styles.base import BaseStyle
+
+
+class Validator(Protocol):
+    """Protocol for validators that can validate input values.
+
+    Any object with a validate_python method can be used as a validator.
+    This includes Pydantic's TypeAdapter or custom validators.
+
+    Example with Pydantic TypeAdapter:
+        >>> from pydantic import TypeAdapter
+        >>> validator = TypeAdapter(int)
+        >>> input_field = Input(validator=validator)
+
+    Example with custom validator:
+        >>> class MyValidator:
+        ...     def validate_python(self, value):
+        ...         if not value.startswith("x"):
+        ...             raise ValueError("Must start with x")
+        ...         return value
+        >>> input_field = Input(validator=MyValidator())
+    """
+
+    def validate_python(self, value: Any) -> Any:
+        """Validate a Python value and return the validated result.
+
+        Args:
+            value: The value to validate
+
+        Returns:
+            The validated value
+
+        Raises:
+            ValidationError: If validation fails
+        """
+        ...
 
 
 class Input(TextInputHandler, Element):
@@ -27,7 +60,7 @@ class Input(TextInputHandler, Element):
         inline: bool = False,
         name: Optional[str] = None,
         style: Optional[BaseStyle] = None,
-        validator: Optional[TypeAdapter] = None,
+        validator: Optional[Validator] = None,
         **metadata: Any,
     ):
         self.name = name
@@ -43,7 +76,7 @@ class Input(TextInputHandler, Element):
         self.valid = None
         self.required_message = required_message
         self._validation_message: Optional[str] = None
-        self._validator: Optional[TypeAdapter] = validator
+        self._validator: Optional[Validator] = validator
 
         Element.__init__(self, style=style, metadata=metadata)
         super().__init__()
@@ -99,7 +132,8 @@ class Input(TextInputHandler, Element):
             except ValidationError as e:
                 self.valid = False
 
-                self._validation_message = e.errors()[0]["ctx"]["reason"]
+                # Extract error message from Pydantic ValidationError
+                self._validation_message = e.errors()[0].get("msg", "Validation failed")
 
                 return
 
