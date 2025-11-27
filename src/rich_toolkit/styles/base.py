@@ -316,15 +316,34 @@ class BaseStyle:
 
             return result_content
 
-        for id_, option in enumerate(element.options):
-            if id_ == element.selected:
+        # Get visible range for scrolling
+        all_options = element.options
+        start, end = element.visible_options_range
+        visible_options = all_options[start:end]
+
+        # Check if scrolling is needed (to reserve consistent space for indicators)
+        needs_scrolling = element._needs_scrolling()
+
+        # Always reserve space for "more above" indicator when scrolling is enabled
+        # This prevents the menu from shifting when scrolling starts
+        if needs_scrolling:
+            if element.has_more_above:
+                menu.append(Text(element.MORE_ABOVE_INDICATOR + "\n", style="dim"))
+            else:
+                # Empty line to reserve space (same length as indicator for consistency)
+                menu.append(Text(" " * len(element.MORE_ABOVE_INDICATOR) + "\n"))
+
+        for idx, option in enumerate(visible_options):
+            # Calculate actual index in full options list
+            actual_idx = start + idx
+            if actual_idx == element.selected:
                 prefix = selected_prefix
                 style = self.console.get_style("selected")
             else:
                 prefix = not_selected_prefix
                 style = self.console.get_style("text")
 
-            is_last = id_ == len(element.options) - 1
+            is_last = idx == len(visible_options) - 1
 
             menu.append(
                 Text.assemble(
@@ -334,6 +353,14 @@ class BaseStyle:
                     style=style,
                 )
             )
+
+        # Always reserve space for "more below" indicator when scrolling is enabled
+        if needs_scrolling:
+            if element.has_more_below:
+                menu.append(Text("\n" + element.MORE_BELOW_INDICATOR, style="dim"))
+            else:
+                # Empty line to reserve space (same length as indicator for consistency)
+                menu.append(Text("\n" + " " * len(element.MORE_BELOW_INDICATOR)))
 
         if not element.options:
             menu = Text("No results found", style=self.console.get_style("text"))

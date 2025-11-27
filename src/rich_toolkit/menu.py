@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Generic, List, Optional, TypeVar
+from typing import TYPE_CHECKING, Generic, List, Optional, Tuple, TypeVar
 
 import click
-from rich.console import RenderableType
+from rich.console import Console, RenderableType
 from rich.text import Text
 from typing_extensions import Any, Literal, TypedDict
 
@@ -32,6 +32,10 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
     selection_char = "○"
     filter_prompt = "Filter: "
 
+    # Scroll indicators
+    MORE_ABOVE_INDICATOR = "  ↑ more"
+    MORE_BELOW_INDICATOR = "  ↓ more"
+
     def __init__(
         self,
         label: str,
@@ -41,6 +45,7 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
         *,
         style: Optional[BaseStyle] = None,
         cursor_offset: int = 0,
+        max_visible: Optional[int] = None,
         **metadata: Any,
     ):
         self.label = Text.from_markup(label)
@@ -55,6 +60,10 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
 
         self._padding_bottom = 1
         self.valid = None
+
+        # Scrolling state
+        self._scroll_offset: int = 0
+        self._max_visible: Optional[int] = max_visible
 
         cursor_offset = cursor_offset + len(self.filter_prompt)
 
@@ -99,6 +108,79 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
 
         return self._options
 
+    def get_max_visible(self, console: Optional[Console] = None) -> Optional[int]:
+        """Calculate the maximum number of visible options based on terminal height.
+
+        Args:
+            console: Console to get terminal height from. If None, uses default.
+
+        Returns:
+            Maximum number of visible options, or None if no limit needed.
+        """
+        if self._max_visible is not None:
+            return self._max_visible
+
+        if self.inline:
+            # Inline menus don't need scrolling
+            return None
+
+        if console is None:
+            console = Console()
+
+        # Reserve space for: label (1), filter line if enabled (1),
+        # scroll indicators (2), validation message (1), margins (2)
+        reserved_lines = 6
+        if self.allow_filtering:
+            reserved_lines += 1
+
+        available_height = console.height - reserved_lines
+        # At least show 3 options
+        return max(3, available_height)
+
+    @property
+    def visible_options_range(self) -> Tuple[int, int]:
+        """Returns (start, end) indices for visible options."""
+        max_visible = self.get_max_visible()
+        total_options = len(self.options)
+
+        if max_visible is None or total_options <= max_visible:
+            return (0, total_options)
+
+        start = self._scroll_offset
+        end = min(start + max_visible, total_options)
+        return (start, end)
+
+    @property
+    def has_more_above(self) -> bool:
+        """Check if there are more options above the visible window."""
+        return self._scroll_offset > 0
+
+    @property
+    def has_more_below(self) -> bool:
+        """Check if there are more options below the visible window."""
+        max_visible = self.get_max_visible()
+        if max_visible is None:
+            return False
+        return self._scroll_offset + max_visible < len(self.options)
+
+    def _ensure_selection_visible(self) -> None:
+        """Adjust scroll offset to ensure the selected item is visible."""
+        max_visible = self.get_max_visible()
+        if max_visible is None:
+            return
+
+        # If selection is above visible window, scroll up
+        if self.selected < self._scroll_offset:
+            self._scroll_offset = self.selected
+
+        # If selection is below visible window, scroll down
+        elif self.selected >= self._scroll_offset + max_visible:
+            self._scroll_offset = self.selected - max_visible + 1
+
+    def _reset_scroll(self) -> None:
+        """Reset scroll offset (used when filter changes)."""
+        self._scroll_offset = 0
+
     def _update_selection(self, key: Literal["next", "prev"]) -> None:
         if key == "next":
             self.selected += 1
@@ -110,6 +192,9 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
 
         if self.selected >= len(self.options):
             self.selected = 0
+
+        # Ensure the selected item is visible after navigation
+        self._ensure_selection_visible()
 
     def render_result(self) -> RenderableType:
         result_text = Text()
@@ -141,6 +226,7 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
 
     def handle_key(self, key: str) -> None:
         current_selection: Optional[str] = None
+        previous_filter_text = self.text
 
         if self.is_next_key(key):
             self._update_selection("next")
@@ -163,6 +249,11 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
             )
 
             self.selected = matching_index
+
+        # Reset scroll when filter text changes
+        if self.allow_filtering and self.text != previous_filter_text:
+            self._reset_scroll()
+            self._ensure_selection_visible()
 
     def _handle_enter(self) -> bool:
         if self.allow_filtering and self.text and len(self.options) == 0:
@@ -200,8 +291,18 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
 
     @property
     def cursor_offset(self) -> CursorOffset:
+        # For non-inline menus with filtering, cursor is on the filter line
+        # top = 2 accounts for: label (1) + filter line position (1 from start)
+        # The filter line comes BEFORE scroll indicators, so no adjustment needed
         top = 2
 
         left_offset = len(self.filter_prompt) + self.cursor_left
 
         return CursorOffset(top=top, left=left_offset)
+
+    def _needs_scrolling(self) -> bool:
+        """Check if scrolling is needed (more options than can be displayed)."""
+        max_visible = self.get_max_visible()
+        if max_visible is None:
+            return False
+        return len(self.options) > max_visible
