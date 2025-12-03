@@ -309,10 +309,17 @@ class BaseStyle:
             )
             result_content.append(" ")
 
-            result_content.append(
-                element.options[element.selected]["name"],
-                style=self.console.get_style("result"),
-            )
+            # Check if cancelled or invalid selection
+            if element._cancelled or not (0 <= element.selected < len(element.options)):
+                result_content.append(
+                    "Cancelled.",
+                    style=self.console.get_style("cancelled"),
+                )
+            else:
+                result_content.append(
+                    element.options[element.selected]["name"],
+                    style=self.console.get_style("result"),
+                )
 
             return result_content
 
