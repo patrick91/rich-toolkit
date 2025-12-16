@@ -1,12 +1,13 @@
 // app.tsx
-import { createDocsApp, DocsPage, HomePage } from '@usecross/docs'
+import { createDocsApp, DocsPage } from '@usecross/docs'
 import '@usecross/docs/styles.css'
 import './styles.css'
+import CustomHomePage from './CustomHomePage'
 
 createDocsApp({
   pages: {
     'docs/DocsPage': DocsPage,
-    'HomePage': HomePage,
+    'HomePage': CustomHomePage,
   },
   title: (title) => `${title} - My Docs`,
 })
