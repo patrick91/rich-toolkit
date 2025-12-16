@@ -1,0 +1,9 @@
+@import 'tailwindcss';
+@import '@usecross/docs/styles.css';
+
+@config "../tailwind.config.js";
+@source "../node_modules/@usecross/docs";
+
+:root {
+  --color-primary-500: #AA5655;
+}

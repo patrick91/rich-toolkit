@@ -1,0 +1,2 @@
+# Include build artifacts for production
+!frontend/dist/

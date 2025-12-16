@@ -1,0 +1,41 @@
+[project]
+name = "website"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "cross-docs>=0.2.7",
+    "cross-inertia>=0.11.4",
+    "fastapi[standard]>=0.121.2",
+]
+
+[tool.cross-docs]
+content_dir = "content"
+prefix = "/docs"
+index_page = "introduction"
+
+[tool.cross-docs.home]
+enabled = true
+title = "Rich Toolkit"
+tagline = "Terminal UI Components"
+description = "Beautiful terminal UI components for Python. Build stunning CLIs with ease."
+install_command = "uv add rich-toolkit"
+cta_text = "Get Started"
+cta_href = "/docs/"
+
+[[tool.cross-docs.home.features]]
+title = "Interactive Menus"
+description = "Build beautiful, filterable selection menus with keyboard navigation and customizable styling."
+
+[[tool.cross-docs.home.features]]
+title = "Form Inputs"
+description = "Collect user input with styled text fields, validation support, and password masking."
+
+[[tool.cross-docs.home.features]]
+title = "Progress Indicators"
+description = "Show task progress with elegant spinners and progress bars that keep users informed."
+
+[[tool.cross-docs.home.features]]
+title = "Built on Rich"
+description = "Leverages the power of Rich for beautiful terminal output with full color and styling support."
