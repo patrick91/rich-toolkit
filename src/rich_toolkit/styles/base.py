@@ -299,7 +299,7 @@ class BaseStyle:
         selected_prefix = Text(element.current_selection_char + " ")
         not_selected_prefix = Text(element.selection_char + " ")
 
-        separator = Text("\t" if element.inline else "\n")
+        separator = Text("  " if element.inline else "\n")
 
         if done:
             result_content = Text()
