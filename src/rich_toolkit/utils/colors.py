@@ -1,7 +1,3 @@
-import atexit
-import io
-import signal
-
 from rich.color import Color
 from rich.color_triplet import ColorTriplet
 from rich.style import Style
@@ -119,7 +115,6 @@ def _get_terminal_color(
     import os
     import re
     import select
-    import sys
 
     # Set appropriate OSC code and default color based on color_type
     if color_type.lower() == "text":
@@ -130,87 +125,94 @@ def _get_terminal_color(
         raise ValueError("color_type must be either 'text' or 'background'")
 
     try:
+        import fcntl
         import termios
         import tty
     except ImportError:
-        # Not on Unix-like systems (probably Windows), so we return the default color
+        # Not on a Unix-like system
+        return default_color
+
+    # Use a dedicated fd via /dev/tty instead of sys.stdin so we don't
+    # affect the process's stdin/stdout/stderr. On Linux, fds 0/1/2 share
+    # the same open file description when connected to the same terminal,
+    # so setting non-blocking or raw mode on stdin would also affect stdout,
+    # breaking logging in forked worker processes (e.g. uvicorn with --workers).
+    try:
+        tty_fd = os.open("/dev/tty", os.O_RDWR | os.O_NOCTTY)
+    except OSError:
         return default_color
 
     try:
-        if not os.isatty(sys.stdin.fileno()):
-            return default_color
-    except (AttributeError, IOError, io.UnsupportedOperation):
-        # Handle cases where stdin is redirected or not a real TTY (like in tests)
+        # Serialize access across forked workers. termios settings are
+        # per-terminal-device, not per-fd, so concurrent setcbreak/restore
+        # calls from different processes race and can cause the terminal's
+        # OSC response to be echoed visibly.
+        fcntl.flock(tty_fd, fcntl.LOCK_EX)
+    except OSError:
+        os.close(tty_fd)
         return default_color
 
-    # Save terminal settings so we can restore them
-    old_settings = termios.tcgetattr(sys.stdin)
-    old_blocking = os.get_blocking(sys.stdin.fileno())
-
-    def restore_terminal():
-        try:
-            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
-            os.set_blocking(sys.stdin.fileno(), old_blocking)
-        except Exception:
-            pass
-
-    atexit.register(restore_terminal)
-    signal.signal(
-        signal.SIGTERM, lambda signum, frame: (restore_terminal(), sys.exit(0))
-    )
+    old_settings = termios.tcgetattr(tty_fd)
 
     try:
-        # Set terminal to raw mode
-        tty.setraw(sys.stdin)
+        # Use setcbreak instead of setraw to keep ISIG enabled so that
+        # Ctrl+C continues to generate SIGINT. setraw disables ISIG which
+        # breaks signal handling in multi-process contexts (e.g. uvicorn
+        # workers). setcbreak only disables ECHO and ICANON, which is all
+        # we need for reading the OSC response character-by-character.
+        tty.setcbreak(tty_fd)
 
         # Send OSC escape sequence to query color
-        sys.stdout.write(f"\033]{osc_code};?\033\\")
-        sys.stdout.flush()
+        os.write(tty_fd, f"\033]{osc_code};?\033\\".encode())
 
         # Wait for response with timeout
-        if select.select([sys.stdin], [], [], 1.0)[0]:
-            os.set_blocking(sys.stdin.fileno(), False)
-
+        if select.select([tty_fd], [], [], 1.0)[0]:
             # Read response
-            response = ""
+            response = b""
             while True:
-                try:
-                    char = sys.stdin.read(1)
-                except io.BlockingIOError:
-                    char = ""
-                except TypeError:
-                    char = ""
-                if char is None or char == "":  # No more response data available
-                    if select.select([sys.stdin], [], [], 1.0)[0]:
-                        continue
-                    else:
+                if select.select([tty_fd], [], [], 1.0)[0]:
+                    data = os.read(tty_fd, 32)
+                    if not data:
                         break
-
-                response += char
-
-                if char == "\\":  # End of OSC response
-                    break
-                if len(response) > 50:  # Safety limit
+                    response += data
+                    # Terminal response ends with BEL (\a) or ST (\033\\)
+                    if b"\a" in response or b"\033\\" in response:
+                        break
+                    if len(response) > 50:  # Safety limit
+                        break
+                else:
                     break
 
             # Parse the response (format: \033]10;rgb:RRRR/GGGG/BBBB\033\\)
+            # Color components can be 1-4 hex digits depending on terminal
             match = re.search(
-                r"rgb:([0-9a-f]+)/([0-9a-f]+)/([0-9a-f]+)", response, re.IGNORECASE
+                rb"rgb:([0-9a-f]+)/([0-9a-f]+)/([0-9a-f]+)",
+                response,
+                re.IGNORECASE,
             )
             if match:
-                r, g, b = match.groups()
-                # Convert to standard hex format
-                r = int(r[0:2], 16)
-                g = int(g[0:2], 16)
-                b = int(b[0:2], 16)
+                r_hex, g_hex, b_hex = match.groups()
+                # Convert to 8-bit by taking the first 2 hex digits
+                r = int(r_hex[:2], 16)
+                g = int(g_hex[:2], 16)
+                b = int(b_hex[:2], 16)
                 return f"#{r:02x}{g:02x}{b:02x}"
 
             return default_color
         else:
             return default_color
+    except KeyboardInterrupt:
+        # This can happen when a worker process is interrupted (Ctrl+C)
+        # while in the middle of querying the terminal. Return the default
+        # color gracefully — the interrupt will be handled by the caller.
+        return default_color
     finally:
-        # Restore terminal settings
-        restore_terminal()
+        # Restore terminal settings using TCSAFLUSH to discard any
+        # unread response bytes left in the input buffer, then release
+        # the lock and close our dedicated fd.
+        termios.tcsetattr(tty_fd, termios.TCSAFLUSH, old_settings)
+        fcntl.flock(tty_fd, fcntl.LOCK_UN)
+        os.close(tty_fd)
 
 
 def get_terminal_text_color(default_color: str = "#FFFFFF") -> str:
