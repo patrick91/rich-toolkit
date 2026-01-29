@@ -125,6 +125,7 @@ def _get_terminal_color(
         raise ValueError("color_type must be either 'text' or 'background'")
 
     try:
+        import fcntl
         import termios
         import tty
     except ImportError:
@@ -139,6 +140,16 @@ def _get_terminal_color(
     try:
         tty_fd = os.open("/dev/tty", os.O_RDWR | os.O_NOCTTY)
     except OSError:
+        return default_color
+
+    try:
+        # Serialize access across forked workers. termios settings are
+        # per-terminal-device, not per-fd, so concurrent setcbreak/restore
+        # calls from different processes race and can cause the terminal's
+        # OSC response to be echoed visibly.
+        fcntl.flock(tty_fd, fcntl.LOCK_EX)
+    except OSError:
+        os.close(tty_fd)
         return default_color
 
     old_settings = termios.tcgetattr(tty_fd)
@@ -197,9 +208,10 @@ def _get_terminal_color(
         return default_color
     finally:
         # Restore terminal settings using TCSAFLUSH to discard any
-        # unread response bytes left in the input buffer, then close
-        # our dedicated fd.
+        # unread response bytes left in the input buffer, then release
+        # the lock and close our dedicated fd.
         termios.tcsetattr(tty_fd, termios.TCSAFLUSH, old_settings)
+        fcntl.flock(tty_fd, fcntl.LOCK_UN)
         os.close(tty_fd)
 
 
