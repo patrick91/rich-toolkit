@@ -2,7 +2,7 @@
 release type: minor
 ---
 
-Add multiple selection support to the Menu component.
+This release adds multiple selection support to the Menu component.
 
 When passing `multiple=True` to `RichToolkit.ask()` or `Menu()`, the menu
 switches to multi-select mode:
