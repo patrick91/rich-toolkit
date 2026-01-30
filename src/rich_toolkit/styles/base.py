@@ -350,16 +350,12 @@ class BaseStyle:
             # Calculate actual index in full options list
             actual_idx = start + idx
 
-            if element.multiple:
-                if element.is_option_checked(actual_idx):
-                    prefix = selected_prefix
-                else:
-                    prefix = not_selected_prefix
-            else:
-                if actual_idx == element.selected:
-                    prefix = selected_prefix
-                else:
-                    prefix = not_selected_prefix
+            is_checked = (
+                element.is_option_checked(actual_idx)
+                if element.multiple
+                else actual_idx == element.selected
+            )
+            prefix = selected_prefix if is_checked else not_selected_prefix
 
             if actual_idx == element.selected:
                 style = self.console.get_style("selected")
