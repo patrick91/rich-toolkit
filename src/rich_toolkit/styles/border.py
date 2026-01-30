@@ -112,35 +112,20 @@ class BorderedStyle(BaseStyle):
 
         menu = Text(justify="left")
 
-        if element.multiple:
-            selected_prefix = Text(element.checked_char + " ")
-            not_selected_prefix = Text(element.unchecked_char + " ")
-        else:
-            selected_prefix = Text(element.current_selection_char + " ")
-            not_selected_prefix = Text(element.selection_char + " ")
+        selected_prefix = Text(element.active_prefix + " ")
+        not_selected_prefix = Text(element.inactive_prefix + " ")
 
         separator = Text("\t" if element.inline else "\n")
 
         content: list[RenderableType] = []
 
         if done:
-            if element.multiple:
-                checked_names = [
-                    element._options[i]["name"] for i in sorted(element.checked)
-                ]
-                content.append(
-                    Text(
-                        ", ".join(checked_names),
-                        style=self.console.get_style("result"),
-                    )
+            content.append(
+                Text(
+                    element.result_display_name,
+                    style=self.console.get_style("result"),
                 )
-            else:
-                content.append(
-                    Text(
-                        element.options[element.selected]["name"],
-                        style=self.console.get_style("result"),
-                    )
-                )
+            )
 
         else:
             # Get visible range for scrolling
@@ -194,19 +179,18 @@ class BorderedStyle(BaseStyle):
             if not element.options:
                 menu = Text("No results found", style=self.console.get_style("text"))
 
-            filter = (
-                [
-                    Text.assemble(
-                        (element.filter_prompt, self.console.get_style("text")),
-                        (element.text, self.console.get_style("text")),
-                        "\n",
-                    )
-                ]
-                if element.allow_filtering
-                else []
-            )
+            filter_parts: list[RenderableType] = []
+            if element.allow_filtering:
+                filter_line = Text.assemble(
+                    (element.filter_prompt, self.console.get_style("text")),
+                    (element.text, self.console.get_style("text")),
+                )
+                if hint := element.selection_count_hint:
+                    filter_line.append(f" {hint}", style="dim")
+                filter_line.append("\n")
+                filter_parts.append(filter_line)
 
-            content.extend(filter)
+            content.extend(filter_parts)
             content.append(menu)
 
             if message := self.render_validation_message(element):

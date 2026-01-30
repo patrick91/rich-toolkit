@@ -1,6 +1,15 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Generic, List, Optional, Set, Tuple, TypeVar, Union
+from typing import (
+    TYPE_CHECKING,
+    Generic,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 import click
 from rich.console import Console, RenderableType
@@ -34,6 +43,24 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
     unchecked_char = "□"
     filter_prompt = "Filter: "
 
+    @property
+    def selection_count_hint(self) -> Optional[str]:
+        """Return a hint like '(3 selected)' when filtering hides checked items."""
+        if not self.multiple or not self.allow_filtering or not self.checked:
+            return None
+        count = len(self.checked)
+        return f"({count} selected)"
+
+    @property
+    def active_prefix(self) -> str:
+        """Prefix for the active/checked option."""
+        return self.checked_char if self.multiple else self.current_selection_char
+
+    @property
+    def inactive_prefix(self) -> str:
+        """Prefix for inactive/unchecked options."""
+        return self.unchecked_char if self.multiple else self.selection_char
+
     # Scroll indicators
     MORE_ABOVE_INDICATOR = "  ↑ more"
     MORE_BELOW_INDICATOR = "  ↓ more"
@@ -65,6 +92,7 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
         self.metadata = metadata
 
         self._options = options
+        self._option_index = {id(opt): idx for idx, opt in enumerate(options)}
 
         self._padding_bottom = 1
         self.valid = None
@@ -189,23 +217,28 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
         """Reset scroll offset (used when filter changes)."""
         self._scroll_offset = 0
 
+    def _get_option_index(self, option: Option[ReturnValue]) -> int:
+        """Return the index of an option in _options using identity lookup."""
+        return self._option_index[id(option)]
+
     def _toggle_current(self) -> None:
         """Toggle the checked state of the current cursor item (multi-select)."""
         if not self.options:
             return
-        # Map filtered index back to the index in _options
-        current_option = self.options[self.selected]
-        option_index = self._options.index(current_option)
-        if option_index in self.checked:
-            self.checked.discard(option_index)
-        else:
-            self.checked.add(option_index)
+        option_index = self._get_option_index(self.options[self.selected])
+        self.checked.symmetric_difference_update({option_index})
 
     def is_option_checked(self, filtered_index: int) -> bool:
         """Check if an option (by its index in the filtered list) is checked."""
-        option = self.options[filtered_index]
-        option_index = self._options.index(option)
+        option_index = self._get_option_index(self.options[filtered_index])
         return option_index in self.checked
+
+    @property
+    def result_display_name(self) -> str:
+        """Return the display name for the result (used when the menu is done)."""
+        if self.multiple:
+            return ", ".join(self._options[i]["name"] for i in sorted(self.checked))
+        return self.options[self.selected]["name"]
 
     def _update_selection(self, key: Literal["next", "prev"]) -> None:
         if key == "next":
@@ -228,17 +261,10 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
         result_text.append(self.label)
         result_text.append(" ")
 
-        if self.multiple:
-            checked_names = [self._options[i]["name"] for i in sorted(self.checked)]
-            result_text.append(
-                ", ".join(checked_names),
-                style=self.console.get_style("result"),
-            )
-        else:
-            result_text.append(
-                self.options[self.selected]["name"],
-                style=self.console.get_style("result"),
-            )
+        result_text.append(
+            self.result_display_name,
+            style=self.console.get_style("result"),
+        )
 
         return result_text
 
