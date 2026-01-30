@@ -296,8 +296,12 @@ class BaseStyle:
     ) -> RenderableType:
         menu = Text(justify="left")
 
-        selected_prefix = Text(element.current_selection_char + " ")
-        not_selected_prefix = Text(element.selection_char + " ")
+        if element.multiple:
+            selected_prefix = Text(element.checked_char + " ")
+            not_selected_prefix = Text(element.unchecked_char + " ")
+        else:
+            selected_prefix = Text(element.current_selection_char + " ")
+            not_selected_prefix = Text(element.selection_char + " ")
 
         separator = Text("  " if element.inline else "\n")
 
@@ -309,10 +313,19 @@ class BaseStyle:
             )
             result_content.append(" ")
 
-            result_content.append(
-                element.options[element.selected]["name"],
-                style=self.console.get_style("result"),
-            )
+            if element.multiple:
+                checked_names = [
+                    element._options[i]["name"] for i in sorted(element.checked)
+                ]
+                result_content.append(
+                    ", ".join(checked_names),
+                    style=self.console.get_style("result"),
+                )
+            else:
+                result_content.append(
+                    element.options[element.selected]["name"],
+                    style=self.console.get_style("result"),
+                )
 
             return result_content
 
@@ -336,11 +349,21 @@ class BaseStyle:
         for idx, option in enumerate(visible_options):
             # Calculate actual index in full options list
             actual_idx = start + idx
+
+            if element.multiple:
+                if element.is_option_checked(actual_idx):
+                    prefix = selected_prefix
+                else:
+                    prefix = not_selected_prefix
+            else:
+                if actual_idx == element.selected:
+                    prefix = selected_prefix
+                else:
+                    prefix = not_selected_prefix
+
             if actual_idx == element.selected:
-                prefix = selected_prefix
                 style = self.console.get_style("selected")
             else:
-                prefix = not_selected_prefix
                 style = self.console.get_style("text")
 
             is_last = idx == len(visible_options) - 1
