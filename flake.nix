@@ -21,6 +21,10 @@
             # Node.js tooling for website
             nodejs_22  # Latest stable Node.js 22.x
             bun        # Bun runtime
+
+            # Terminal recording
+            vhs            # Terminal recorder
+            bashInteractive # Fix for VHS escaped prompt in Nix shell
           ];
 
           shellHook = ''

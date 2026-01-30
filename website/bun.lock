@@ -7,7 +7,7 @@
       "dependencies": {
         "@tailwindcss/typography": "^0.5.19",
         "@tailwindcss/vite": "^4.1.18",
-        "@usecross/docs": "^0.2.8",
+        "@usecross/docs": "^0.3.0",
         "@vitejs/plugin-react": "^5.1.2",
         "clsx": "^2.1.1",
         "shiki": "^3.20.0",
@@ -253,7 +253,7 @@
 
     "@ungap/structured-clone": ["@ungap/structured-clone@1.3.0", "", {}, "sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g=="],
 
-    "@usecross/docs": ["@usecross/docs@0.2.8", "", { "dependencies": { "clsx": "^2.1.1", "react-markdown": "^10.1.0", "rehype-raw": "^7.0.0", "remark-gfm": "^4.0.1", "shiki": "^1.24.0", "tailwind-merge": "^2.6.0" }, "peerDependencies": { "@inertiajs/react": "^2.0.0", "@tailwindcss/typography": "^0.5.0", "react": "^18.0.0", "react-dom": "^18.0.0", "tailwindcss": "^3.0.0" } }, "sha512-IXnKXCE0GqGL39sPe03WAs/MeiHZBQLP7aTSFGGnSE2MYxUeHkKU4X5yFGqMKX/dvvnA1DiSA3bJiz/AGI50kg=="],
+    "@usecross/docs": ["@usecross/docs@0.3.0", "", { "dependencies": { "clsx": "^2.1.1", "react-markdown": "^10.1.0", "rehype-raw": "^7.0.0", "remark-gfm": "^4.0.1", "shiki": "^1.24.0", "tailwind-merge": "^2.6.0" }, "peerDependencies": { "@inertiajs/react": "^2.0.0", "@tailwindcss/typography": "^0.5.0", "react": "^18.0.0", "react-dom": "^18.0.0", "tailwindcss": "^4.0.0" } }, "sha512-HLyDrNWfsGuVuaptD8cJVZbaZE5qGT56swTz8ysezcsnGVPRb/bjBeCizo8FMclvZmoBjns8zR98ey1HfcyHzg=="],
 
     "@vitejs/plugin-react": ["@vitejs/plugin-react@5.1.2", "", { "dependencies": { "@babel/core": "^7.28.5", "@babel/plugin-transform-react-jsx-self": "^7.27.1", "@babel/plugin-transform-react-jsx-source": "^7.27.1", "@rolldown/pluginutils": "1.0.0-beta.53", "@types/babel__core": "^7.20.5", "react-refresh": "^0.18.0" }, "peerDependencies": { "vite": "^4.2.0 || ^5.0.0 || ^6.0.0 || ^7.0.0" } }, "sha512-EcA07pHJouywpzsoTUqNh5NwGayl2PPVEJKUSinGGSxFGYn+shYbqMGBg6FXDqgXum9Ou/ecb+411ssw8HImJQ=="],
 
