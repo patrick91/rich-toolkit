@@ -342,17 +342,22 @@ class BaseStyle:
         return menu
 
     def _build_filter_parts(self, element: Menu) -> list[RenderableType]:
-        """Build the filter line with the selection count hint."""
+        if not element.allow_filtering:
+            return []
+
         filter_parts: list[RenderableType] = []
-        if element.allow_filtering:
-            filter_line = Text.assemble(
-                (element.filter_prompt, self.console.get_style("text")),
-                (element.text, self.console.get_style("text")),
-            )
-            if hint := element.selection_count_hint:
-                filter_line.append(f" {hint}", style="dim")
-            filter_line.append("\n")
-            filter_parts.append(filter_line)
+
+        filter_line = Text.assemble(
+            (element.filter_prompt, self.console.get_style("text")),
+            (element.text, self.console.get_style("text")),
+        )
+
+        if hint := element.selection_count_hint:
+            filter_line.append(f" {hint}", style="dim")
+
+        filter_line.append("\n")
+        filter_parts.append(filter_line)
+
         return filter_parts
 
     def render_menu(
@@ -362,13 +367,14 @@ class BaseStyle:
         done: bool = False,
         parent: Optional[Element] = None,
     ) -> RenderableType:
+        label = self.render_input_label(element, is_active=is_active, parent=parent)
+
         if done:
             result_content = Text()
 
-            result_content.append(
-                self.render_input_label(element, is_active=is_active, parent=parent)
-            )
-            result_content.append(" ")
+            if label:
+                result_content.append(label)
+                result_content.append(" ")
 
             result_content.append(
                 element.result_display_name,
@@ -383,7 +389,8 @@ class BaseStyle:
 
         content: list[RenderableType] = []
 
-        content.append(self.render_input_label(element))
+        if label:
+            content.append(label)
 
         content.extend(filter_parts)
         content.append(menu)

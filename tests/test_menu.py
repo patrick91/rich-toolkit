@@ -116,9 +116,6 @@ def test_selection_count_hint_empty_checked():
     assert menu.selection_count_hint is None
 
 
-# -- Validation --
-
-
 def test_on_validate_no_checked_invalid():
     menu = Menu("Pick", OPTIONS, multiple=True)
     menu.on_validate()
@@ -136,9 +133,6 @@ def test_validation_message_when_invalid():
     menu = Menu("Pick", OPTIONS, multiple=True)
     menu.valid = False
     assert menu.validation_message == "Please select at least one option"
-
-
-# -- Filter + multi-select --
 
 
 def test_filter_narrows_options_preserves_checked():
@@ -177,9 +171,6 @@ def test_get_option_index_uses_identity():
     menu = Menu("Pick", opts, multiple=True)
     assert menu._get_option_index(opts[0]) == 0
     assert menu._get_option_index(opts[1]) == 1
-
-
-# -- Edge cases: filtering + multi-select, scrolling + multi-select, empty enter --
 
 
 def test_filter_toggle_clear_preserves_all_checked():
