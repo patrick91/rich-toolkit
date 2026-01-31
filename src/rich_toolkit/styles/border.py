@@ -110,13 +110,6 @@ class BorderedStyle(BaseStyle):
     ) -> RenderableType:
         validation_message: Tuple[str, ...] = ()
 
-        menu = Text(justify="left")
-
-        selected_prefix = Text(element.active_prefix + " ")
-        not_selected_prefix = Text(element.inactive_prefix + " ")
-
-        separator = Text("\t" if element.inline else "\n")
-
         content: list[RenderableType] = []
 
         if done:
@@ -128,67 +121,9 @@ class BorderedStyle(BaseStyle):
             )
 
         else:
-            # Get visible range for scrolling
-            all_options = element.options
-            start, end = element.visible_options_range
-            visible_options = all_options[start:end]
-
-            # Check if scrolling is needed (to reserve consistent space for indicators)
-            needs_scrolling = element._needs_scrolling()
-
-            # Always reserve space for "more above" indicator when scrolling is enabled
-            if needs_scrolling:
-                if element.has_more_above:
-                    menu.append(Text(element.MORE_ABOVE_INDICATOR + "\n", style="dim"))
-                else:
-                    menu.append(Text(" " * len(element.MORE_ABOVE_INDICATOR) + "\n"))
-
-            for idx, option in enumerate(visible_options):
-                actual_idx = start + idx
-
-                is_checked = (
-                    element.is_option_checked(actual_idx)
-                    if element.multiple
-                    else actual_idx == element.selected
-                )
-                prefix = selected_prefix if is_checked else not_selected_prefix
-
-                if actual_idx == element.selected:
-                    style = self.console.get_style("selected")
-                else:
-                    style = self.console.get_style("text")
-
-                is_last = idx == len(visible_options) - 1
-
-                menu.append(
-                    Text.assemble(
-                        prefix,
-                        option["name"],
-                        separator if not is_last else "",
-                        style=style,
-                    )
-                )
-
-            # Always reserve space for "more below" indicator when scrolling is enabled
-            if needs_scrolling:
-                if element.has_more_below:
-                    menu.append(Text("\n" + element.MORE_BELOW_INDICATOR, style="dim"))
-                else:
-                    menu.append(Text("\n" + " " * len(element.MORE_BELOW_INDICATOR)))
-
-            if not element.options:
-                menu = Text("No results found", style=self.console.get_style("text"))
-
-            filter_parts: list[RenderableType] = []
-            if element.allow_filtering:
-                filter_line = Text.assemble(
-                    (element.filter_prompt, self.console.get_style("text")),
-                    (element.text, self.console.get_style("text")),
-                )
-                if hint := element.selection_count_hint:
-                    filter_line.append(f" {hint}", style="dim")
-                filter_line.append("\n")
-                filter_parts.append(filter_line)
+            separator = Text("\t" if element.inline else "\n")
+            menu = self._build_menu_options(element, separator)
+            filter_parts = self._build_filter_parts(element)
 
             content.extend(filter_parts)
             content.append(menu)

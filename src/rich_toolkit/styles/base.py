@@ -287,34 +287,12 @@ class BaseStyle:
 
         return label
 
-    def render_menu(
-        self,
-        element: Menu,
-        is_active: bool = False,
-        done: bool = False,
-        parent: Optional[Element] = None,
-    ) -> RenderableType:
+    def _build_menu_options(self, element: Menu, separator: Text) -> Text:
+        """Build the menu Text containing scroll indicators and option items."""
         menu = Text(justify="left")
 
         selected_prefix = Text(element.active_prefix + " ")
         not_selected_prefix = Text(element.inactive_prefix + " ")
-
-        separator = Text("  " if element.inline else "\n")
-
-        if done:
-            result_content = Text()
-
-            result_content.append(
-                self.render_input_label(element, is_active=is_active, parent=parent)
-            )
-            result_content.append(" ")
-
-            result_content.append(
-                element.result_display_name,
-                style=self.console.get_style("result"),
-            )
-
-            return result_content
 
         # Get visible range for scrolling
         all_options = element.options
@@ -330,11 +308,9 @@ class BaseStyle:
             if element.has_more_above:
                 menu.append(Text(element.MORE_ABOVE_INDICATOR + "\n", style="dim"))
             else:
-                # Empty line to reserve space (same length as indicator for consistency)
                 menu.append(Text(" " * len(element.MORE_ABOVE_INDICATOR) + "\n"))
 
         for idx, option in enumerate(visible_options):
-            # Calculate actual index in full options list
             actual_idx = start + idx
 
             is_checked = (
@@ -365,12 +341,15 @@ class BaseStyle:
             if element.has_more_below:
                 menu.append(Text("\n" + element.MORE_BELOW_INDICATOR, style="dim"))
             else:
-                # Empty line to reserve space (same length as indicator for consistency)
                 menu.append(Text("\n" + " " * len(element.MORE_BELOW_INDICATOR)))
 
         if not element.options:
             menu = Text("No results found", style=self.console.get_style("text"))
 
+        return menu
+
+    def _build_filter_parts(self, element: Menu) -> list[RenderableType]:
+        """Build the filter line with the selection count hint."""
         filter_parts: list[RenderableType] = []
         if element.allow_filtering:
             filter_line = Text.assemble(
@@ -381,6 +360,33 @@ class BaseStyle:
                 filter_line.append(f" {hint}", style="dim")
             filter_line.append("\n")
             filter_parts.append(filter_line)
+        return filter_parts
+
+    def render_menu(
+        self,
+        element: Menu,
+        is_active: bool = False,
+        done: bool = False,
+        parent: Optional[Element] = None,
+    ) -> RenderableType:
+        if done:
+            result_content = Text()
+
+            result_content.append(
+                self.render_input_label(element, is_active=is_active, parent=parent)
+            )
+            result_content.append(" ")
+
+            result_content.append(
+                element.result_display_name,
+                style=self.console.get_style("result"),
+            )
+
+            return result_content
+
+        separator = Text("  " if element.inline else "\n")
+        menu = self._build_menu_options(element, separator)
+        filter_parts = self._build_filter_parts(element)
 
         content: list[RenderableType] = []
 
