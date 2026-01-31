@@ -291,8 +291,8 @@ def test_enter_rejected_when_nothing_checked():
     assert menu.valid is True
 
 
-def test_enter_rejected_when_filter_yields_no_results():
-    """Enter in multi-select with items checked but filter showing no results should fail."""
+def test_enter_allowed_when_filter_yields_no_results_but_items_checked():
+    """Enter in multi-select should succeed when items are checked, even if filter shows no results."""
     menu = Menu("Pick", OPTIONS, multiple=True, allow_filtering=True)
 
     # Check an item first
@@ -306,7 +306,8 @@ def test_enter_rejected_when_filter_yields_no_results():
     assert len(menu.options) == 0  # no filtered results
     assert menu.checked == {0}  # but still have checked items
 
-    # Validation should fail because filter yields no options
+    # Validation should succeed because items are checked
+    # Filter is just a navigation aid, not a submission constraint
     menu.on_validate()
-    assert menu.valid is False
-    assert menu.validation_message == "No results found"
+    assert menu.valid is True
+    assert menu.validation_message is None

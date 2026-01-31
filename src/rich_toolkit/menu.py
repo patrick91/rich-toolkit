@@ -327,9 +327,6 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
     @property
     def validation_message(self) -> Optional[str]:
         if self.valid is False:
-            # When filtering yields no results, show specific message
-            if self.allow_filtering and len(self.options) == 0:
-                return "No results found"
             if self.multiple:
                 return "Please select at least one option"
             return "This field is required"
@@ -340,13 +337,12 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
         self.on_validate()
 
     def on_validate(self):
-        # When filtering is enabled and yields no results, validation should fail
-        # regardless of checked state (can't submit when showing "No results found")
-        if self.allow_filtering and len(self.options) == 0:
-            self.valid = False
-        elif self.multiple:
+        if self.multiple:
+            # For multi-select, allow submission if items are checked
+            # Filter is just a navigation aid, not a submission constraint
             self.valid = len(self.checked) > 0
         else:
+            # For single-select, need visible options to submit
             self.valid = len(self.options) > 0
 
     @property
