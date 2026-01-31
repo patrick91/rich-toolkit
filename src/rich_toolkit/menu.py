@@ -48,8 +48,7 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
         """Return a hint like '(3 selected)' when filtering hides checked items."""
         if not self.multiple or not self.allow_filtering or not self.checked:
             return None
-        count = len(self.checked)
-        return f"({count} selected)"
+        return f"({len(self.checked)} selected)"
 
     @property
     def active_prefix(self) -> str:
@@ -222,21 +221,19 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
         return self._option_index[id(option)]
 
     def _toggle_current(self) -> None:
-        """Toggle the checked state of the current cursor item (multi-select)."""
+        """Toggle the checked state of the current cursor item."""
         if not self.options:
             return
         option_index = self._get_option_index(self.options[self.selected])
-        self.checked.symmetric_difference_update({option_index})
+        self.checked ^= {option_index}
 
     def is_option_checked(self, filtered_index: int) -> bool:
-        """Check if an option (by its index in the filtered list) is checked."""
-        option_index = self._get_option_index(self.options[filtered_index])
-        return option_index in self.checked
+        """Check if a filtered-list option is checked."""
+        return self._get_option_index(self.options[filtered_index]) in self.checked
 
     def is_option_checked_by_ref(self, option: Option[ReturnValue]) -> bool:
-        """Check if an option (by reference) is checked. More efficient than is_option_checked() during rendering."""
-        option_index = self._get_option_index(option)
-        return option_index in self.checked
+        """Check if an option is checked using its object identity."""
+        return self._get_option_index(option) in self.checked
 
     @property
     def result_display_name(self) -> str:
@@ -338,11 +335,8 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
 
     def on_validate(self):
         if self.multiple:
-            # For multi-select, allow submission if items are checked
-            # Filter is just a navigation aid, not a submission constraint
             self.valid = len(self.checked) > 0
         else:
-            # For single-select, need visible options to submit
             self.valid = len(self.options) > 0
 
     @property

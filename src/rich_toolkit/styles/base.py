@@ -291,19 +291,14 @@ class BaseStyle:
         """Build the menu Text containing scroll indicators and option items."""
         menu = Text(justify="left")
 
-        selected_prefix = Text(element.active_prefix + " ")
-        not_selected_prefix = Text(element.inactive_prefix + " ")
+        checked_prefix = Text(element.active_prefix + " ")
+        unchecked_prefix = Text(element.inactive_prefix + " ")
 
-        # Get visible range for scrolling
-        all_options = element.options
         start, end = element.visible_options_range
-        visible_options = all_options[start:end]
-
-        # Check if scrolling is needed (to reserve consistent space for indicators)
+        visible_options = element.options[start:end]
         needs_scrolling = element._needs_scrolling()
 
-        # Always reserve space for "more above" indicator when scrolling is enabled
-        # This prevents the menu from shifting when scrolling starts
+        # Reserve space for scroll indicators to prevent layout shift
         if needs_scrolling:
             if element.has_more_above:
                 menu.append(Text(element.MORE_ABOVE_INDICATOR + "\n", style="dim"))
@@ -312,18 +307,17 @@ class BaseStyle:
 
         for idx, option in enumerate(visible_options):
             actual_idx = start + idx
+            is_at_cursor = actual_idx == element.selected
 
-            is_checked = (
-                element.is_option_checked_by_ref(option)
-                if element.multiple
-                else actual_idx == element.selected
-            )
-            prefix = selected_prefix if is_checked else not_selected_prefix
-
-            if actual_idx == element.selected:
-                style = self.console.get_style("selected")
+            # Prefix reflects checked state (multi-select) or cursor (single-select)
+            if element.multiple:
+                is_marked = element.is_option_checked_by_ref(option)
             else:
-                style = self.console.get_style("text")
+                is_marked = is_at_cursor
+            prefix = checked_prefix if is_marked else unchecked_prefix
+
+            # Style reflects cursor position regardless of checked state
+            style = self.console.get_style("selected" if is_at_cursor else "text")
 
             is_last = idx == len(visible_options) - 1
 
@@ -336,7 +330,6 @@ class BaseStyle:
                 )
             )
 
-        # Always reserve space for "more below" indicator when scrolling is enabled
         if needs_scrolling:
             if element.has_more_below:
                 menu.append(Text("\n" + element.MORE_BELOW_INDICATOR, style="dim"))

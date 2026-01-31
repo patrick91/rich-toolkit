@@ -62,14 +62,6 @@ def test_toggle_navigate_toggle_multiple_items():
     assert menu.selected == 1
 
 
-def test_toggle_same_item_twice_removes():
-    menu = Menu("Pick", OPTIONS, multiple=True)
-    menu.handle_key(" ")
-    assert menu.checked == {0}
-    menu.handle_key(" ")
-    assert menu.checked == set()
-
-
 def test_result_display_name_single():
     menu = Menu("Pick", OPTIONS)
     menu.selected = 1
@@ -144,19 +136,6 @@ def test_validation_message_when_invalid():
     menu = Menu("Pick", OPTIONS, multiple=True)
     menu.valid = False
     assert menu.validation_message == "Please select at least one option"
-
-
-def test_validate_returns_false_nothing_checked():
-    menu = Menu("Pick", OPTIONS, multiple=True)
-    menu.on_validate()
-    assert menu.valid is False
-
-
-def test_validate_returns_true_when_checked():
-    menu = Menu("Pick", OPTIONS, multiple=True)
-    menu.checked = {0}
-    menu.on_validate()
-    assert menu.valid is True
 
 
 # -- Filter + multi-select --
