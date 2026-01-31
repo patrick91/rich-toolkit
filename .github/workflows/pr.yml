@@ -28,7 +28,7 @@ jobs:
       - name: Check
         id: check
         run: |
-          if uvx --from autopub==1.0.0a48 --with pygithub autopub check; then
+          if uvx --from autopub==1.0.0a56 --with pygithub autopub check; then
             echo "has_release=true" >> $GITHUB_OUTPUT
           else
             echo "has_release=false" >> $GITHUB_OUTPUT
