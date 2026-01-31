@@ -146,15 +146,17 @@ def test_validation_message_when_invalid():
     assert menu.validation_message == "Please select at least one option"
 
 
-def test_handle_enter_returns_false_nothing_checked():
+def test_validate_returns_false_nothing_checked():
     menu = Menu("Pick", OPTIONS, multiple=True)
-    assert menu._handle_enter() is False
+    menu.on_validate()
+    assert menu.valid is False
 
 
-def test_handle_enter_returns_true_when_checked():
+def test_validate_returns_true_when_checked():
     menu = Menu("Pick", OPTIONS, multiple=True)
     menu.checked = {0}
-    assert menu._handle_enter() is True
+    menu.on_validate()
+    assert menu.valid is True
 
 
 # -- Filter + multi-select --
@@ -277,10 +279,6 @@ def test_enter_rejected_when_nothing_checked():
     menu = Menu("Pick", OPTIONS, multiple=True)
     assert menu.checked == set()
 
-    # _handle_enter should refuse
-    result = menu._handle_enter()
-    assert result is False
-
     # Validation should mark menu invalid
     menu.on_validate()
     assert menu.valid is False
@@ -289,6 +287,26 @@ def test_enter_rejected_when_nothing_checked():
     # After checking one item, enter should succeed
     menu.handle_key(" ")
     assert menu.checked == {0}
-    assert menu._handle_enter() is True
     menu.on_validate()
     assert menu.valid is True
+
+
+def test_enter_rejected_when_filter_yields_no_results():
+    """Enter in multi-select with items checked but filter showing no results should fail."""
+    menu = Menu("Pick", OPTIONS, multiple=True, allow_filtering=True)
+
+    # Check an item first
+    menu.handle_key(" ")  # check Alpha
+    assert menu.checked == {0}
+
+    # Filter to something that yields no results
+    menu.handle_key("x")
+    menu.handle_key("y")
+    menu.handle_key("z")
+    assert len(menu.options) == 0  # no filtered results
+    assert menu.checked == {0}  # but still have checked items
+
+    # Validation should fail because filter yields no options
+    menu.on_validate()
+    assert menu.valid is False
+    assert menu.validation_message == "No results found"

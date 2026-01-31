@@ -314,7 +314,7 @@ class BaseStyle:
             actual_idx = start + idx
 
             is_checked = (
-                element.is_option_checked(actual_idx)
+                element.is_option_checked_by_ref(option)
                 if element.multiple
                 else actual_idx == element.selected
             )

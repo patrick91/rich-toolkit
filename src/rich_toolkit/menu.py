@@ -233,6 +233,11 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
         option_index = self._get_option_index(self.options[filtered_index])
         return option_index in self.checked
 
+    def is_option_checked_by_ref(self, option: Option[ReturnValue]) -> bool:
+        """Check if an option (by reference) is checked. More efficient than is_option_checked() during rendering."""
+        option_index = self._get_option_index(option)
+        return option_index in self.checked
+
     @property
     def result_display_name(self) -> str:
         """Return the display name for the result (used when the menu is done)."""
@@ -319,18 +324,12 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
             self._reset_scroll()
             self._ensure_selection_visible()
 
-    def _handle_enter(self) -> bool:
-        if self.allow_filtering and self.text and len(self.options) == 0:
-            return False
-
-        if self.multiple and len(self.checked) == 0:
-            return False
-
-        return True
-
     @property
     def validation_message(self) -> Optional[str]:
         if self.valid is False:
+            # When filtering yields no results, show specific message
+            if self.allow_filtering and len(self.options) == 0:
+                return "No results found"
             if self.multiple:
                 return "Please select at least one option"
             return "This field is required"
@@ -341,7 +340,11 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
         self.on_validate()
 
     def on_validate(self):
-        if self.multiple:
+        # When filtering is enabled and yields no results, validation should fail
+        # regardless of checked state (can't submit when showing "No results found")
+        if self.allow_filtering and len(self.options) == 0:
+            self.valid = False
+        elif self.multiple:
             self.valid = len(self.checked) > 0
         else:
             self.valid = len(self.options) > 0
