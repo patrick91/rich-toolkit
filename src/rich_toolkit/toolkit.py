@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Literal, Optional, Union, overload
 
 from rich.console import Console, RenderableType
 from rich.theme import Theme
@@ -87,14 +87,38 @@ class RichToolkit:
             **metadata,
         )
 
+    @overload
     def ask(
         self,
         label: str,
         options: List[Option[ReturnValue]],
         inline: bool = False,
         allow_filtering: bool = False,
+        multiple: Literal[False] = False,
         **metadata: Any,
-    ) -> ReturnValue:
+    ) -> ReturnValue: ...
+
+    @overload
+    def ask(
+        self,
+        label: str,
+        options: List[Option[ReturnValue]],
+        inline: bool = False,
+        allow_filtering: bool = False,
+        *,
+        multiple: Literal[True],
+        **metadata: Any,
+    ) -> List[ReturnValue]: ...
+
+    def ask(
+        self,
+        label: str,
+        options: List[Option[ReturnValue]],
+        inline: bool = False,
+        allow_filtering: bool = False,
+        multiple: bool = False,
+        **metadata: Any,
+    ) -> Union[ReturnValue, List[ReturnValue]]:
         return Menu(
             label=label,
             options=options,
@@ -102,6 +126,7 @@ class RichToolkit:
             style=self.style,
             inline=inline,
             allow_filtering=allow_filtering,
+            multiple=multiple,
             **metadata,
         ).ask()
 

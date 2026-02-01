@@ -287,61 +287,37 @@ class BaseStyle:
 
         return label
 
-    def render_menu(
-        self,
-        element: Menu,
-        is_active: bool = False,
-        done: bool = False,
-        parent: Optional[Element] = None,
-    ) -> RenderableType:
+    def _build_menu_options(self, element: Menu, separator: Text) -> Text:
+        """Build the menu Text containing scroll indicators and option items."""
         menu = Text(justify="left")
 
-        selected_prefix = Text(element.current_selection_char + " ")
-        not_selected_prefix = Text(element.selection_char + " ")
+        checked_prefix = Text(element.active_prefix + " ")
+        unchecked_prefix = Text(element.inactive_prefix + " ")
 
-        separator = Text("  " if element.inline else "\n")
-
-        if done:
-            result_content = Text()
-
-            result_content.append(
-                self.render_input_label(element, is_active=is_active, parent=parent)
-            )
-            result_content.append(" ")
-
-            result_content.append(
-                element.options[element.selected]["name"],
-                style=self.console.get_style("result"),
-            )
-
-            return result_content
-
-        # Get visible range for scrolling
-        all_options = element.options
         start, end = element.visible_options_range
-        visible_options = all_options[start:end]
-
-        # Check if scrolling is needed (to reserve consistent space for indicators)
+        visible_options = element.options[start:end]
         needs_scrolling = element._needs_scrolling()
 
-        # Always reserve space for "more above" indicator when scrolling is enabled
-        # This prevents the menu from shifting when scrolling starts
+        # Reserve space for scroll indicators to prevent layout shift
         if needs_scrolling:
             if element.has_more_above:
                 menu.append(Text(element.MORE_ABOVE_INDICATOR + "\n", style="dim"))
             else:
-                # Empty line to reserve space (same length as indicator for consistency)
                 menu.append(Text(" " * len(element.MORE_ABOVE_INDICATOR) + "\n"))
 
         for idx, option in enumerate(visible_options):
-            # Calculate actual index in full options list
             actual_idx = start + idx
-            if actual_idx == element.selected:
-                prefix = selected_prefix
-                style = self.console.get_style("selected")
+            is_at_cursor = actual_idx == element.selected
+
+            # Prefix reflects checked state (multi-select) or cursor (single-select)
+            if element.multiple:
+                is_marked = element.is_option_checked_by_ref(option)
             else:
-                prefix = not_selected_prefix
-                style = self.console.get_style("text")
+                is_marked = is_at_cursor
+            prefix = checked_prefix if is_marked else unchecked_prefix
+
+            # Style reflects cursor position regardless of checked state
+            style = self.console.get_style("selected" if is_at_cursor else "text")
 
             is_last = idx == len(visible_options) - 1
 
@@ -354,34 +330,69 @@ class BaseStyle:
                 )
             )
 
-        # Always reserve space for "more below" indicator when scrolling is enabled
         if needs_scrolling:
             if element.has_more_below:
                 menu.append(Text("\n" + element.MORE_BELOW_INDICATOR, style="dim"))
             else:
-                # Empty line to reserve space (same length as indicator for consistency)
                 menu.append(Text("\n" + " " * len(element.MORE_BELOW_INDICATOR)))
 
         if not element.options:
             menu = Text("No results found", style=self.console.get_style("text"))
 
-        filter = (
-            [
-                Text.assemble(
-                    (element.filter_prompt, self.console.get_style("text")),
-                    (element.text, self.console.get_style("text")),
-                    "\n",
-                )
-            ]
-            if element.allow_filtering
-            else []
+        return menu
+
+    def _build_filter_parts(self, element: Menu) -> list[RenderableType]:
+        if not element.allow_filtering:
+            return []
+
+        filter_parts: list[RenderableType] = []
+
+        filter_line = Text.assemble(
+            (element.filter_prompt, self.console.get_style("text")),
+            (element.text, self.console.get_style("text")),
         )
+
+        if hint := element.selection_count_hint:
+            filter_line.append(f" {hint}", style="dim")
+
+        filter_line.append("\n")
+        filter_parts.append(filter_line)
+
+        return filter_parts
+
+    def render_menu(
+        self,
+        element: Menu,
+        is_active: bool = False,
+        done: bool = False,
+        parent: Optional[Element] = None,
+    ) -> RenderableType:
+        label = self.render_input_label(element, is_active=is_active, parent=parent)
+
+        if done:
+            result_content = Text()
+
+            if label:
+                result_content.append(label)
+                result_content.append(" ")
+
+            result_content.append(
+                element.result_display_name,
+                style=self.console.get_style("result"),
+            )
+
+            return result_content
+
+        separator = Text("  " if element.inline else "\n")
+        menu = self._build_menu_options(element, separator)
+        filter_parts = self._build_filter_parts(element)
 
         content: list[RenderableType] = []
 
-        content.append(self.render_input_label(element))
+        if label:
+            content.append(label)
 
-        content.extend(filter)
+        content.extend(filter_parts)
         content.append(menu)
 
         if message := self.render_validation_message(element):

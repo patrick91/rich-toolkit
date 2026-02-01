@@ -1,6 +1,15 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Generic, List, Optional, Tuple, TypeVar
+from typing import (
+    TYPE_CHECKING,
+    Generic,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 import click
 from rich.console import Console, RenderableType
@@ -30,7 +39,26 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
 
     current_selection_char = "●"
     selection_char = "○"
+    checked_char = "■"
+    unchecked_char = "□"
     filter_prompt = "Filter: "
+
+    @property
+    def selection_count_hint(self) -> Optional[str]:
+        """Return a hint like '(3 selected)' when filtering hides checked items."""
+        if not self.multiple or not self.allow_filtering or not self.checked:
+            return None
+        return f"({len(self.checked)} selected)"
+
+    @property
+    def active_prefix(self) -> str:
+        """Prefix for the active/checked option."""
+        return self.checked_char if self.multiple else self.current_selection_char
+
+    @property
+    def inactive_prefix(self) -> str:
+        """Prefix for inactive/unchecked options."""
+        return self.unchecked_char if self.multiple else self.selection_char
 
     # Scroll indicators
     MORE_ABOVE_INDICATOR = "  ↑ more"
@@ -42,21 +70,28 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
         options: List[Option[ReturnValue]],
         inline: bool = False,
         allow_filtering: bool = False,
+        multiple: bool = False,
         *,
         style: Optional[BaseStyle] = None,
         cursor_offset: int = 0,
         max_visible: Optional[int] = None,
         **metadata: Any,
     ):
+        if multiple and inline:
+            raise ValueError("multiple and inline cannot both be True")
+
         self.label = Text.from_markup(label)
         self.inline = inline
         self.allow_filtering = allow_filtering
+        self.multiple = multiple
 
         self.selected = 0
+        self.checked: Set[int] = set()
 
         self.metadata = metadata
 
         self._options = options
+        self._option_index = {id(opt): idx for idx, opt in enumerate(options)}
 
         self._padding_bottom = 1
         self.valid = None
@@ -181,6 +216,32 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
         """Reset scroll offset (used when filter changes)."""
         self._scroll_offset = 0
 
+    def _get_option_index(self, option: Option[ReturnValue]) -> int:
+        """Return the index of an option in _options using identity lookup."""
+        return self._option_index[id(option)]
+
+    def _toggle_current(self) -> None:
+        """Toggle the checked state of the current cursor item."""
+        if not self.options:
+            return
+        option_index = self._get_option_index(self.options[self.selected])
+        self.checked ^= {option_index}
+
+    def is_option_checked(self, filtered_index: int) -> bool:
+        """Check if a filtered-list option is checked."""
+        return self._get_option_index(self.options[filtered_index]) in self.checked
+
+    def is_option_checked_by_ref(self, option: Option[ReturnValue]) -> bool:
+        """Check if an option is checked using its object identity."""
+        return self._get_option_index(option) in self.checked
+
+    @property
+    def result_display_name(self) -> str:
+        """Return the display name for the result (used when the menu is done)."""
+        if self.multiple:
+            return ", ".join(self._options[i]["name"] for i in sorted(self.checked))
+        return self.options[self.selected]["name"]
+
     def _update_selection(self, key: Literal["next", "prev"]) -> None:
         if key == "next":
             self.selected += 1
@@ -201,8 +262,9 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
 
         result_text.append(self.label)
         result_text.append(" ")
+
         result_text.append(
-            self.options[self.selected]["name"],
+            self.result_display_name,
             style=self.console.get_style("result"),
         )
 
@@ -227,6 +289,10 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
     def handle_key(self, key: str) -> None:
         current_selection: Optional[str] = None
         previous_filter_text = self.text
+
+        if self.multiple and key == " ":
+            self._toggle_current()
+            return
 
         if self.is_next_key(key):
             self._update_selection("next")
@@ -255,15 +321,11 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
             self._reset_scroll()
             self._ensure_selection_visible()
 
-    def _handle_enter(self) -> bool:
-        if self.allow_filtering and self.text and len(self.options) == 0:
-            return False
-
-        return True
-
     @property
     def validation_message(self) -> Optional[str]:
         if self.valid is False:
+            if self.multiple:
+                return "Please select at least one option"
             return "This field is required"
 
         return None
@@ -272,13 +334,16 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
         self.on_validate()
 
     def on_validate(self):
-        self.valid = len(self.options) > 0
+        if self.multiple:
+            self.valid = len(self.checked) > 0
+        else:
+            self.valid = len(self.options) > 0
 
     @property
     def should_show_cursor(self) -> bool:
         return self.allow_filtering
 
-    def ask(self) -> ReturnValue:
+    def ask(self) -> Union[ReturnValue, List[ReturnValue]]:
         from .container import Container
 
         container = Container(style=self.style, metadata=self.metadata)
@@ -286,6 +351,9 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
         container.elements = [self]
 
         container.run()
+
+        if self.multiple:
+            return [self._options[i]["value"] for i in sorted(self.checked)]
 
         return self.options[self.selected]["value"]
 
