@@ -1554,7 +1554,7 @@ wheels = [
 
 [[package]]
 name = "rich-toolkit"
-version = "0.17.2"
+version = "0.18.0"
 source = { editable = "." }
 dependencies = [
     { name = "click", version = "8.1.8", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
