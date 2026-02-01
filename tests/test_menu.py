@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import pytest
+from rich.text import Text
 
 from rich_toolkit.menu import Menu, Option
+from rich_toolkit.styles.base import BaseStyle
 
 
 def _make_options(names: list[str]) -> list[Option[str]]:
@@ -10,6 +12,14 @@ def _make_options(names: list[str]) -> list[Option[str]]:
 
 
 OPTIONS = _make_options(["Alpha", "Beta", "Gamma"])
+
+
+def _render_done_menu(menu: Menu) -> Text:
+    """Render a menu in the done state and return the resulting Text."""
+    style = BaseStyle()
+    result = style.render_menu(menu, is_active=False, done=True, parent=None)
+    assert isinstance(result, Text)
+    return result
 
 
 def test_multiple_and_inline_raises():
@@ -281,3 +291,63 @@ def test_enter_allowed_when_filter_yields_no_results_but_items_checked():
     menu.on_validate()
     assert menu.valid is True
     assert menu.validation_message is None
+
+
+def test_render_cancelled_single_select_menu():
+    """Rendering a cancelled single-select menu should display 'Cancelled.' instead of crashing."""
+    menu = Menu("Pick", OPTIONS)
+    menu.selected = 1
+    menu.on_cancel()
+
+    result = _render_done_menu(menu)
+    assert "Cancelled." in result.plain
+
+
+def test_render_cancelled_multi_select_menu():
+    """Rendering a cancelled multi-select menu should display 'Cancelled.' instead of crashing."""
+    menu = Menu("Pick", OPTIONS, multiple=True)
+    menu.checked = {0, 2}
+    menu.on_cancel()
+
+    result = _render_done_menu(menu)
+    assert "Cancelled." in result.plain
+
+
+def test_render_menu_with_invalid_selection_index():
+    """Rendering a menu with out-of-bounds selection should display 'Cancelled.' instead of crashing."""
+    menu = Menu("Pick", OPTIONS)
+    menu.selected = 999
+
+    result = _render_done_menu(menu)
+    assert "Cancelled." in result.plain
+
+
+def test_render_menu_with_negative_selection_index():
+    """Rendering a menu with negative selection index should display 'Cancelled.' instead of crashing."""
+    menu = Menu("Pick", OPTIONS)
+    menu.selected = -1
+
+    result = _render_done_menu(menu)
+    assert "Cancelled." in result.plain
+
+
+def test_render_normal_menu_still_works():
+    """Ensure valid menu selections still render the selected option name."""
+    menu = Menu("Pick", OPTIONS)
+    menu.selected = 1
+
+    result = _render_done_menu(menu)
+    assert "Beta" in result.plain
+    assert "Cancelled." not in result.plain
+
+
+def test_render_multi_select_with_invalid_selection_shows_checked():
+    """Multi-select menus should show checked items even with invalid selection index."""
+    menu = Menu("Pick", OPTIONS, multiple=True)
+    menu.checked = {0, 2}  # Alpha and Gamma checked
+    menu.selected = 999  # Invalid selection, but shouldn't matter for multi-select
+
+    result = _render_done_menu(menu)
+    # Should show the checked items, not "Cancelled."
+    assert "Alpha, Gamma" in result.plain
+    assert "Cancelled." not in result.plain
