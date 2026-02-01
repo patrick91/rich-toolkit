@@ -376,10 +376,23 @@ class BaseStyle:
                 result_content.append(label)
                 result_content.append(" ")
 
-            result_content.append(
-                element.result_display_name,
-                style=self.console.get_style("result"),
-            )
+            # For single-select menus, check if selection is valid
+            # For multi-select menus, result_display_name only uses checked items
+            should_show_cancelled = element._cancelled
+            if not element.multiple:
+                selection_is_valid = 0 <= element.selected < len(element.options)
+                should_show_cancelled = should_show_cancelled or not selection_is_valid
+
+            if should_show_cancelled:
+                result_content.append(
+                    "Cancelled.",
+                    style=self.console.get_style("cancelled"),
+                )
+            else:
+                result_content.append(
+                    element.result_display_name,
+                    style=self.console.get_style("result"),
+                )
 
             return result_content
 
