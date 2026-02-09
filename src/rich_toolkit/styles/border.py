@@ -29,7 +29,7 @@ class BorderedStyle(BaseStyle):
         title: Union[str, Text, None],
         is_active: bool,
         border_color: Color,
-        after: Tuple[str, ...] = (),
+        after: Tuple[RenderableType, ...] = (),
     ) -> RenderableType:
         return Group(
             Panel(
@@ -66,7 +66,7 @@ class BorderedStyle(BaseStyle):
         parent: Optional[Element] = None,
         **metadata: Any,
     ) -> RenderableType:
-        validation_message: Tuple[str, ...] = ()
+        validation_message: Tuple[RenderableType, ...] = ()
 
         if isinstance(parent, Form):
             return super().render_input(element, is_active, done, parent, **metadata)
@@ -108,7 +108,7 @@ class BorderedStyle(BaseStyle):
         parent: Optional[Element] = None,
         **metadata: Any,
     ) -> RenderableType:
-        validation_message: Tuple[str, ...] = ()
+        validation_message: Tuple[RenderableType, ...] = ()
 
         content: list[RenderableType] = []
 
