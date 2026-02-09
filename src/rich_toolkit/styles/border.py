@@ -29,7 +29,7 @@ class BorderedStyle(BaseStyle):
         title: Union[str, Text, None],
         is_active: bool,
         border_color: Color,
-        after: Tuple[str, ...] = (),
+        after: Tuple[RenderableType, ...] = (),
     ) -> RenderableType:
         return Group(
             Panel(
@@ -66,13 +66,13 @@ class BorderedStyle(BaseStyle):
         parent: Optional[Element] = None,
         **metadata: Any,
     ) -> RenderableType:
-        validation_message: Tuple[str, ...] = ()
+        validation_message: Tuple[RenderableType, ...] = ()
 
         if isinstance(parent, Form):
             return super().render_input(element, is_active, done, parent, **metadata)
 
-        if message := self.render_validation_message(element):
-            validation_message = (message,)
+        if messages := self.render_validation_message(element):
+            validation_message = tuple(messages)
 
         title = self.render_input_label(
             element,
@@ -108,7 +108,7 @@ class BorderedStyle(BaseStyle):
         parent: Optional[Element] = None,
         **metadata: Any,
     ) -> RenderableType:
-        validation_message: Tuple[str, ...] = ()
+        validation_message: Tuple[RenderableType, ...] = ()
 
         content: list[RenderableType] = []
 
@@ -128,8 +128,8 @@ class BorderedStyle(BaseStyle):
             content.extend(filter_parts)
             content.append(menu)
 
-            if message := self.render_validation_message(element):
-                validation_message = (message,)
+            if messages := self.render_validation_message(element):
+                validation_message = tuple(messages)
 
         result = Group(*content)
 

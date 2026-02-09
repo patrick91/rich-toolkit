@@ -38,14 +38,14 @@ class BaseStyle:
         "result": "white",
         "progress": "on #893AE3",
         "error": "red",
-        "cancelled": "red",
+        "cancelled": "red italic",
         # is there a way to make nested styles?
         # like label.active uses active style if not set?
         "active": "green",
         "title.error": "white",
         "title.cancelled": "white",
         "placeholder": "grey62",
-        "placeholder.cancelled": "grey62 strike",
+        "placeholder.cancelled": "indian_red strike",
     }
 
     _should_show_progress_title = True
@@ -220,19 +220,21 @@ class BaseStyle:
             contents.append(text)
 
         if validation_message := self.render_validation_message(element):
-            contents.append(validation_message)
+            contents.extend(validation_message)
 
         # TODO: do we need this?
         element._height = len(contents)
 
         return Group(*contents)
 
-    def render_validation_message(self, element: Union[Input, Menu]) -> Optional[str]:
+    def render_validation_message(
+        self, element: Union[Input, Menu]
+    ) -> Optional[list[RenderableType]]:
         if element._cancelled:
-            return "[cancelled]Cancelled.[/]"
+            return [Text(""), "[cancelled]Cancelled.[/]"]
 
         if element.valid is False:
-            return f"[error]{element.validation_message}[/]"
+            return [Text(""), f"[error]{element.validation_message}[/]"]
 
         return None
 
@@ -246,23 +248,29 @@ class BaseStyle:
     ) -> RenderableType:
         text = input.text
 
-        # Check if this is a password field and mask it
         if isinstance(input, Input) and input.password and text:
             text = "*" * len(text)
 
+        if input._cancelled:
+            text = text or (input.placeholder if isinstance(input, Input) else "")
+
+            return f"[placeholder.cancelled]{text}[/]"
+
+        if done:
+            if (
+                not text
+                and isinstance(input, Input)
+                and input.default_as_placeholder
+                and input.default
+            ):
+                text = input.default
+
+            return f"[result]{text}[/]"
+
         if not text:
-            placeholder = ""
+            placeholder = input.placeholder if isinstance(input, Input) else ""
 
-            if isinstance(input, Input):
-                placeholder = input.placeholder
-
-                if input.default_as_placeholder and input.default:
-                    return f"[placeholder]{input.default}[/]"
-
-            if input._cancelled:
-                return f"[placeholder.cancelled]{placeholder}[/]"
-            elif not done:
-                return f"[placeholder]{placeholder}[/]"
+            return f"[placeholder]{placeholder}[/]"
 
         return f"[text]{text}[/]"
 
@@ -409,8 +417,7 @@ class BaseStyle:
         content.append(menu)
 
         if message := self.render_validation_message(element):
-            content.append(Text(""))
-            content.append(message)
+            content.extend(message)
 
         return Group(*content)
 
