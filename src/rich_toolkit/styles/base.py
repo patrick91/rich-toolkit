@@ -246,23 +246,29 @@ class BaseStyle:
     ) -> RenderableType:
         text = input.text
 
-        # Check if this is a password field and mask it
         if isinstance(input, Input) and input.password and text:
             text = "*" * len(text)
 
+        if input._cancelled:
+            text = text or (input.placeholder if isinstance(input, Input) else "")
+
+            return f"[placeholder.cancelled]{text}[/]"
+
+        if done:
+            if (
+                not text
+                and isinstance(input, Input)
+                and input.default_as_placeholder
+                and input.default
+            ):
+                text = input.default
+
+            return f"[result]{text}[/]"
+
         if not text:
-            placeholder = ""
+            placeholder = input.placeholder if isinstance(input, Input) else ""
 
-            if isinstance(input, Input):
-                placeholder = input.placeholder
-
-                if input.default_as_placeholder and input.default:
-                    return f"[placeholder]{input.default}[/]"
-
-            if input._cancelled:
-                return f"[placeholder.cancelled]{placeholder}[/]"
-            elif not done:
-                return f"[placeholder]{placeholder}[/]"
+            return f"[placeholder]{placeholder}[/]"
 
         return f"[text]{text}[/]"
 
