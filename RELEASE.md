@@ -2,13 +2,6 @@
 release type: minor
 ---
 
-Improved input value styling and cancelled state handling:
+This release refactors our styling a bit, improving the visual distinction between submitted input values and placeholders, and properly handling the cancelled state of inputs.
 
-- Submitted input values now use the `result` style instead of `placeholder`/`text`,
-  making them visually distinct from placeholders.
-- Cancelled inputs with typed text now properly show the `placeholder.cancelled` style.
-- Cancelled state takes priority over done state, fixing the case where
-  KeyboardInterrupt would show result styling instead of cancelled styling.
-- `RichToolkitTheme` now merges custom themes on top of the base theme instead of
-  replacing it, preserving base styles like `placeholder.cancelled`.
-- Added italic to the `cancelled` theme style and a blank line before validation messages.
+In addition to that we also merge the custom theme on top of the base theme instead of replacing it, which allows us to preserve base styles like `placeholder.cancelled` while still allowing users to customize their themes.
