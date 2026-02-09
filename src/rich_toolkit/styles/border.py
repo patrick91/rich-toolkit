@@ -71,8 +71,8 @@ class BorderedStyle(BaseStyle):
         if isinstance(parent, Form):
             return super().render_input(element, is_active, done, parent, **metadata)
 
-        if message := self.render_validation_message(element):
-            validation_message = (message,)
+        if messages := self.render_validation_message(element):
+            validation_message = tuple(messages)
 
         title = self.render_input_label(
             element,
@@ -128,8 +128,8 @@ class BorderedStyle(BaseStyle):
             content.extend(filter_parts)
             content.append(menu)
 
-            if message := self.render_validation_message(element):
-                validation_message = (message,)
+            if messages := self.render_validation_message(element):
+                validation_message = tuple(messages)
 
         result = Group(*content)
 
