@@ -65,7 +65,9 @@ class FancyPanel:
     ) -> "RenderResult":
         renderable = self.renderable
 
-        lines = console.render_lines(renderable)
+        lines = console.render_lines(
+            renderable, options.update_width(options.max_width - 2)
+        )
         lines = self._strip_trailing_newlines(lines)
 
         line_start = self._get_decoration()
@@ -160,11 +162,21 @@ class FancyStyle(BaseStyle):
         Returns:
             The cursor offset
         """
+        from rich_toolkit.input import Input
 
         if isinstance(element, Form):
             return element.cursor_offset
-        else:
-            return CursorOffset(
-                top=element.cursor_offset.top,
-                left=self.decoration_size + element.cursor_offset.left,
+
+        offset = element.cursor_offset
+        top = offset.top
+
+        if isinstance(element, Input) and not element.inline and element.label:
+            label_lines = self._count_label_lines(
+                element.label, decoration_width=self.decoration_size
             )
+            top = label_lines + 1
+
+        return CursorOffset(
+            top=top,
+            left=self.decoration_size + offset.left,
+        )

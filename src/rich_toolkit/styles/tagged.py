@@ -139,7 +139,18 @@ class TaggedStyle(BaseStyle):
     def get_cursor_offset_for_element(
         self, element: Element, parent: Optional[Element] = None
     ) -> CursorOffset:
+        from rich_toolkit.input import Input
+
+        offset = element.cursor_offset
+        top = offset.top
+
+        if isinstance(element, Input) and not element.inline and element.label:
+            label_lines = self._count_label_lines(
+                element.label, decoration_width=self.tag_width + 2
+            )
+            top = label_lines + 1
+
         return CursorOffset(
-            top=element.cursor_offset.top,
-            left=self.tag_width + element.cursor_offset.left + 2,
+            top=top,
+            left=self.tag_width + offset.left + 2,
         )
