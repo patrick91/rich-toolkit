@@ -268,7 +268,8 @@ class BaseStyle:
             text = "*" * len(text)
 
         if input._cancelled:
-            text = text or (input.placeholder if isinstance(input, Input) else "")
+            if not text:
+                return ""
 
             return f"[placeholder.cancelled]{text}[/]"
 

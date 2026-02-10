@@ -41,7 +41,7 @@ def test_shows_cancelled_placeholder():
     input = Input(placeholder="Enter name")
     input._cancelled = True
     result = style.render_input_value(input, done=False)
-    assert result == "[placeholder.cancelled]Enter name[/]"
+    assert result == ""
 
 
 def test_shows_cancelled_with_text():
@@ -56,7 +56,7 @@ def test_shows_cancelled_with_default():
     input = Input(default="my-app", default_as_placeholder=True)
     input._cancelled = True
     result = style.render_input_value(input, done=False)
-    assert result == "[placeholder.cancelled]my-app[/]"
+    assert result == ""
 
 
 def test_cancelled_and_done_shows_cancelled():
