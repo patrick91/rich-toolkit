@@ -1,6 +1,16 @@
 CHANGELOG
 =========
 
+0.19.1 - 2026-02-10
+-------------------
+
+This release fixes an issue where the cursor would appear in the wrong position
+when an input's label was long enough to wrap to multiple lines. It also fixes
+text being cut off at the terminal edge in FancyStyle instead of wrapping
+correctly.
+
+This release was contributed by [@patrick91](https://github.com/patrick91) in [#49](https://github.com/patrick91/rich-toolkit/pull/49)
+
 0.19.0 - 2026-02-09
 -------------------
 
