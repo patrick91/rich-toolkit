@@ -36,6 +36,13 @@ for style in [TaggedStyle(tag_width=12), BorderedStyle(), FancyStyle()]:
         )
         app.print_line()
 
+        app.input(
+            "Path to the directory containing your app "
+            "(leave empty if it's the current directory)",
+            tag="dir",
+        )
+        app.print_line()
+
         app.input("What is the name of your project?", tag="name", required=True)
         app.print_line()
 
