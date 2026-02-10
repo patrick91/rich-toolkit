@@ -1,6 +1,15 @@
 CHANGELOG
 =========
 
+0.19.2 - 2026-02-10
+-------------------
+
+This release hides the placeholder text when an input is cancelled. Previously,
+the placeholder was shown with strikethrough styling, but now only user-typed
+text is displayed when cancelling.
+
+This release was contributed by [@patrick91](https://github.com/patrick91) in [#50](https://github.com/patrick91/rich-toolkit/pull/50)
+
 0.19.1 - 2026-02-10
 -------------------
 
