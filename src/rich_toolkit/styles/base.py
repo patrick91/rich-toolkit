@@ -288,7 +288,8 @@ class BaseStyle:
 
             # Use zero-width space when placeholder is empty to prevent
             # the line from being stripped as a trailing blank line
-            return f"[placeholder]{placeholder or '\u200b'}[/]"
+            placeholder = placeholder or "\u200b"
+            return f"[placeholder]{placeholder}[/]"
 
         return f"[text]{text}[/]"
 
