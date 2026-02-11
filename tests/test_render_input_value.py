@@ -67,6 +67,20 @@ def test_cancelled_and_done_shows_cancelled():
     assert result == "[placeholder.cancelled]hello[/]"
 
 
+def test_shows_placeholder_over_default_when_both_provided():
+    input = Input(
+        placeholder="Enter name", default="my-app", default_as_placeholder=True
+    )
+    assert style.render_input_value(input, done=False) == "[placeholder]Enter name[/]"
+
+
+def test_shows_default_as_result_when_both_provided_and_done():
+    input = Input(
+        placeholder="Enter name", default="my-app", default_as_placeholder=True
+    )
+    assert style.render_input_value(input, done=True) == "[result]my-app[/]"
+
+
 def test_password_masks_text():
     input = Input(password=True)
     input.text = "secret"
