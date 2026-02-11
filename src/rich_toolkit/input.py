@@ -83,10 +83,13 @@ class Input(TextInputHandler, Element):
 
     @property
     def placeholder(self) -> str:
+        if self._placeholder:
+            return self._placeholder
+
         if self.default_as_placeholder and self.default:
             return self.default
 
-        return self._placeholder or ""
+        return ""
 
     @property
     def validation_message(self) -> Optional[str]:
