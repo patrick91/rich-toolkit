@@ -1,6 +1,15 @@
 CHANGELOG
 =========
 
+0.19.3 - 2026-02-11
+-------------------
+
+This release fixes the input component to show the explicit placeholder text
+when both a `placeholder` and `default` value are provided. Previously, the
+default value would always take priority, hiding the placeholder text.
+
+This release was contributed by [@patrick91](https://github.com/patrick91) in [#51](https://github.com/patrick91/rich-toolkit/pull/51)
+
 0.19.2 - 2026-02-10
 -------------------
 
