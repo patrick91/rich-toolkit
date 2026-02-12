@@ -1,6 +1,20 @@
 CHANGELOG
 =========
 
+0.19.4 - 2026-02-12
+-------------------
+
+This release adds support for passing a `value` parameter to `Input` and `RichToolkit.input()`, which sets the initial editable text of the input field. The cursor is positioned at the end of the value, so users can immediately continue typing or edit the pre-populated text.
+
+```python
+app.input(
+    "What is your name?",
+    value="Patrick",
+)
+```
+
+This release was contributed by [@patrick91](https://github.com/patrick91) in [#52](https://github.com/patrick91/rich-toolkit/pull/52)
+
 0.19.3 - 2026-02-11
 -------------------
 
