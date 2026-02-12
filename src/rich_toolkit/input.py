@@ -61,6 +61,7 @@ class Input(TextInputHandler, Element):
         name: Optional[str] = None,
         style: Optional[BaseStyle] = None,
         validator: Optional[Validator] = None,
+        value: Optional[str] = None,
         **metadata: Any,
     ):
         self.name = name
@@ -80,6 +81,10 @@ class Input(TextInputHandler, Element):
 
         Element.__init__(self, style=style, metadata=metadata)
         super().__init__()
+
+        if value:
+            self.text = value
+            self._cursor_index = len(value)
 
     @property
     def placeholder(self) -> str:
