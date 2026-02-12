@@ -139,6 +139,7 @@ class RichToolkit:
         required: bool = False,
         required_message: str = "",
         inline: bool = False,
+        value: str = "",
         **metadata: Any,
     ) -> str:
         return Input(
@@ -151,6 +152,7 @@ class RichToolkit:
             required_message=required_message,
             inline=inline,
             style=self.style,
+            value=value,
             **metadata,
         ).ask()
 

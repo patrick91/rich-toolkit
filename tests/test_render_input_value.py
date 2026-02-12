@@ -91,3 +91,25 @@ def test_password_shows_placeholder_when_empty():
     input = Input(password=True, placeholder="Enter password")
     result = style.render_input_value(input, done=False)
     assert result == "[placeholder]Enter password[/]"
+
+
+def test_value_sets_initial_text():
+    input = Input(value="initial")
+    assert input.text == "initial"
+    assert style.render_input_value(input, done=False) == "[text]initial[/]"
+
+
+def test_value_sets_cursor_at_end():
+    input = Input(value="hello")
+    assert input._cursor_index == 5
+
+
+def test_value_shown_as_result_when_done():
+    input = Input(value="initial")
+    assert style.render_input_value(input, done=True) == "[result]initial[/]"
+
+
+def test_value_takes_precedence_over_default():
+    input = Input(value="typed", default="fallback")
+    assert input.text == "typed"
+    assert input.value == "typed"
