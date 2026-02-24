@@ -88,8 +88,6 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
         self.selected = 0
         self.checked: Set[int] = set()
 
-        self.metadata = metadata
-
         self._options = options
         self._option_index = {id(opt): idx for idx, opt in enumerate(options)}
 
