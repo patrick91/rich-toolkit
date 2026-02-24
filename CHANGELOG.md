@@ -1,6 +1,15 @@
 CHANGELOG
 =========
 
+0.19.5 - 2026-02-24
+-------------------
+
+Add `**metadata` support to the `progress()` method, aligning it with the other
+`RichToolkit` methods (`print`, `input`, `confirm`, `ask`) that already accept
+and forward metadata to the underlying components.
+
+This release was contributed by [@patrick91](https://github.com/patrick91) in [#53](https://github.com/patrick91/rich-toolkit/pull/53)
+
 0.19.4 - 2026-02-12
 -------------------
 
