@@ -1,6 +1,15 @@
 CHANGELOG
 =========
 
+0.19.6 - 2026-02-24
+-------------------
+
+Fix metadata being lost when passed to `Progress`. `Element.__init__` was called
+without the `metadata` argument, causing it to be overwritten to an empty dict.
+Also removed a redundant `self.metadata` assignment in `Menu`.
+
+This release was contributed by [@patrick91](https://github.com/patrick91) in [#54](https://github.com/patrick91/rich-toolkit/pull/54)
+
 0.19.5 - 2026-02-24
 -------------------
 
