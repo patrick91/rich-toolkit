@@ -148,6 +148,14 @@ class BorderedStyle(BaseStyle):
         done: bool = False,
         parent: Optional[Element] = None,
     ) -> RenderableType:
+        if done and element._cancelled:
+            content = Text.assemble(
+                ("Cancelled.", self.console.get_style("cancelled")),
+            )
+            return self._box(
+                content, element.title, is_active, border_color=Color.parse("white")
+            )
+
         content: str | Group | Text = element.current_message
         title: Union[str, Text, None] = None
 
