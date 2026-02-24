@@ -448,6 +448,13 @@ class BaseStyle:
         done: bool = False,
         parent: Optional[Element] = None,
     ) -> RenderableType:
+        if done and element._cancelled:
+            return Text.assemble(
+                element.title,
+                " ",
+                ("Cancelled.", self.console.get_style("cancelled")),
+            )
+
         content: str | Group | Text = element.current_message
 
         if element.logs and element._inline_logs:

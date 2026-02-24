@@ -52,6 +52,12 @@ class Progress(Live, Element):
 
         return self
 
+    def __exit__(self, exc_type: type | None, *args: object) -> None:
+        if exc_type is KeyboardInterrupt:
+            self._cancelled = True
+
+        super().__exit__(exc_type, *args)
+
     def get_renderable(self) -> RenderableType:
         return self.style.render_element(self, done=not self._started)
 

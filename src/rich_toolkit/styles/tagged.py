@@ -37,6 +37,7 @@ class TaggedStyle(BaseStyle):
         metadata: Dict[str, Any],
         is_animated: bool = False,
         done: bool = False,
+        animation_status: Optional[Literal["started", "stopped", "error"]] = None,
     ) -> Tuple[List[Segment], int]:
         if tag := metadata.get("tag", ""):
             tag = f" {tag} "
@@ -46,9 +47,8 @@ class TaggedStyle(BaseStyle):
         style = self.console.get_style(style_name)
 
         if is_animated:
-            animation_status: Literal["started", "stopped", "error"] = (
-                "started" if not done else "stopped"
-            )
+            if animation_status is None:
+                animation_status = "started" if not done else "stopped"
 
             tag = " " * self.block_length
             colors = self._get_animation_colors(
@@ -80,8 +80,11 @@ class TaggedStyle(BaseStyle):
         metadata: Dict[str, Any],
         is_animated: bool = False,
         done: bool = False,
+        animation_status: Optional[Literal["started", "stopped", "error"]] = None,
     ) -> Group:
-        tag_segments, left_padding = self._get_tag_segments(metadata, is_animated, done)
+        tag_segments, left_padding = self._get_tag_segments(
+            metadata, is_animated, done, animation_status=animation_status
+        )
 
         left = [Segment(" " * left_padding), *tag_segments]
 
@@ -92,6 +95,7 @@ class TaggedStyle(BaseStyle):
         child: RenderableType,
         is_animated: bool = False,
         done: bool = False,
+        animation_status: Optional[Literal["started", "stopped", "error"]] = None,
         **metadata: Dict[str, Any],
     ) -> RenderableType:
         table = Table.grid(
@@ -103,7 +107,12 @@ class TaggedStyle(BaseStyle):
             pad_edge=False,
         )
 
-        table.add_row(self._get_tag(metadata, is_animated, done), Group(child))
+        table.add_row(
+            self._get_tag(
+                metadata, is_animated, done, animation_status=animation_status
+            ),
+            Group(child),
+        )
 
         return table
 
@@ -127,10 +136,15 @@ class TaggedStyle(BaseStyle):
             metadata = {**element.metadata, **metadata}
 
         if should_tag:
+            animation_status = None
+            if isinstance(element, Progress) and element._cancelled:
+                animation_status = "error"
+
             rendered = self._tag_element(
                 rendered,
                 is_animated=is_animated,
                 done=done,
+                animation_status=animation_status,
                 **metadata,
             )
 
