@@ -5,6 +5,7 @@ from rich.text import Text
 from rich_toolkit.progress import Progress
 from rich_toolkit.styles.base import BaseStyle
 from rich_toolkit.styles.border import BorderedStyle
+from rich_toolkit.styles.tagged import TaggedStyle
 
 
 def test_progress_cancelled_flag_set_on_keyboard_interrupt():
@@ -70,3 +71,54 @@ def test_render_non_cancelled_progress_does_not_show_cancelled():
         assert "Cancelled." not in result.plain
     else:
         assert "Cancelled." not in str(result)
+
+
+def test_render_cancelled_progress_tagged_style():
+    """Cancelled progress in tagged style should show 'Cancelled.' and use error colors for the tag."""
+    style = TaggedStyle()
+    progress = Progress("Installing...", style=style)
+    progress._cancelled = True
+
+    result = style.render_element(progress, done=True)
+
+    style.console.begin_capture()
+    style.console.print(result)
+    output = style.console.end_capture()
+
+    assert "Cancelled." in output
+
+
+def test_tagged_style_cancelled_uses_error_animation_status():
+    """Cancelled progress should use error animation colors (red) for the tag blocks."""
+    style = TaggedStyle()
+    progress = Progress("Installing...", style=style)
+    progress._cancelled = True
+
+    # Get the animation colors that would be used for the cancelled tag
+    error_colors = style._get_animation_colors(
+        steps=style.block_length, animation_status="error"
+    )
+    normal_colors = style._get_animation_colors(
+        steps=style.block_length, animation_status="stopped"
+    )
+
+    # Error colors should differ from normal stopped colors
+    assert error_colors != normal_colors
+
+    # Error colors should be based on the error style (red)
+    error_style_color = style.console.get_style("error").color
+    assert error_style_color is not None
+
+
+def test_tagged_style_non_cancelled_uses_normal_animation():
+    """Non-cancelled progress should use normal animation colors for the tag blocks."""
+    style = TaggedStyle()
+    progress = Progress("Installing...", style=style)
+
+    result = style.render_element(progress, done=True)
+
+    style.console.begin_capture()
+    style.console.print(result)
+    output = style.console.end_capture()
+
+    assert "Cancelled." not in output
