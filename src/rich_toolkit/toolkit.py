@@ -163,6 +163,7 @@ class RichToolkit:
         transient_on_error: bool = False,
         inline_logs: bool = False,
         lines_to_show: int = -1,
+        **metadata: Any,
     ) -> Progress:
         return Progress(
             title=title,
@@ -172,4 +173,5 @@ class RichToolkit:
             transient_on_error=transient_on_error,
             inline_logs=inline_logs,
             lines_to_show=lines_to_show,
+            **metadata,
         )
