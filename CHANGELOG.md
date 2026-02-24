@@ -1,6 +1,20 @@
 CHANGELOG
 =========
 
+0.19.7 - 2026-02-24
+-------------------
+
+Show cancelled state when progress is interrupted with Ctrl+C.
+
+Previously, pressing Ctrl+C during a progress operation would exit without
+any visual indication that the operation was cancelled. Now, the progress
+displays "Cancelled." (matching how inputs and menus already handle cancellation).
+
+The tagged style also shows the tag blocks in red (using error animation colors)
+when a progress is cancelled.
+
+This release was contributed by [@patrick91](https://github.com/patrick91) in [#55](https://github.com/patrick91/rich-toolkit/pull/55)
+
 0.19.6 - 2026-02-24
 -------------------
 
