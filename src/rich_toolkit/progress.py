@@ -40,6 +40,7 @@ class Progress(Live, Element):
         self.lines_to_show = lines_to_show
 
         self.logs: List[ProgressLine] = []
+        self._log_line_open = False
 
         self._cancelled = False
 
@@ -61,13 +62,32 @@ class Progress(Live, Element):
     def get_renderable(self) -> RenderableType:
         return self.style.render_element(self, done=not self._started)
 
-    def log(self, text: str | Text) -> None:
+    def _append_text(self, target: str | Text, text: str | Text) -> str | Text:
+        if isinstance(target, str) and isinstance(text, str):
+            return target + text
+
+        return Text.assemble(target, text)
+
+    def log(self, text: str | Text, end: str = "\n") -> None:
+        should_append = self._log_line_open
+        self._log_line_open = not end.endswith("\n")
+
+        if end != "\n":
+            text = self._append_text(text, end)
+
         if self._inline_logs:
-            self.logs.append(ProgressLine(text, self))
+            if should_append and self.logs:
+                self.logs[-1].text = self._append_text(self.logs[-1].text, text)
+            else:
+                self.logs.append(ProgressLine(text, self))
         else:
-            self.current_message = text
+            if should_append:
+                self.current_message = self._append_text(self.current_message, text)
+            else:
+                self.current_message = text
 
     def set_error(self, text: str) -> None:
         self.current_message = text
         self.is_error = True
         self.transient = self._transient_on_error
+        self._log_line_open = False
