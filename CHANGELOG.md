@@ -1,6 +1,26 @@
 CHANGELOG
 =========
 
+0.19.8 - 2026-05-12
+-------------------
+
+This release adds support for passing `end` to `RichToolkit.print()`,
+`RichToolkit.print_title()`, and `Progress.log()`.
+
+This makes it possible to print or log partial lines without automatically
+ending them with a newline:
+
+```python
+app.print("Hello, ", end="")
+app.print("World!")
+
+with app.progress("Downloading") as progress:
+    progress.log("Downloaded ", end="")
+    progress.log("50%")
+```
+
+This release was contributed by [@patrick91](https://github.com/patrick91) in [#56](https://github.com/patrick91/rich-toolkit/pull/56)
+
 0.19.7 - 2026-02-24
 -------------------
 
