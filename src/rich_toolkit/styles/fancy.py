@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Optional
 
 from rich._loop import loop_first_last
-from rich.console import Console, ConsoleOptions, RenderableType, RenderResult
+from rich.console import Console, ConsoleOptions, Group, RenderableType, RenderResult
 from rich.segment import Segment
 from rich.style import Style
 from rich.text import Text
@@ -77,7 +77,9 @@ class FancyPanel:
         if self._title is not None:
             yield line_start
             yield Segment(" ")
-            yield self._title
+            yield Segment(self._title)
+            if lines:
+                yield new_line
 
         for first, last, line in loop_first_last(lines):
             if first and not self._title:
@@ -142,6 +144,24 @@ class FancyStyle(BaseStyle):
             )
 
         return rendered
+
+    def render_progress(
+        self,
+        element: Progress,
+        is_active: bool = False,
+        done: bool = False,
+        parent: Optional[Element] = None,
+    ) -> RenderableType:
+        if done and element._cancelled:
+            if self._progress_has_content_beyond_title(element):
+                return Group(
+                    self._render_progress_content(element),
+                    self._render_cancelled_progress_message(),
+                )
+
+            return self._render_cancelled_progress_message()
+
+        return super().render_progress(element, is_active, done, parent)
 
     def empty_line(self) -> Text:
         """Return an empty line with decoration.

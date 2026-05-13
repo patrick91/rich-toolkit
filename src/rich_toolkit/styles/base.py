@@ -441,20 +441,10 @@ class BaseStyle:
 
         return Group(*content)
 
-    def render_progress(
-        self,
-        element: Progress,
-        is_active: bool = False,
-        done: bool = False,
-        parent: Optional[Element] = None,
-    ) -> RenderableType:
-        if done and element._cancelled:
-            return Text.assemble(
-                element.title,
-                " ",
-                ("Cancelled.", self.console.get_style("cancelled")),
-            )
+    def _render_cancelled_progress_message(self) -> Text:
+        return Text("Cancelled.", style=self.console.get_style("cancelled"))
 
+    def _render_progress_content(self, element: Progress) -> RenderableType:
         content: str | Group | Text = element.current_message
 
         if element.logs and element._inline_logs:
@@ -482,6 +472,29 @@ class BaseStyle:
                     for index, line in enumerate(lines_to_show)
                 ],
             )
+
+        return content
+
+    def _progress_has_content_beyond_title(self, element: Progress) -> bool:
+        if element.logs and element._inline_logs:
+            return True
+
+        if isinstance(element.current_message, Text):
+            return element.current_message.plain != element.title
+
+        return element.current_message != element.title
+
+    def render_progress(
+        self,
+        element: Progress,
+        is_active: bool = False,
+        done: bool = False,
+        parent: Optional[Element] = None,
+    ) -> RenderableType:
+        content = self._render_progress_content(element)
+
+        if done and element._cancelled:
+            return Group(content, self._render_cancelled_progress_message())
 
         return content
 

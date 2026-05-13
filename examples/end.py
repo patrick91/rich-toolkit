@@ -34,14 +34,23 @@ for style in [
         app.print_line()
 
         with app.progress(
-            "Progress logs without newlines",
+            "Progress logs with partial and multiline output",
             inline_logs=True,
-            lines_to_show=4,
+            lines_to_show=6,
         ) as progress:
-            for step in ["Resolving", "Downloading", "Installing", "Finalizing"]:
-                progress.log(f"{step} ", end="")
-                time.sleep(0.3)
-                progress.log("done")
+            for i in range(8):
+                progress.log(f"Resolving project {i} ", end="")
                 time.sleep(0.2)
+                if i == 6:
+                    progress.log("packages\nInstalling dependencies\nWriting lockfile")
+                else:
+                    progress.log("done")
+                time.sleep(0.2)
+
+        app.print_line()
+
+        with app.progress("Multiline progress message") as progress:
+            progress.log("Preparing workspace\nInstalling packages")
+            time.sleep(0.5)
 
     print("----------------------------------------")
