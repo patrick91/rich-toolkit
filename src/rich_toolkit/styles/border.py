@@ -19,6 +19,7 @@ from .base import BaseStyle
 
 class BorderedStyle(BaseStyle):
     box = box.SQUARE
+    _should_show_progress_title = False
 
     def empty_line(self) -> RenderableType:
         return ""
@@ -149,9 +150,14 @@ class BorderedStyle(BaseStyle):
         parent: Optional[Element] = None,
     ) -> RenderableType:
         if done and element._cancelled:
-            content = Text.assemble(
-                ("Cancelled.", self.console.get_style("cancelled")),
-            )
+            if self._progress_has_content_beyond_title(element):
+                content = Group(
+                    self._render_progress_content(element),
+                    self._render_cancelled_progress_message(),
+                )
+            else:
+                content = self._render_cancelled_progress_message()
+
             return self._box(
                 content, element.title, is_active, border_color=Color.parse("white")
             )

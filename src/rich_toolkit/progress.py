@@ -68,23 +68,59 @@ class Progress(Live, Element):
 
         return Text.assemble(target, text)
 
-    def log(self, text: str | Text, end: str = "\n") -> None:
-        should_append = self._log_line_open
-        self._log_line_open = not end.endswith("\n")
+    def _split_log_text(self, text: str | Text) -> list[tuple[str | Text, bool]]:
+        if isinstance(text, str):
+            lines = text.splitlines(keepends=True)
+            if not lines:
+                return [(text, False)]
 
+            return [
+                (
+                    line[:-1] if line.endswith("\n") else line,
+                    line.endswith("\n"),
+                )
+                for line in lines
+            ]
+
+        lines = text.split("\n", include_separator=True)
+        result: list[tuple[str | Text, bool]] = []
+
+        for line in lines:
+            ends_with_newline = line.plain.endswith("\n")
+            if ends_with_newline:
+                line = line.copy()
+                line.right_crop(1)
+
+            result.append((line, ends_with_newline))
+
+        return result
+
+    def log(self, text: str | Text, end: str = "\n") -> None:
         if end != "\n":
             text = self._append_text(text, end)
 
+        lines = self._split_log_text(text)
+        lines[-1] = (lines[-1][0], lines[-1][1] or end.endswith("\n"))
+
+        should_append = self._log_line_open
+
         if self._inline_logs:
-            if should_append and self.logs:
-                self.logs[-1].text = self._append_text(self.logs[-1].text, text)
-            else:
-                self.logs.append(ProgressLine(text, self))
+            for line, is_closed in lines:
+                if should_append and self.logs:
+                    self.logs[-1].text = self._append_text(self.logs[-1].text, line)
+                else:
+                    self.logs.append(ProgressLine(line, self))
+
+                should_append = not is_closed
         else:
             if should_append:
                 self.current_message = self._append_text(self.current_message, text)
             else:
                 self.current_message = text
+
+            should_append = not lines[-1][1]
+
+        self._log_line_open = should_append
 
     def set_error(self, text: str) -> None:
         self.current_message = text

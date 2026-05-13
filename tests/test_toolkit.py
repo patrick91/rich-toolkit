@@ -118,3 +118,37 @@ def test_inline_progress_log_can_append_without_newline() -> None:
     assert [line.text for line in progress.logs] == snapshot(
         ["Downloading 50%", "Done"]
     )
+
+
+def test_inline_progress_log_splits_embedded_newlines() -> None:
+    progress = Progress("Loading", style=MinimalStyle(theme={}), inline_logs=True)
+
+    progress.log("Downloading ", end="")
+    progress.log("50%\nDone\nNext", end="")
+    progress.log(" line")
+
+    assert [line.text for line in progress.logs] == snapshot(
+        ["Downloading 50%", "Done", "Next line"]
+    )
+
+
+def test_inline_progress_log_lines_to_show_limits_embedded_newlines() -> None:
+    style = MinimalStyle(theme={})
+    progress = Progress(
+        "Loading",
+        style=style,
+        inline_logs=True,
+        lines_to_show=2,
+    )
+
+    progress.log("one\ntwo\nthree\n", end="")
+
+    result = style.render_progress(progress)
+
+    style.console.begin_capture()
+    style.console.print(result)
+    output = style.console.end_capture()
+
+    assert "one" not in output
+    assert "two" in output
+    assert "three" in output
