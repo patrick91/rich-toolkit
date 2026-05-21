@@ -152,6 +152,19 @@ def _get_terminal_color(
         os.close(tty_fd)
         return default_color
 
+    # Only proceed if we're the foreground process group for this terminal.
+    # Calling tcsetattr (via setcbreak) from a background process group
+    # generates SIGTTOU, which by default stops the process. This happens
+    # e.g. when the program is launched in the background (`prog &`) or run
+    # under a job-control shell that isn't giving us the terminal.
+    try:
+        if os.tcgetpgrp(tty_fd) != os.getpgrp():
+            os.close(tty_fd)
+            return default_color
+    except OSError:
+        os.close(tty_fd)
+        return default_color
+
     old_settings = termios.tcgetattr(tty_fd)
 
     try:
