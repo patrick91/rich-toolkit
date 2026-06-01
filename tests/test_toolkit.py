@@ -4,6 +4,7 @@ from inline_snapshot import snapshot
 from rich.tree import Tree
 
 from rich_toolkit import RichToolkit
+from rich_toolkit.menu import Menu
 from rich_toolkit.progress import Progress
 from rich_toolkit.styles import FancyStyle, MinimalStyle
 from ._utils import trim_whitespace_on_lines
@@ -152,3 +153,10 @@ def test_inline_progress_log_lines_to_show_limits_embedded_newlines() -> None:
     assert "one" not in output
     assert "two" in output
     assert "three" in output
+
+
+def test_ask_returns_menu_value(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(Menu, "ask", lambda self: "demo")
+    app = RichToolkit(style=MinimalStyle(theme={}))
+
+    assert app.ask("Project", [{"name": "Demo", "value": "demo"}]) == "demo"

@@ -30,6 +30,7 @@ class Progress(Live, Element):
         transient_on_error: bool = False,
         inline_logs: bool = False,
         lines_to_show: int = -1,
+        quiet: bool = False,
         **metadata: Dict[Any, Any],
     ) -> None:
         self.title = title
@@ -38,6 +39,7 @@ class Progress(Live, Element):
         self._transient_on_error = transient_on_error
         self._inline_logs = inline_logs
         self.lines_to_show = lines_to_show
+        self._quiet = quiet
 
         self.logs: List[ProgressLine] = []
         self._log_line_open = False
@@ -49,6 +51,9 @@ class Progress(Live, Element):
 
     # TODO: remove this once rich uses "Self"
     def __enter__(self) -> "Progress":
+        if self._quiet:
+            return self
+
         self.start(refresh=self._renderable is not None)
 
         return self
@@ -56,6 +61,9 @@ class Progress(Live, Element):
     def __exit__(self, exc_type: type | None, *args: object) -> None:
         if exc_type is KeyboardInterrupt:
             self._cancelled = True
+
+        if self._quiet:
+            return None
 
         super().__exit__(exc_type, *args)
 
