@@ -1,6 +1,17 @@
 CHANGELOG
 =========
 
+0.20.0 - 2026-06-02
+-------------------
+
+This release adds JSON output support for CLI-friendly structured results.
+
+`RichToolkit(mode="json")` now suppresses human-only rendering and writes JSON-compatible output through `output()`. Pydantic-style models are serialized through `model_dump(mode="json")`, dictionaries and lists remain supported, and generators can be passed to `output()` to stream newline-delimited JSON events.
+
+The release also adds examples showing final JSON output, streaming JSON output, list output, and custom human renderers.
+
+This release was contributed by [@patrick91](https://github.com/patrick91) in [#60](https://github.com/patrick91/rich-toolkit/pull/60)
+
 0.19.10 - 2026-05-21
 --------------------
 
