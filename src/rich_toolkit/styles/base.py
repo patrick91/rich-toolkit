@@ -61,6 +61,7 @@ class BaseStyle:
         self.animation_counter = 0
 
         base_theme = Theme(self.base_theme)
+        self.theme = base_theme
         self.console = Console(theme=base_theme)
 
         if theme:

@@ -72,6 +72,7 @@ class Input(TextInputHandler, Element):
         self.required = required
         self.password = password
         self.inline = inline
+        self._height = 0
 
         self.text = ""
         self.valid = None
