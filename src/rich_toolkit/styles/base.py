@@ -70,6 +70,12 @@ class BaseStyle:
     def empty_line(self) -> RenderableType:
         return " "
 
+    def render_context_enter(self) -> Optional[RenderableType]:
+        return ""
+
+    def render_context_exit(self) -> Optional[RenderableType]:
+        return ""
+
     def _get_animation_colors(
         self,
         steps: int = 5,

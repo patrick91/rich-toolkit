@@ -147,7 +147,8 @@ class RichToolkit:
 
     def __enter__(self):
         if self.mode == "human":
-            self.console.print()
+            if (renderable := self.style.render_context_enter()) is not None:
+                self.console.print(renderable)
         return self
 
     def __exit__(
@@ -159,7 +160,8 @@ class RichToolkit:
             return True
 
         if self.mode == "human":
-            self.console.print()
+            if (renderable := self.style.render_context_exit()) is not None:
+                self.console.print(renderable)
 
         return None
 
