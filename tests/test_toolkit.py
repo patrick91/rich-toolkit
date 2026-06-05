@@ -43,6 +43,37 @@ def test_can_print_without_newline(capsys: CaptureFixture[str]) -> None:
     assert captured.out == snapshot("Hello, World!\n")
 
 
+def test_minimal_style_context_manager_does_not_print_padding(
+    capsys: CaptureFixture[str],
+) -> None:
+    app = RichToolkit(style=MinimalStyle(theme={}))
+
+    with app:
+        pass
+
+    captured = capsys.readouterr()
+
+    assert captured.out == snapshot("")
+
+
+def test_style_controls_context_manager_padding(capsys: CaptureFixture[str]) -> None:
+    class ContextPaddingStyle(MinimalStyle):
+        def render_context_enter(self):
+            return "enter"
+
+        def render_context_exit(self):
+            return "exit"
+
+    app = RichToolkit(style=ContextPaddingStyle(theme={}))
+
+    with app:
+        pass
+
+    captured = capsys.readouterr()
+
+    assert captured.out == snapshot("enter\nexit\n")
+
+
 def test_can_print_renderables(capsys: CaptureFixture[str]) -> None:
     app = RichToolkit(style=style)
 
