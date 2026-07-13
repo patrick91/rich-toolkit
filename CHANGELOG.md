@@ -1,6 +1,17 @@
 CHANGELOG
 =========
 
+0.20.3 - 2026-07-13
+-------------------
+
+This release keeps updated progress titles visible when logs are preserved.
+
+For progress displays with inline preserved logs, assigning to
+`progress.title` now also updates the displayed message unless
+`progress.current_message` was changed explicitly.
+
+This release was contributed by [@patrick91](https://github.com/patrick91) in [#63](https://github.com/patrick91/rich-toolkit/pull/63)
+
 0.20.2 - 2026-07-13
 -------------------
 
