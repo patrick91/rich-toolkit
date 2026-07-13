@@ -1,6 +1,9 @@
+from io import StringIO
+
 import pytest
 from _pytest.capture import CaptureFixture
 from inline_snapshot import snapshot
+from rich.console import Console
 from rich.tree import Tree
 
 from rich_toolkit import RichToolkit
@@ -138,6 +141,128 @@ def test_progress_log_can_append_without_newline() -> None:
 
     progress.log("Done")
     assert progress.current_message == snapshot("Done")
+
+
+def test_progress_can_preserve_logs_without_wrapping() -> None:
+    output = StringIO()
+    console = Console(file=output, width=20, color_system=None)
+    style = MinimalStyle(theme={})
+    style.console = console
+    app = RichToolkit(style=style, preserve_progress_logs=True)
+    message = "LONG_LOG=" + "x" * 40
+
+    with app.progress("Loading", inline_logs=True) as progress:
+        progress.log(message)
+
+    assert message in output.getvalue().splitlines()
+
+
+def test_progress_preserves_logs_in_ci_by_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("CI", "true")
+    output = StringIO()
+    console = Console(
+        file=output,
+        width=20,
+        force_terminal=True,
+        color_system=None,
+    )
+    style = MinimalStyle(theme={})
+    style.console = console
+    app = RichToolkit(style=style)
+    message = "LONG_LOG=" + "x" * 40
+
+    with app.progress("Loading", inline_logs=True) as progress:
+        progress.log(message)
+
+    assert message in output.getvalue()
+
+
+def test_progress_preserves_logs_for_non_interactive_output_by_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("CI", raising=False)
+    output = StringIO()
+    console = Console(
+        file=output,
+        width=20,
+        force_terminal=False,
+        color_system=None,
+    )
+    style = MinimalStyle(theme={})
+    style.console = console
+    app = RichToolkit(style=style)
+    message = "LONG_LOG=" + "x" * 40
+
+    with app.progress("Loading", inline_logs=True) as progress:
+        progress.log(message)
+
+    assert message in output.getvalue().splitlines()
+
+
+def test_progress_uses_live_logs_for_interactive_output_by_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("CI", raising=False)
+    output = StringIO()
+    console = Console(
+        file=output,
+        force_terminal=True,
+        color_system=None,
+    )
+    style = MinimalStyle(theme={})
+    style.console = console
+    app = RichToolkit(style=style)
+    progress = app.progress("Loading", inline_logs=True)
+
+    progress.log("Stored log")
+
+    assert [line.text for line in progress.logs] == ["Stored log"]
+
+
+def test_progress_log_preservation_can_be_disabled_globally_in_ci(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("CI", "true")
+    app = RichToolkit(
+        style=MinimalStyle(theme={}),
+        preserve_progress_logs=False,
+    )
+
+    with app.progress("Loading", inline_logs=True) as progress:
+        progress.log("Stored log")
+
+    assert [line.text for line in progress.logs] == ["Stored log"]
+
+
+def test_global_progress_log_preservation_can_be_overridden() -> None:
+    app = RichToolkit(
+        style=MinimalStyle(theme={}),
+        preserve_progress_logs=True,
+    )
+    progress = app.progress(
+        "Loading",
+        inline_logs=True,
+        preserve_logs=False,
+    )
+
+    progress.log("Stored log")
+
+    assert [line.text for line in progress.logs] == ["Stored log"]
+
+
+def test_preserved_progress_log_is_quiet() -> None:
+    output = StringIO()
+    console = Console(file=output, width=20, color_system=None)
+    style = MinimalStyle(theme={})
+    style.console = console
+    app = RichToolkit(style=style, mode="json", preserve_progress_logs=True)
+
+    with app.progress("Loading") as progress:
+        progress.log("LONG_LOG=" + "x" * 40)
+
+    assert output.getvalue() == ""
 
 
 def test_inline_progress_log_can_append_without_newline() -> None:

@@ -30,6 +30,7 @@ class Progress(Live, Element):
         transient_on_error: bool = False,
         inline_logs: bool = False,
         lines_to_show: int = -1,
+        preserve_logs: bool = False,
         quiet: bool = False,
         **metadata: Dict[Any, Any],
     ) -> None:
@@ -39,6 +40,7 @@ class Progress(Live, Element):
         self._transient_on_error = transient_on_error
         self._inline_logs = inline_logs
         self.lines_to_show = lines_to_show
+        self._preserve_logs = preserve_logs
         self._quiet = quiet
 
         self.logs: List[ProgressLine] = []
@@ -104,6 +106,10 @@ class Progress(Live, Element):
         return result
 
     def log(self, text: str | Text, end: str = "\n") -> None:
+        if self._preserve_logs and not self._quiet:
+            self.console.print(text, end=end, soft_wrap=True)
+            return
+
         if end != "\n":
             text = self._append_text(text, end)
 
