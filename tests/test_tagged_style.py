@@ -79,7 +79,7 @@ Hello, World!\
 
 
 def test_progress_handles_multiple_lines(capsys: CaptureFixture[str]) -> None:
-    app = RichToolkit(theme=theme)
+    app = RichToolkit(theme=theme, preserve_progress_logs=False)
 
     with app.progress(title="hi") as progress:
         progress.log("Hello, World!\nHello, World!")

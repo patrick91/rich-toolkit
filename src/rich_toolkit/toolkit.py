@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import inspect
 import json
+import os
 import sys
 from collections.abc import Iterator
 from functools import wraps
@@ -63,6 +64,15 @@ def _is_output_stream(data: Any) -> bool:
     return isinstance(data, Iterator)
 
 
+def _is_ci_enabled() -> bool:
+    value = os.environ.get("CI")
+
+    if value is None:
+        return False
+
+    return value.lower() not in {"", "0", "false", "no", "off"}
+
+
 def _dump_output_data(data: Any) -> Any:
     model_dump = getattr(data, "model_dump", None)
     if callable(model_dump):
@@ -120,7 +130,19 @@ class RichToolkit:
         theme: Optional[RichToolkitTheme] = None,
         handle_keyboard_interrupts: bool = True,
         mode: Literal["human", "json"] = "human",
+        preserve_progress_logs: Optional[bool] = None,
     ) -> None:
+        """Create a toolkit.
+
+        Args:
+            style: Style used to render toolkit elements.
+            theme: Legacy theme configuration.
+            handle_keyboard_interrupts: Suppress keyboard interrupts when enabled.
+            mode: Render human-readable or JSON output.
+            preserve_progress_logs: Print each progress log message immediately
+                without inserting line breaks at the console width. When `None`,
+                this is enabled in CI and for non-interactive consoles.
+        """
         if mode not in ("human", "json"):
             raise ValueError("mode must be 'human' or 'json'")
 
@@ -142,6 +164,9 @@ class RichToolkit:
             self.style = style
 
         self.console = self.style.console
+        if preserve_progress_logs is None:
+            preserve_progress_logs = _is_ci_enabled() or not self.console.is_terminal
+        self.preserve_progress_logs = preserve_progress_logs
 
         self.handle_keyboard_interrupts = handle_keyboard_interrupts
 
@@ -389,8 +414,21 @@ class RichToolkit:
         transient_on_error: bool = False,
         inline_logs: bool = False,
         lines_to_show: int = -1,
+        preserve_logs: Optional[bool] = None,
         **metadata: Any,
     ) -> Progress:
+        """Create a progress display.
+
+        Args:
+            title: Initial progress message.
+            transient: Remove the progress display when it finishes.
+            transient_on_error: Remove the progress display when it errors.
+            inline_logs: Display logged messages as separate lines.
+            lines_to_show: Maximum number of inline log lines to display. Negative
+                values display all lines.
+            preserve_logs: Override the toolkit's progress-log preservation setting.
+            **metadata: Additional metadata passed to the style renderer.
+        """
         return Progress(
             title=title,
             console=self.console,
@@ -399,6 +437,9 @@ class RichToolkit:
             transient_on_error=transient_on_error,
             inline_logs=inline_logs,
             lines_to_show=lines_to_show,
+            preserve_logs=(
+                self.preserve_progress_logs if preserve_logs is None else preserve_logs
+            ),
             quiet=self.mode == "json",
             **metadata,
         )
