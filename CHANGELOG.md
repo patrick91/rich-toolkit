@@ -1,6 +1,22 @@
 CHANGELOG
 =========
 
+0.20.2 - 2026-07-13
+-------------------
+
+This release preserves progress logs automatically in CI and non-interactive
+output.
+
+In these environments, every `progress.log()` message appears in the output once
+without line breaks inserted at the terminal width. Interactive terminals
+continue to use the live progress display.
+
+Pass `preserve_progress_logs=True` or `preserve_progress_logs=False` to
+`RichToolkit` to override the behavior globally. Individual progress displays
+can override it with `preserve_logs`.
+
+This release was contributed by [@patrick91](https://github.com/patrick91) in [#62](https://github.com/patrick91/rich-toolkit/pull/62)
+
 0.20.1 - 2026-06-05
 -------------------
 
