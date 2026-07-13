@@ -157,6 +157,34 @@ def test_progress_can_preserve_logs_without_wrapping() -> None:
     assert message in output.getvalue().splitlines()
 
 
+def test_preserved_inline_progress_uses_updated_title() -> None:
+    output = StringIO()
+    console = Console(file=output, color_system=None)
+    style = MinimalStyle(theme={})
+    style.console = console
+    app = RichToolkit(style=style, preserve_progress_logs=True)
+
+    with app.progress("Loading", inline_logs=True) as progress:
+        progress.log("Building...")
+        progress.title = "Build complete!"
+
+    assert output.getvalue().splitlines() == ["Building...", "Build complete!"]
+
+
+def test_preserved_inline_progress_keeps_explicit_current_message() -> None:
+    progress = Progress(
+        "Loading",
+        style=MinimalStyle(theme={}),
+        inline_logs=True,
+        preserve_logs=True,
+    )
+    progress.current_message = "Custom final message"
+
+    progress.title = "Build complete!"
+
+    assert progress.current_message == "Custom final message"
+
+
 def test_progress_preserves_logs_in_ci_by_default(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

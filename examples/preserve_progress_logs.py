@@ -51,7 +51,6 @@ def run_deployment(
     ) as progress:
         for title, log in BUILD_LOGS:
             progress.title = title
-            progress.current_message = title
             progress.log(log)
             time.sleep(delay)
 

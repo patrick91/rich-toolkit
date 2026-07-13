@@ -34,13 +34,13 @@ class Progress(Live, Element):
         quiet: bool = False,
         **metadata: Dict[Any, Any],
     ) -> None:
-        self.title = title
+        self._inline_logs = inline_logs
+        self._preserve_logs = preserve_logs
+        self._title = title
         self.current_message = title
         self.is_error = False
         self._transient_on_error = transient_on_error
-        self._inline_logs = inline_logs
         self.lines_to_show = lines_to_show
-        self._preserve_logs = preserve_logs
         self._quiet = quiet
 
         self.logs: List[ProgressLine] = []
@@ -50,6 +50,21 @@ class Progress(Live, Element):
 
         Element.__init__(self, style=style, metadata=metadata)
         super().__init__(console=console, refresh_per_second=8, transient=transient)
+
+    @property
+    def title(self) -> str:
+        return self._title
+
+    @title.setter
+    def title(self, title: str) -> None:
+        if (
+            self._preserve_logs
+            and self._inline_logs
+            and self.current_message == self._title
+        ):
+            self.current_message = title
+
+        self._title = title
 
     # TODO: remove this once rich uses "Self"
     def __enter__(self) -> "Progress":
