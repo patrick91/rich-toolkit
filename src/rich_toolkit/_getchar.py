@@ -30,6 +30,7 @@ def getchar() -> str:
         str: The input character(s) read from stdin
 
     Raises:
+        EOFError: When no terminal is available
         KeyboardInterrupt: When CTRL+C is pressed
     """
     if sys.platform == "win32":
@@ -89,7 +90,12 @@ def getchar() -> str:
 
         # Get the file descriptor
         if not sys.stdin.isatty():
-            f = open("/dev/tty")
+            try:
+                f = open("/dev/tty")
+            except OSError as error:
+                raise EOFError(
+                    "No terminal is available for interactive input"
+                ) from error
             fd = f.fileno()
         else:
             fd = sys.stdin.fileno()
