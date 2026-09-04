@@ -1,6 +1,18 @@
 CHANGELOG
 =========
 
+0.20.4 - 2026-09-04
+-------------------
+
+This release handles interactive prompts cleanly when no controlling terminal is
+available.
+
+On Unix, failing to open `/dev/tty` now raises `EOFError` instead of exposing the
+underlying operating-system error. Inputs and menus are marked as cancelled and
+the final state is rendered before the error is propagated.
+
+This release was contributed by [@patrick91](https://github.com/patrick91) in [#65](https://github.com/patrick91/rich-toolkit/pull/65)
+
 0.20.3 - 2026-07-13
 -------------------
 
