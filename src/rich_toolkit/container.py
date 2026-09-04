@@ -192,11 +192,15 @@ class Container(Element):
 
                 self._refresh()
 
-            except KeyboardInterrupt:
+            except (EOFError, KeyboardInterrupt) as error:
                 for element in self.elements:
                     element.on_cancel()
 
                 self._refresh(done=True)
+
+                if isinstance(error, EOFError):
+                    raise
+
                 exit()
 
         self._refresh(done=True)
