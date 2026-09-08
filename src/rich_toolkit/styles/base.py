@@ -8,6 +8,7 @@ from rich.text import Text
 from rich.theme import Theme
 from typing_extensions import Literal
 
+from rich_toolkit._console import ToolkitConsole, display_text
 from rich_toolkit.button import Button
 from rich_toolkit.container import Container
 from rich_toolkit.element import CursorOffset, Element
@@ -62,13 +63,25 @@ class BaseStyle:
 
         base_theme = Theme(self.base_theme)
         self.theme = base_theme
-        self.console = Console(theme=base_theme)
+        self.console: Console = ToolkitConsole(theme=base_theme)
 
         if theme:
             self.console.push_theme(Theme(theme))
 
     def empty_line(self) -> RenderableType:
         return " "
+
+    def display_text(self, value: str) -> str:
+        """Return the displayed representation without changing the stored value."""
+        return display_text(value, self.console.encoding)
+
+    def symbol(self, value: str, *, fallback: str) -> str:
+        """Choose a decoration supported by the current output stream."""
+        try:
+            value.encode(self.console.encoding)
+        except UnicodeEncodeError:
+            return fallback
+        return value
 
     def render_context_enter(self) -> Optional[RenderableType]:
         return ""
@@ -294,9 +307,12 @@ class BaseStyle:
         if not text:
             placeholder = input.placeholder if isinstance(input, Input) else ""
 
-            # Use zero-width space when placeholder is empty to prevent
-            # the line from being stripped as a trailing blank line
-            placeholder = placeholder or "\u200b"
+            if not placeholder:
+                # Preserve the blank input row when FancyPanel trims whitespace,
+                # keeping the rendered height consistent with cursor positioning.
+                empty = Text(" ", style="placeholder")
+                empty.apply_meta({"rich_toolkit.keep_line": True})
+                return empty
             return f"[placeholder]{placeholder}[/]"
 
         return f"[text]{text}[/]"
@@ -326,8 +342,13 @@ class BaseStyle:
         """Build the menu Text containing scroll indicators and option items."""
         menu = Text(justify="left")
 
-        checked_prefix = Text(element.active_prefix + " ")
-        unchecked_prefix = Text(element.inactive_prefix + " ")
+        checked_prefix = (
+            self.symbol(
+                element.active_prefix, fallback="x" if element.multiple else ">"
+            )
+            + " "
+        )
+        unchecked_prefix = self.symbol(element.inactive_prefix, fallback=" ") + " "
 
         start, end = element.visible_options_range
         visible_options = element.options[start:end]
@@ -336,9 +357,13 @@ class BaseStyle:
         # Reserve space for scroll indicators to prevent layout shift
         if needs_scrolling:
             if element.has_more_above:
-                menu.append(Text(element.MORE_ABOVE_INDICATOR + "\n", style="dim"))
+                menu.append(
+                    self.symbol(element.MORE_ABOVE_INDICATOR, fallback="  ^ more")
+                    + "\n",
+                    style="dim",
+                )
             else:
-                menu.append(Text(" " * len(element.MORE_ABOVE_INDICATOR) + "\n"))
+                menu.append(" " * len(element.MORE_ABOVE_INDICATOR) + "\n")
 
         for idx, option in enumerate(visible_options):
             actual_idx = start + idx
@@ -367,9 +392,13 @@ class BaseStyle:
 
         if needs_scrolling:
             if element.has_more_below:
-                menu.append(Text("\n" + element.MORE_BELOW_INDICATOR, style="dim"))
+                menu.append(
+                    "\n"
+                    + self.symbol(element.MORE_BELOW_INDICATOR, fallback="  v more"),
+                    style="dim",
+                )
             else:
-                menu.append(Text("\n" + " " * len(element.MORE_BELOW_INDICATOR)))
+                menu.append("\n" + " " * len(element.MORE_BELOW_INDICATOR))
 
         if not element.options:
             menu = Text("No results found", style=self.console.get_style("text"))
@@ -380,8 +409,6 @@ class BaseStyle:
         if not element.allow_filtering:
             return []
 
-        filter_parts: list[RenderableType] = []
-
         filter_line = Text.assemble(
             (element.filter_prompt, self.console.get_style("text")),
             (element.text, self.console.get_style("text")),
@@ -391,9 +418,7 @@ class BaseStyle:
             filter_line.append(f" {hint}", style="dim")
 
         filter_line.append("\n")
-        filter_parts.append(filter_line)
-
-        return filter_parts
+        return [filter_line]
 
     def render_menu(
         self,

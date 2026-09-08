@@ -40,7 +40,7 @@ class TaggedStyle(BaseStyle):
         animation_status: Optional[Literal["started", "stopped", "error"]] = None,
     ) -> Tuple[List[Segment], int]:
         if tag := metadata.get("tag", ""):
-            tag = f" {tag} "
+            tag = f" {self.display_text(tag)} "
 
         style_name = "tag.title" if metadata.get("title", False) else "tag"
 
@@ -60,7 +60,7 @@ class TaggedStyle(BaseStyle):
 
             tag_segments = [
                 Segment(
-                    self.block,
+                    self.symbol(self.block, fallback="#"),
                     style=Style(
                         color=colors[(self.animation_counter + i) % len(colors)]
                     ),

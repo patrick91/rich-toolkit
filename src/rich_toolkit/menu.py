@@ -362,7 +362,11 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
         # The filter line comes BEFORE scroll indicators, so no adjustment needed
         top = 2
 
-        left_offset = len(self.filter_prompt) + self.cursor_left
+        left_offset = self._get_text_width(
+            self.style.display_text(
+                self.filter_prompt + self.text[: self._cursor_index]
+            )
+        )
 
         return CursorOffset(top=top, left=left_offset)
 
