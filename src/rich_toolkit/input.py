@@ -113,9 +113,15 @@ class Input(TextInputHandler, Element):
         left_offset = 0
 
         if self.inline and self.label:
-            left_offset = len(self.label) + 1
+            left_offset = self._get_text_width(self.style.display_text(self.label)) + 1
 
-        return CursorOffset(top=top, left=self.cursor_left + left_offset)
+        text_before_cursor = (
+            "*" * self._cursor_index
+            if self.password
+            else self.text[: self._cursor_index]
+        )
+        cursor_left = self._get_text_width(self.style.display_text(text_before_cursor))
+        return CursorOffset(top=top, left=cursor_left + left_offset)
 
     @property
     def should_show_cursor(self) -> bool:

@@ -41,7 +41,9 @@ def test_can_print_strings_with_tag(capsys: CaptureFixture[str]) -> None:
     assert trim_whitespace_on_lines(captured.out) == snapshot("tag   Hello, World!")
 
 
-def test_can_print_renderables(capsys: CaptureFixture[str]) -> None:
+def test_can_print_renderables(
+    capsys: CaptureFixture[str], output_encoding: str
+) -> None:
     app = RichToolkit(theme=theme)
 
     tree = Tree("root")
@@ -51,15 +53,13 @@ def test_can_print_renderables(capsys: CaptureFixture[str]) -> None:
 
     captured = capsys.readouterr()
 
-    assert trim_whitespace_on_lines(captured.out) == snapshot(
-        """\
-root
-└── child\
-"""
-    )
+    expected = "root\n└── child" if output_encoding == "utf-8" else "root\n`-- child"
+    assert trim_whitespace_on_lines(captured.out) == expected
 
 
-def test_can_print_multiple_renderables(capsys: CaptureFixture[str]) -> None:
+def test_can_print_multiple_renderables(
+    capsys: CaptureFixture[str], output_encoding: str
+) -> None:
     app = RichToolkit(theme=theme)
 
     tree = Tree("root")
@@ -69,16 +69,17 @@ def test_can_print_multiple_renderables(capsys: CaptureFixture[str]) -> None:
 
     captured = capsys.readouterr()
 
-    assert trim_whitespace_on_lines(captured.out) == snapshot(
-        """\
-root
-└── child
-Hello, World!\
-"""
+    expected = (
+        "root\n└── child\nHello, World!"
+        if output_encoding == "utf-8"
+        else "root\n`-- child\nHello, World!"
     )
+    assert trim_whitespace_on_lines(captured.out) == expected
 
 
-def test_progress_handles_multiple_lines(capsys: CaptureFixture[str]) -> None:
+def test_progress_handles_multiple_lines(
+    capsys: CaptureFixture[str], output_encoding: str
+) -> None:
     app = RichToolkit(theme=theme, preserve_progress_logs=False)
 
     with app.progress(title="hi") as progress:
@@ -86,9 +87,9 @@ def test_progress_handles_multiple_lines(capsys: CaptureFixture[str]) -> None:
 
     captured = capsys.readouterr()
 
-    assert trim_whitespace_on_lines(captured.out) == snapshot(
-        """\
-█████  Hello, World!
-Hello, World!\
-"""
+    expected = (
+        "#####  Hello, World!\nHello, World!"
+        if output_encoding in ("ascii", "cp1252")
+        else "█████  Hello, World!\nHello, World!"
     )
+    assert trim_whitespace_on_lines(captured.out) == expected

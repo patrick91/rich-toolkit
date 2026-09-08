@@ -37,6 +37,9 @@ class FancyPanel:
 
     def _get_decoration(self, suffix: str = "") -> Segment:
         char = "┌" if self.metadata.get("title") else "◆"
+        char = self.style.symbol(
+            char, fallback="+" if self.metadata.get("title") else "*"
+        )
 
         animated = not self.done and self.is_animated
 
@@ -53,9 +56,13 @@ class FancyPanel:
     def _strip_trailing_newlines(
         self, lines: List[List[Segment]]
     ) -> List[List[Segment]]:
-        # remove all empty lines from the end of the list
+        # Trim trailing blank lines, except input rows marked by render_input_value.
 
-        while lines and all(segment.text.strip() == "" for segment in lines[-1]):
+        while lines and all(
+            segment.text.strip() == ""
+            and not (segment.style and segment.style.meta.get("rich_toolkit.keep_line"))
+            for segment in lines[-1]
+        ):
             lines.pop()
 
         return lines
@@ -77,21 +84,24 @@ class FancyPanel:
         if self._title is not None:
             yield line_start
             yield Segment(" ")
-            yield Segment(self._title)
+            title = Text(self._title, end="", overflow="fold")
+            yield from console.render(
+                title, options.update_width(options.max_width - 2)
+            )
             if lines:
                 yield new_line
 
         for first, last, line in loop_first_last(lines):
             if first and not self._title:
                 decoration = (
-                    Segment("┌ ")
+                    Segment(self.style.symbol("┌", fallback="+") + " ")
                     if self.metadata.get("title", False)
                     else self._get_decoration(suffix=" ")
                 )
             elif last and self.metadata.get("started", True):
-                decoration = Segment("└ ")
+                decoration = Segment(self.style.symbol("└", fallback="+") + " ")
             else:
-                decoration = Segment("│ ")
+                decoration = Segment(self.style.symbol("│", fallback="|") + " ")
 
             yield decoration
             yield from line
@@ -169,7 +179,7 @@ class FancyStyle(BaseStyle):
         Returns:
             A text object representing an empty line
         """
-        return Text("│", style="fancy.normal")
+        return Text(self.symbol("│", fallback="|"), style="fancy.normal")
 
     def get_cursor_offset_for_element(
         self, element: Element, parent: Optional[Element] = None

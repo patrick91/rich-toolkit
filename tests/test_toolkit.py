@@ -1,5 +1,3 @@
-from io import StringIO
-
 import pytest
 from _pytest.capture import CaptureFixture
 from inline_snapshot import snapshot
@@ -10,29 +8,35 @@ from rich_toolkit import RichToolkit
 from rich_toolkit.menu import Menu
 from rich_toolkit.progress import Progress
 from rich_toolkit.styles import FancyStyle, MinimalStyle
-from ._utils import trim_whitespace_on_lines
+from ._utils import EncodedOutput, trim_whitespace_on_lines
 
 style = FancyStyle(theme={})
 
 
-def test_print_line(capsys: CaptureFixture[str]) -> None:
+def test_print_line(capsys: CaptureFixture[str], output_encoding: str) -> None:
     app = RichToolkit(style=style)
 
     app.print_line()
 
     captured = capsys.readouterr()
 
-    assert trim_whitespace_on_lines(captured.out) == snapshot("│")
+    expected = "|" if output_encoding in ("ascii", "cp1252") else "│"
+    assert trim_whitespace_on_lines(captured.out) == expected
 
 
-def test_can_print_strings(capsys: CaptureFixture[str]) -> None:
+def test_can_print_strings(capsys: CaptureFixture[str], output_encoding: str) -> None:
     app = RichToolkit(style=style)
 
     app.print("Hello, World!")
 
     captured = capsys.readouterr()
 
-    assert trim_whitespace_on_lines(captured.out) == snapshot("◆ Hello, World!")
+    expected = (
+        "* Hello, World!"
+        if output_encoding in ("ascii", "cp1252")
+        else "◆ Hello, World!"
+    )
+    assert trim_whitespace_on_lines(captured.out) == expected
 
 
 def test_can_print_without_newline(capsys: CaptureFixture[str]) -> None:
@@ -77,7 +81,9 @@ def test_style_controls_context_manager_padding(capsys: CaptureFixture[str]) -> 
     assert captured.out == snapshot("enter\nexit\n")
 
 
-def test_can_print_renderables(capsys: CaptureFixture[str]) -> None:
+def test_can_print_renderables(
+    capsys: CaptureFixture[str], output_encoding: str
+) -> None:
     app = RichToolkit(style=style)
 
     tree = Tree("root")
@@ -87,15 +93,18 @@ def test_can_print_renderables(capsys: CaptureFixture[str]) -> None:
 
     captured = capsys.readouterr()
 
-    assert trim_whitespace_on_lines(captured.out) == snapshot(
-        """\
-◆ root
-└ └── child\
-"""
-    )
+    expected = {
+        "utf-8": "◆ root\n└ └── child",
+        "gbk": "◆ root\n└ `-- child",
+        "ascii": "* root\n+ `-- child",
+        "cp1252": "* root\n+ `-- child",
+    }
+    assert trim_whitespace_on_lines(captured.out) == expected[output_encoding]
 
 
-def test_can_print_multiple_renderables(capsys: CaptureFixture[str]) -> None:
+def test_can_print_multiple_renderables(
+    capsys: CaptureFixture[str], output_encoding: str
+) -> None:
     app = RichToolkit(style=style)
 
     tree = Tree("root")
@@ -105,12 +114,13 @@ def test_can_print_multiple_renderables(capsys: CaptureFixture[str]) -> None:
 
     captured = capsys.readouterr()
 
-    assert trim_whitespace_on_lines(captured.out) == snapshot(
-        """\
-◆ root
-└ └── child\
-"""
-    )
+    expected = {
+        "utf-8": "◆ root\n└ └── child",
+        "gbk": "◆ root\n└ `-- child",
+        "ascii": "* root\n+ `-- child",
+        "cp1252": "* root\n+ `-- child",
+    }
+    assert trim_whitespace_on_lines(captured.out) == expected[output_encoding]
 
 
 def test_handles_keyboard_interrupt(capsys: CaptureFixture[str]) -> None:
@@ -144,7 +154,7 @@ def test_progress_log_can_append_without_newline() -> None:
 
 
 def test_progress_can_preserve_logs_without_wrapping() -> None:
-    output = StringIO()
+    output = EncodedOutput()
     console = Console(file=output, width=20, color_system=None)
     style = MinimalStyle(theme={})
     style.console = console
@@ -158,7 +168,7 @@ def test_progress_can_preserve_logs_without_wrapping() -> None:
 
 
 def test_preserved_inline_progress_uses_updated_title() -> None:
-    output = StringIO()
+    output = EncodedOutput()
     console = Console(file=output, color_system=None)
     style = MinimalStyle(theme={})
     style.console = console
@@ -189,7 +199,7 @@ def test_progress_preserves_logs_in_ci_by_default(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("CI", "true")
-    output = StringIO()
+    output = EncodedOutput()
     console = Console(
         file=output,
         width=20,
@@ -211,7 +221,7 @@ def test_progress_preserves_logs_for_non_interactive_output_by_default(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.delenv("CI", raising=False)
-    output = StringIO()
+    output = EncodedOutput()
     console = Console(
         file=output,
         width=20,
@@ -233,7 +243,7 @@ def test_progress_uses_live_logs_for_interactive_output_by_default(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.delenv("CI", raising=False)
-    output = StringIO()
+    output = EncodedOutput()
     console = Console(
         file=output,
         force_terminal=True,
@@ -281,7 +291,7 @@ def test_global_progress_log_preservation_can_be_overridden() -> None:
 
 
 def test_preserved_progress_log_is_quiet() -> None:
-    output = StringIO()
+    output = EncodedOutput()
     console = Console(file=output, width=20, color_system=None)
     style = MinimalStyle(theme={})
     style.console = console

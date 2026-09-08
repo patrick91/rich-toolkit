@@ -236,7 +236,7 @@ class RichToolkit:
     def _write_json_line(self, data: Any) -> None:
         payload = json.dumps(
             _dump_output_data(data),
-            ensure_ascii=False,
+            ensure_ascii=True,
             allow_nan=False,
         )
         sys.stdout.write(payload + "\n")

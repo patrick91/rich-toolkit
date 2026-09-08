@@ -9,18 +9,29 @@ on:
 
 jobs:
   uv-example-linux:
-    name: python-${{ matrix.python-version }}-pydantic-${{ matrix.pydantic-version }}
+    name: python-${{ matrix.python-version }}-pydantic-${{ matrix.pydantic-version }}-${{ matrix.encoding }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
         pydantic-version: ["v1", "v2"]
+        encoding: ["utf-8"]
         exclude:
           # Pydantic v1 doesn't support Python 3.13+
           - python-version: "3.13"
             pydantic-version: "v1"
           - python-version: "3.14"
             pydantic-version: "v1"
+        include:
+          - python-version: "3.14"
+            pydantic-version: "v2"
+            encoding: "ascii"
+          - python-version: "3.14"
+            pydantic-version: "v2"
+            encoding: "cp1252"
+          - python-version: "3.14"
+            pydantic-version: "v2"
+            encoding: "gbk"
     env:
       UV_PYTHON: ${{ matrix.python-version }}
     steps:
@@ -41,4 +52,6 @@ jobs:
         run: uv pip install "pydantic>=2"
 
       - name: Run tests
+        env:
+          PYTHONIOENCODING: ${{ matrix.encoding }}:strict
         run: uv run pytest
