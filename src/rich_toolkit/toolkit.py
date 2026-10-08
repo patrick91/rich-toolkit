@@ -321,7 +321,7 @@ class RichToolkit:
         self._render_human_output(data, render_output=render_output)
 
     @_unavailable_in_json_mode("confirm")
-    def confirm(self, label: str, **metadata: Any) -> bool:
+    def confirm(self, label: str, default: bool = True, **metadata: Any) -> bool:
         options: List[Option[bool]] = [
             Option({"value": True, "name": "Yes"}),
             Option({"value": False, "name": "No"}),
@@ -331,6 +331,7 @@ class RichToolkit:
             label=label,
             options=options,
             inline=True,
+            default=default,
             **metadata,
         )
 
