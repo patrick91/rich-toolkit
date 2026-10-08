@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.8"
 resolution-markers = [
     "python_full_version >= '3.10'",
@@ -1554,7 +1554,7 @@ wheels = [
 
 [[package]]
 name = "rich-toolkit"
-version = "0.20.5"
+version = "0.20.6"
 source = { editable = "." }
 dependencies = [
     { name = "click", version = "8.1.8", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },

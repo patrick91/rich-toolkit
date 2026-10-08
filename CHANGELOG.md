@@ -1,6 +1,18 @@
 CHANGELOG
 =========
 
+0.20.6 - 2026-10-08
+-------------------
+
+`confirm()` now honours `default`: `confirm("Delete?", default=False)` starts
+on "No", so pressing Enter returns `False`. Previously `default` was ignored and
+Enter always returned `True`. `confirm()` still defaults to "Yes".
+
+`ask()` and `Menu` accept `default` too, which starts on the option with that
+value instead of the first one.
+
+This release was contributed by [@patrick91](https://github.com/patrick91) in [#67](https://github.com/patrick91/rich-toolkit/pull/67)
+
 0.20.5 - 2026-09-08
 -------------------
 
