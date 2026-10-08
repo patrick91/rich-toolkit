@@ -351,3 +351,13 @@ def test_render_multi_select_with_invalid_selection_shows_checked():
     # Should show the checked items, not "Cancelled."
     assert "Alpha, Gamma" in result.plain
     assert "Cancelled." not in result.plain
+
+
+def test_default_selects_matching_option():
+    menu = Menu("Pick", OPTIONS, default="beta")
+    assert menu.selected == 1
+
+
+def test_default_without_matching_option_selects_first():
+    menu = Menu("Pick", OPTIONS, default="missing")
+    assert menu.selected == 0

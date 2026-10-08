@@ -1,3 +1,5 @@
+import io
+
 import pytest
 from _pytest.capture import CaptureFixture
 from inline_snapshot import snapshot
@@ -5,6 +7,7 @@ from rich.console import Console
 from rich.tree import Tree
 
 from rich_toolkit import RichToolkit
+from rich_toolkit._console import ToolkitConsole
 from rich_toolkit.menu import Menu
 from rich_toolkit.progress import Progress
 from rich_toolkit.styles import FancyStyle, MinimalStyle
@@ -354,3 +357,26 @@ def test_ask_returns_menu_value(monkeypatch: pytest.MonkeyPatch) -> None:
     app = RichToolkit(style=MinimalStyle(theme={}))
 
     assert app.ask("Project", [{"name": "Demo", "value": "demo"}]) == "demo"
+
+
+def _terminal_toolkit() -> RichToolkit:
+    style = MinimalStyle()
+    style.console = ToolkitConsole(
+        file=io.StringIO(), theme=style.theme, force_terminal=True, width=80
+    )
+    return RichToolkit(style=style)
+
+
+@pytest.mark.parametrize("default", [True, False])
+def test_confirm_enter_accepts_the_default(
+    default: bool, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("rich_toolkit.container.getchar", lambda: Menu.ENTER_KEY)
+
+    assert _terminal_toolkit().confirm("Continue?", default=default) is default
+
+
+def test_confirm_defaults_to_yes(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("rich_toolkit.container.getchar", lambda: Menu.ENTER_KEY)
+
+    assert _terminal_toolkit().confirm("Continue?") is True

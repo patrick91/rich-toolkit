@@ -75,6 +75,7 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
         style: Optional[BaseStyle] = None,
         cursor_offset: int = 0,
         max_visible: Optional[int] = None,
+        default: Optional[ReturnValue] = None,
         **metadata: Any,
     ):
         if multiple and inline:
@@ -85,7 +86,15 @@ class Menu(Generic[ReturnValue], TextInputHandler, Element):
         self.allow_filtering = allow_filtering
         self.multiple = multiple
 
-        self.selected = 0
+        # Start on the option whose value is `default`, otherwise the first one.
+        self.selected = next(
+            (
+                index
+                for index, option in enumerate(options)
+                if default is not None and option["value"] == default
+            ),
+            0,
+        )
         self.checked: Set[int] = set()
 
         self._options = options
